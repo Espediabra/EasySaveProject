@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "Job1",
+    "SourcePath": "C:/TestData/Source1",
+    "TargetPath": "C:/TestData/Target1",
+    "Type": "Full"
+  },
+  {
+    "Name": "Job2",
+    "SourcePath": "C:/TestData/Source2",
+    "TargetPath": "C:/TestData/Target2",
+    "Type": "Differential"
+  }
+]
