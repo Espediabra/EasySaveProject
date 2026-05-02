@@ -1,7 +1,7 @@
-using EasySave.Models;
-using EasySave.Strategies;
+using EasySaveProject.Models;
+using EasySaveProject.Strategies;
 
-namespace EasySave.Factories
+namespace EasySaveProject.Factories
 {
     public class BackupStrategyFactory
     {

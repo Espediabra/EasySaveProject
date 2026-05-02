@@ -1,4 +1,4 @@
-using EasySave.Models;
+using EasySaveProject.Models;
 
 public class LogService
 {

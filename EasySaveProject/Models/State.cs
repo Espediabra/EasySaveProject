@@ -1,4 +1,4 @@
-namespace EasySave.Models;
+namespace EasySaveProject.Models;
 
 public class State
 {
