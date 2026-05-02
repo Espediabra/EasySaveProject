@@ -57,5 +57,9 @@ namespace EasySaveProject.Services
                 strategy.Execute(job, _fileService, _logService, _stateService);
             }
         }
+        public IReadOnlyList<BackupJob> GetJobs()
+        {
+            return _jobs;
+        }
     }
 }
