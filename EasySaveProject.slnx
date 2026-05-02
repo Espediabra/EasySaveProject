@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="EasySaveProject.Tests/EasySaveProject.Tests.csproj" />
   <Project Path="EasySaveProject/EasySaveProject.csproj" />
 </Solution>
