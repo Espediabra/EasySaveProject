@@ -1,6 +1,15 @@
-using EasySave.Models;
+using EasySaveProject.Models;
+using EasySaveProject.Services;
 
-public interface IBackupStrategy
+namespace EasySaveProject.Strategies
 {
-    void Execute(BackupJob job);
+    public interface IBackupStrategy
+    {
+        void Execute(
+            BackupJob job,
+            FileService fileService,
+            LogService logService,
+            StateService stateService
+        );
+    }
 }

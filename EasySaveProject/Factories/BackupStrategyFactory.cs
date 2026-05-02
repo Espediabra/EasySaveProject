@@ -1,15 +1,18 @@
-using EasySave.Models;
-using EasySave.Strategies;
+using EasySaveProject.Models;
+using EasySaveProject.Strategies;
 
-public class BackupStrategyFactory
+namespace EasySaveProject.Factories
 {
-    public IBackupStrategy Create(BackupType type)
+    public class BackupStrategyFactory
     {
-        return type switch
+        public static IBackupStrategy Create(BackupType type)
         {
-            BackupType.Full => new FullBackupStrategy(),
-            BackupType.Differential => new DifferentialBackupStrategy(),
-            _ => throw new Exception("Unknown type")
-        };
+            return type switch
+            {
+                BackupType.Full => new FullBackupStrategy(),
+                BackupType.Differential => new DifferentialBackupStrategy(),
+                _ => throw new ArgumentException("Invalid backup type")
+            };
+        }
     }
 }
