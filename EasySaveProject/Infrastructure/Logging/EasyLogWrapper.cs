@@ -1,7 +1,7 @@
 using System;
 using EasyLog;
 
-namespace EasySave.Infrastructure
+namespace EasySaveProject.Infrastructure
 {
     // Rôle de l'adaptateur, il fait le lien entre notre application EasySave et la DLL externe EasyLog
     public class EasyLogWrapper

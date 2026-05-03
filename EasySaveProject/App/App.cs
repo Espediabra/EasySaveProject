@@ -1,5 +1,6 @@
 using EasySaveProject.Services;
 
+
 public class App
 {
     private readonly ConfigService _configService = new();
@@ -7,7 +8,7 @@ public class App
     private readonly MenuService _menuService;
     private readonly ConsoleView _view;
     private readonly FileService _fileService = new();
-    private readonly LogService _logService = new();
+    private readonly LogService _logService = LogService.Instance;
     private readonly StateService _stateService = new();
 
     public App()
@@ -93,9 +94,9 @@ public class App
             switch (choice)
             {
                 case 0:
-                    Console.Write("hbsjdfkjsf");
-                    Console.ReadKey();
-                    // _view.ShowBackupMenu();
+                    // Console.Write("hbsjdfkjsf");
+                    // Console.ReadKey();
+                    _view.ShowBackupMenu();
                     break;
 
                 case 1:
