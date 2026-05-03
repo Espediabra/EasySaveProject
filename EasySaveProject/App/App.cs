@@ -1,5 +1,6 @@
 using EasySaveProject.Services;
 using EasySaveProject.Core.Localization;
+using EasyLog;
 
 public class App
 {
@@ -101,10 +102,8 @@ public class App
                     break;
 
                 case 1:
-                    Console.Write(_loc.T("Logs coming soon..."));
-                    Console.ReadKey();
+                    ShowLogsMenu();
                     break;
-
                 case 2:
                     OpenSettings();
                     break;
@@ -155,6 +154,77 @@ public class App
 
         Console.Clear();
         ConsoleHelper.WriteLineWithWrap(_loc.T("Settings.LanguageUpdated"));
+        Console.ReadKey();
+    }
+
+    private void ShowLogsMenu()
+    {
+        while (true)
+        {
+            Console.Clear();
+            ConsoleHelper.Header(_loc.T("Logs.Title"));
+
+            var options = new List<string>
+        {
+            _loc.T("Logs.Today"),
+            _loc.T("Logs.ByLevel"),
+            "Return"
+        };
+
+            int choice = _menuService.ShowMenu(options);
+
+            switch (choice)
+            {
+                case 0:
+                    ShowTodayLogs();
+                    break;
+
+                case 1:
+                    ShowLogsByLevel();
+                    break;
+
+                case 2:
+                    return;
+            }
+        }
+    }
+
+    private void ShowTodayLogs()
+    {
+        var logs = _logService.GetByDate(DateTime.Today);
+
+        Console.Clear();
+        ConsoleHelper.Header("Today's Logs");
+
+        _logService.PrintSimple(logs);
+
+        Console.ReadKey();
+    }
+
+    private void ShowLogsByLevel()
+    {
+        Console.Clear();
+        ConsoleHelper.Header("Select Level");
+
+        var options = new List<string> { "INFO", "WARNING", "ERROR" };
+
+        int choice = _menuService.ShowMenu(options);
+
+        var level = choice switch
+        {
+            0 => LogLevel.INFO,
+            1 => LogLevel.WARNING,
+            2 => LogLevel.ERROR,
+            _ => LogLevel.INFO
+        };
+
+        var logs = _logService.GetByLevel(DateTime.Today, level);
+
+        Console.Clear();
+        ConsoleHelper.Header($"Logs - {level}");
+
+        _logService.PrintSimple(logs);
+
         Console.ReadKey();
     }
 }
