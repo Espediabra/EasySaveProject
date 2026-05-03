@@ -97,8 +97,6 @@ public class App
             switch (choice)
             {
                 case 0:
-                    // Console.Write("hbsjdfkjsf");
-                    // Console.ReadKey();
                     _view.ShowBackupMenu();
                     break;
 

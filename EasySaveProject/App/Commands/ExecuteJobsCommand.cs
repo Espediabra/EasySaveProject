@@ -9,8 +9,8 @@ public class ExecuteJobsCommand
         _backupService = backupService;
     }
 
-    public void Execute(List<int> ids)
+    public void Execute(int index)
     {
-        _backupService.RunJobs(ids);
+        _backupService.RunJob(index);
     }
 }
