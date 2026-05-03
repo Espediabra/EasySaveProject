@@ -1,0 +1,14 @@
+{
+    "MainMenu.Title": "Main Menu",
+    "MainMenu.LaunchBackup": "Launch a backup",
+    "MainMenu.ViewLogs": "View logs",
+    "MainMenu.Settings": "Settings",
+    "MainMenu.Exit": "Exit",
+    "Logs.ComingSoon": "Logs coming soon...",
+    "Settings.ComingSoon": "Settings coming soon...",
+    
+    "Settings.Title": "Settings",
+    "Settings.ChangeLanguage": "Change language",
+    "Settings.Back": "Back",
+    "Settings.LanguageUpdated": "Language updated successfully"
+}
