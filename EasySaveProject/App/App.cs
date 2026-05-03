@@ -1,5 +1,5 @@
 using EasySaveProject.Services;
-
+using EasySaveProject.Core.Localization;
 
 public class App
 {
@@ -10,6 +10,7 @@ public class App
     private readonly FileService _fileService = new();
     private readonly LogService _logService = LogService.Instance;
     private readonly StateService _stateService = new();
+    private readonly LocalizationService _loc = new();
 
     public App()
     {
@@ -34,6 +35,8 @@ public class App
             config.Langage = AskLanguage();
             _configService.Save(config);
         }
+
+        _loc.Load(config.Langage);
 
         MainLoop();
     }
@@ -79,15 +82,15 @@ public class App
         while (true)
         {
             Console.Clear();
-            ConsoleHelper.Header("Main Menu");
+            ConsoleHelper.Header(_loc.T("MainMenu.Title"));
 
             var options = new List<string>
-                {
-                    "Launch a backup",
-                    "View logs",
-                    "Settings",
-                    "Exit"
-                };
+            {
+                _loc.T("MainMenu.LaunchBackup"),
+                _loc.T("MainMenu.ViewLogs"),
+                _loc.T("MainMenu.Settings"),
+                _loc.T("MainMenu.Exit")
+            };
 
             int choice = _menuService.ShowMenu(options);
 
@@ -100,18 +103,60 @@ public class App
                     break;
 
                 case 1:
-                    Console.Write("Logs coming soon...");
+                    Console.Write(_loc.T("Logs coming soon..."));
                     Console.ReadKey();
                     break;
 
                 case 2:
-                    Console.Write("Settings coming soon...");
-                    Console.ReadKey();
+                    OpenSettings();
                     break;
 
                 case 3:
                     return;
             }
         }
+    }
+
+    private void OpenSettings()
+    {
+        while (true)
+        {
+            Console.Clear();
+            ConsoleHelper.Header(_loc.T("Settings.Title"));
+
+            var options = new List<string>
+        {
+            _loc.T("Settings.ChangeLanguage"),
+            _loc.T("Settings.Back")
+        };
+
+            int choice = _menuService.ShowMenu(options);
+
+            switch (choice)
+            {
+                case 0:
+                    ChangeLanguage();
+                    break;
+
+                case 1:
+                    return;
+            }
+        }
+    }
+
+    private void ChangeLanguage()
+    {
+        var config = _configService.Load();
+
+        string newLang = AskLanguage();
+
+        config.Langage = newLang;
+        _configService.Save(config);
+
+        _loc.Load(newLang); // reload translations immediately
+
+        Console.Clear();
+        ConsoleHelper.WriteLineWithWrap(_loc.T("Settings.LanguageUpdated"));
+        Console.ReadKey();
     }
 }
