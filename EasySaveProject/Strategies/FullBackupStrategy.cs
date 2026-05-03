@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-using EasySave.Models;
-// using EasySave.Strategies;
-=======
 using EasySaveProject.Models;
 using EasySaveProject.Services;
->>>>>>> 98d876b13b84b8195240683710c4b056e9a6392b
 
 namespace EasySaveProject.Strategies;
 
