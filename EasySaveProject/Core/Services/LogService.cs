@@ -93,10 +93,15 @@ public class LogService
         foreach (var e in entries)
         {
             Console.WriteLine(
-                $"{e.Timestamp:HH:mm:ss,-10} " +
+                $"{e.Timestamp:HH:mm:ss} " +
                 $"{e.Level,-10} " +
-                $"{e.JobName,-25} " +
-                $"{e.Message}");
+                $"{e.JobName,-20} " +
+                $"{e.Message,-30} " +
+                $"...{(e.SourcePath.Substring(Math.Max(0, e.SourcePath.Length - 17))),-20} ➟ " +
+                $"...{(e.TargetPath.Substring(Math.Max(0, e.TargetPath.Length - 17))), -20} " +
+                $"{e.FileSizeBytes,12} octets " +
+                $"{(e.TransferTimeMs < 0 ? "ERREUR" : $"{e.TransferTimeMs} ms"),10}"
+            );
         }
     }
 
