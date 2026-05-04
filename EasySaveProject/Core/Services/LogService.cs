@@ -45,8 +45,8 @@ public class LogService
     private LogService()
     {
         // Lecture du chemin de logs 
-        string logDir = Environment.GetEnvironmentVariable("EASYSAVE_LOG_DIR")
-                        ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+        string logDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
+        "..", "..", "..", "Data", "Logs"));
 
         _provider = new JsonLogProvider(logDir);
 
