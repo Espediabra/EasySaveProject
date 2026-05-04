@@ -38,9 +38,15 @@ public class App
     {
         var config = _configService.Load();
 
-        if (string.IsNullOrWhiteSpace(config.Langage))
+        _loc.Load(config.Langage ?? "en");
+
+        if (config.FirstRun)
         {
-            config.Langage = AskLanguage();
+            string selectedLang = AskLanguage();
+
+            config.Langage = selectedLang;
+            config.FirstRun = false;
+
             _configService.Save(config);
         }
 
