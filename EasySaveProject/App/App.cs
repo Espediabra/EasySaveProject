@@ -14,8 +14,6 @@ public class App
     private readonly StateService _stateService = new();
     private readonly LogService _logService;
 
-
-
     public App()
     {
         _menuService = new MenuService();
@@ -38,7 +36,7 @@ public class App
     {
         var config = _configService.Load();
 
-        _loc.Load(config.Langage ?? "en");
+        _loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
 
         if (config.FirstRun)
         {

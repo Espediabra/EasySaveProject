@@ -1,6 +1,7 @@
 using EasySaveProject.Models;
 using EasySaveProject.Services;
 using EasySaveProject.Factories;
+using System.Text.Json;
 
 namespace EasySaveProject.Services
 {
@@ -12,14 +13,29 @@ namespace EasySaveProject.Services
 
         private readonly List<BackupJob> _jobs = new();
 
-        public BackupService(
-            FileService fileService,
-            LogService logService,
-            StateService stateService)
+        private readonly string _jobsPath = Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..",
+            "Data", "Jobs", "jobs.json"
+        );
+
+        public BackupService(FileService fileService, LogService logService, StateService stateService)
         {
             _fileService = fileService;
             _logService = logService;
             _stateService = stateService;
+
+            if (File.Exists(_jobsPath))
+            {
+                var json = File.ReadAllText(_jobsPath);
+
+                var jobs = System.Text.Json.JsonSerializer.Deserialize<List<BackupJob>>(json);
+
+                if (jobs != null)
+                {
+                    _jobs.AddRange(jobs);
+                }
+            }
         }
 
         public void LoadJobs(string jsonPath)
@@ -51,6 +67,8 @@ namespace EasySaveProject.Services
             );
 
             _jobs[index] = updatedJob;
+
+            SaveJobs();
         }
 
         public void AddJob(BackupJob job)
@@ -59,6 +77,8 @@ namespace EasySaveProject.Services
                 throw new InvalidOperationException("Maximum number of jobs reached");
 
             _jobs.Add(job);
+
+            SaveJobs();
         }
 
         public void RunJob(int index)
@@ -79,6 +99,25 @@ namespace EasySaveProject.Services
                 return;
 
             _jobs.RemoveAt(index);
+
+            SaveJobs();
+        }
+
+        private void SaveJobs()
+        {
+            var directory = Path.GetDirectoryName(_jobsPath);
+
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory!);
+            }
+
+            var json = System.Text.Json.JsonSerializer.Serialize(_jobs, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            File.WriteAllText(_jobsPath, json);
         }
 
         public IReadOnlyList<BackupJob> GetJobs()

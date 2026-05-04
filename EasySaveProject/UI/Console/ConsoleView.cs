@@ -23,6 +23,16 @@ public class ConsoleView
 
             var jobs = _viewModel.GetBackupNames();
 
+            if (jobs.Count == 0)
+            {
+                bool shouldExit = HandleNoJobs();
+
+                if (shouldExit)
+                    return;
+
+                continue;
+            }
+
             var options = new List<string>();
 
             options.AddRange(jobs);
@@ -89,9 +99,10 @@ public class ConsoleView
         }
     }
 
-    private void HandleNoJobs()
+    private bool HandleNoJobs()
     {
-        Console.WriteLine(_loc.T("Backup.NoBackupJobs"));
+        Console.Clear();
+        ConsoleHelper.Header(_loc.T("Backup.NoBackupJobs"));
 
         var options = new List<string>
     {
@@ -105,11 +116,13 @@ public class ConsoleView
         {
             case 0:
                 CreateJobForm();
-                break;
+                return false;
 
             case 1:
-                return;
+                return true;
         }
+
+        return false;
     }
 
     private void ShowJobDetails(int index)
