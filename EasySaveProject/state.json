@@ -1,7 +1,7 @@
 [
   {
-    "BackupName": "bob",
-    "Timestamp": "2026-05-03T21:46:52.6205858+02:00",
+    "BackupName": "bob7",
+    "Timestamp": "2026-05-03T21:50:43.9198231+02:00",
     "Status": "Completed",
     "TotalFiles": 2,
     "RemainingFiles": 0,
@@ -11,8 +11,19 @@
     "CurrentTargetFile": "C:\\Users\\S D\\Downloads\\tests2\\linuxmint-22.3-cinnamon-64bit.iso"
   },
   {
-    "BackupName": "bob7",
-    "Timestamp": "2026-05-03T21:50:43.9198231+02:00",
+    "BackupName": "bob2",
+    "Timestamp": "2026-05-03T23:25:41.0240319+02:00",
+    "Status": "Completed",
+    "TotalFiles": 2,
+    "RemainingFiles": 0,
+    "TotalSize": 3091745260,
+    "RemainingSize": 0,
+    "CurrentSourceFile": "C:\\Users\\S D\\Downloads\\tests\\linuxmint-22.3-cinnamon-64bit.iso",
+    "CurrentTargetFile": "C:\\Users\\S D\\Downloads\\tests2\\linuxmint-22.3-cinnamon-64bit.iso"
+  },
+  {
+    "BackupName": "bob",
+    "Timestamp": "2026-05-04T13:24:16.3691586+02:00",
     "Status": "Completed",
     "TotalFiles": 2,
     "RemainingFiles": 0,
