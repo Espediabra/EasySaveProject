@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EasyLog;
 using EasySaveProject.Infrastructure;
+using EasySaveProject.Core.Localization;
 
 namespace EasySaveProject.Services;
 
@@ -10,12 +11,26 @@ namespace EasySaveProject.Services;
 // Service principal de logging + Pattern Singleton
 public class LogService
 {
+
+    // Dépendances
+    private readonly LocalizationService _loc;
+
     // Singleton
-
     private static LogService? _instance;
-
     // Verrou 
     private static readonly object _instanceLock = new object();
+
+    public static void Initialize(LocalizationService loc)
+    {
+        if (_instance == null)
+        {
+            lock (_instanceLock)
+            {
+                if (_instance == null)
+                    _instance = new LogService(loc);
+            }
+        }
+    }
 
     /// Point d'accès
     public static LogService Instance
@@ -23,13 +38,8 @@ public class LogService
         get
         {
             if (_instance == null)
-            {
-                lock (_instanceLock)
-                {
-                    if (_instance == null)
-                        _instance = new LogService();
-                }
-            }
+                throw new Exception("LogService not initialized. Call Initialize() first.");
+
             return _instance;
         }
     }
@@ -42,14 +52,14 @@ public class LogService
 
     // Constructeur privé
 
-    private LogService()
+    private LogService(LocalizationService loc)
     {
-        // Lecture du chemin de logs 
+        _loc = loc;
+
         string logDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
         "..", "..", "..", "Data", "Logs"));
 
         _provider = new JsonLogProvider(logDir);
-
         _wrapper = new EasyLogWrapper(_provider);
     }
 
@@ -87,40 +97,60 @@ public class LogService
     /// Affiche une vue simplifiée d'une liste de logs dans la console.
     public void PrintSimple(List<LogEntry> entries)
     {
-        Console.WriteLine($"{"Heure",-10} {"Niveau",-10} {"Job",-25} {"Message"}");
-        Console.WriteLine(new string('-', 70));
+        Console.WriteLine(
+            $"{_loc.T("Logs.Header.Time"),-10} " +
+            $"{_loc.T("Logs.Header.Level"),-10} " +
+            $"{_loc.T("Logs.Header.Job"),-25} " +
+            $"{_loc.T("Logs.Header.Message"),-30} " +
+            $"{_loc.T("Logs.Header.SourceFile"),-17} " +
+            $"{_loc.T(" "),-7} " +
+            $"{_loc.T("Logs.Header.TargetFile"),-17} " +
+            $"{_loc.T("Logs.Header.FileSize"),-12} " +
+            $"{_loc.T("Logs.Header.TransferTime"),-10}"
+        );
+
+        Console.WriteLine(new string('-', 152));
 
         foreach (var e in entries)
         {
             Console.WriteLine(
                 $"{e.Timestamp:HH:mm:ss} " +
-                $"{e.Level,-10} " +
+                $"{_loc.T($"{e.Level}"),-10} " +
                 $"{e.JobName,-20} " +
                 $"{e.Message,-30} " +
-                $"...{(e.SourcePath.Substring(Math.Max(0, e.SourcePath.Length - 17))),-20} ➟ " +
-                $"...{(e.TargetPath.Substring(Math.Max(0, e.TargetPath.Length - 17))), -20} " +
-                $"{e.FileSizeBytes,12} octets " +
-                $"{(e.TransferTimeMs < 0 ? "ERREUR" : $"{e.TransferTimeMs} ms"),10}"
+                $"...{e.SourcePath.Substring(Math.Max(0, e.SourcePath.Length - 17))}" +
+                $"{_loc.T("Logs.Arrow"),-7}" +
+                $"...{e.TargetPath.Substring(Math.Max(0, e.TargetPath.Length - 17))}" +
+                $"{e.FileSizeBytes,12} {_loc.T("Logs.Bytes")} " +
+                $"{(e.TransferTimeMs < 0
+                    ? _loc.T("Logs.Error")
+                    : $"{e.TransferTimeMs} {_loc.T("Logs.Milliseconds")}"),10}"
             );
         }
     }
 
-    /// Vue de kla console
+    /// Vue de la console
     public void PrintDetailed(List<LogEntry> entries)
     {
         foreach (var e in entries)
         {
             Console.WriteLine(new string('═', 60));
-            Console.WriteLine($"  Timestamp      : {e.Timestamp:yyyy-MM-dd HH:mm:ss}");
-            Console.WriteLine($"  Niveau         : {e.Level}");
-            Console.WriteLine($"  Job            : {e.JobName}");
-            Console.WriteLine($"  Source         : {e.SourcePath}");
-            Console.WriteLine($"  Destination    : {e.TargetPath}");
-            Console.WriteLine($"  Taille         : {e.FileSizeBytes} octets");
-            Console.WriteLine($"  Temps transfert: {e.TransferTimeMs} ms" +
-                              (e.TransferTimeMs < 0 ? "ERREUR" : ""));
-            Console.WriteLine($"  Message        : {e.Message}");
+
+            Console.WriteLine($"  {_loc.T("Logs.Details.Timestamp"),-15}: {e.Timestamp:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"  {_loc.T("Logs.Details.Level"),-15}: {_loc.T($"Log.Level.{e.Level}")}");
+            Console.WriteLine($"  {_loc.T("Logs.Details.Job"),-15}: {e.JobName}");
+            Console.WriteLine($"  {_loc.T("Logs.Details.Source"),-15}: {e.SourcePath}");
+            Console.WriteLine($"  {_loc.T("Logs.Details.Destination"),-15}: {e.TargetPath}");
+            Console.WriteLine($"  {_loc.T("Logs.Details.Size"),-15}: {e.FileSizeBytes} {_loc.T("Logs.Bytes")}");
+            Console.WriteLine(
+                $"  {_loc.T("Logs.Details.TransferTime"),-15}: " +
+                $"{(e.TransferTimeMs < 0
+                    ? _loc.T("Logs.Error")
+                    : $"{e.TransferTimeMs} {_loc.T("Logs.Milliseconds")}")}"
+            );
+            Console.WriteLine($"  {_loc.T("Logs.Details.Message"),-15}: {e.Message}");
         }
+
         Console.WriteLine(new string('═', 60));
     }
 }

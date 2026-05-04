@@ -9,14 +9,19 @@ public class App
     private readonly MainViewModel _viewModel;
     private readonly MenuService _menuService;
     private readonly ConsoleView _view;
-    private readonly FileService _fileService = new();
-    private readonly LogService _logService = LogService.Instance;
-    private readonly StateService _stateService = new();
     private readonly LocalizationService _loc = new();
+    private readonly FileService _fileService = new();
+    private readonly StateService _stateService = new();
+    private readonly LogService _logService;
+
+
 
     public App()
     {
         _menuService = new MenuService();
+
+        LogService.Initialize(_loc);
+        _logService = LogService.Instance;
 
         var backupService = new BackupService(
             _fileService,
