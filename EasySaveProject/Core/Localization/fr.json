@@ -1,0 +1,13 @@
+{
+    "MainMenu.Title": "Menu Principal",
+    "MainMenu.LaunchBackup": "Lancer une sauvegarde",
+    "MainMenu.ViewLogs": "Voir les logs",
+    "MainMenu.Settings": "Paramètres",
+    "MainMenu.Exit": "Quitter",
+    "Logs.ComingSoon": "Les logs arrivent bientôt...",
+    "Settings.ComingSoon": "Les paramètres arrivent bientôt...",
+    "Settings.Title": "Paramètres",
+    "Settings.ChangeLanguage": "Changer la langue",
+    "Settings.Back": "Retour",
+    "Settings.LanguageUpdated": "La langue a bien été modifiée."
+}

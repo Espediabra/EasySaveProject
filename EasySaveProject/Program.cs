@@ -1,1 +1,8 @@
-Console.WriteLine("Hello World");
+class Program
+{
+    static void Main()
+    {
+        var app = new App();
+        app.Run();
+    }
+}
