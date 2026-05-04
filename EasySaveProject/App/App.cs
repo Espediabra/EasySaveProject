@@ -1,6 +1,7 @@
 using EasySaveProject.Services;
 using EasySaveProject.Core.Localization;
 using EasyLog;
+using System.Reflection.Metadata.Ecma335;
 
 public class App
 {
@@ -27,6 +28,7 @@ public class App
 
         _view = new ConsoleView(_viewModel, _menuService, _loc);
     }
+
     public void Run()
     {
         var config = _configService.Load();
@@ -46,11 +48,15 @@ public class App
     {
         while (true)
         {
-
             Console.Clear();
-            ConsoleHelper.Header("Choose Language");
+            ConsoleHelper.Header(_loc.T("Language.Choose"));
 
-            var options = new List<string> { "English", "Français" };
+            var options = new List<string>
+            {
+                _loc.T("Language.English"),
+                _loc.T("Language.French")
+            };
+
             int choice = _menuService.ShowMenu(options);
 
             string selectedLang = choice switch
@@ -61,13 +67,21 @@ public class App
             };
 
             Console.Clear();
-            ConsoleHelper.Header("Confirmation");
+            ConsoleHelper.Header(_loc.T("Language.ConfirmationTitle"));
 
-            string langLabel = selectedLang == "fr" ? "Français" : "English";
+            string langLabel = selectedLang == "fr"
+                ? _loc.T("Language.French")
+                : _loc.T("Language.English");
 
-            ConsoleHelper.WriteLineWithWrap($"You have chosen: {langLabel}. Do you confirm?");
+            ConsoleHelper.WriteLineWithWrap(
+                string.Format(_loc.T("Language.YouChose"), langLabel)
+            );
 
-            var confirmOptions = new List<string> { "Yes", "No" };
+            var confirmOptions = new List<string>
+            {
+                _loc.T("Confirm.Yes"),
+                _loc.T("Confirm.No")
+            };
 
             int confirmChoice = _menuService.ShowMenu(confirmOptions);
 
@@ -104,6 +118,7 @@ public class App
                 case 1:
                     ShowLogsMenu();
                     break;
+
                 case 2:
                     OpenSettings();
                     break;
@@ -122,10 +137,10 @@ public class App
             ConsoleHelper.Header(_loc.T("Settings.Title"));
 
             var options = new List<string>
-        {
-            _loc.T("Settings.ChangeLanguage"),
-            _loc.T("Settings.Back")
-        };
+            {
+                _loc.T("Settings.ChangeLanguage"),
+                _loc.T("Settings.Back")
+            };
 
             int choice = _menuService.ShowMenu(options);
 
@@ -150,7 +165,7 @@ public class App
         config.Langage = newLang;
         _configService.Save(config);
 
-        _loc.Load(newLang); // reload translations immediately
+        _loc.Load(newLang);
 
         Console.Clear();
         ConsoleHelper.WriteLineWithWrap(_loc.T("Settings.LanguageUpdated"));
@@ -165,11 +180,11 @@ public class App
             ConsoleHelper.Header(_loc.T("Logs.Title"));
 
             var options = new List<string>
-        {
-            _loc.T("Logs.Today"),
-            _loc.T("Logs.ByLevel"),
-            "Return"
-        };
+            {
+                _loc.T("Logs.Today"),
+                _loc.T("Logs.ByLevel"),
+                _loc.T("Return")
+            };
 
             int choice = _menuService.ShowMenu(options);
 
@@ -194,7 +209,7 @@ public class App
         var logs = _logService.GetByDate(DateTime.Today);
 
         Console.Clear();
-        ConsoleHelper.Header("Today's Logs");
+        ConsoleHelper.Header(_loc.T("Logs.TodayHeader"));
 
         _logService.PrintSimple(logs);
 
@@ -204,11 +219,21 @@ public class App
     private void ShowLogsByLevel()
     {
         Console.Clear();
-        ConsoleHelper.Header("Select Level");
+        ConsoleHelper.Header(_loc.T("Logs.SelectLevel"));
 
-        var options = new List<string> { "INFO", "WARNING", "ERROR" };
+        var options = new List<string>
+        {
+            _loc.T("Log.Level.Info"),
+            _loc.T("Log.Level.Warning"),
+            _loc.T("Log.Level.Error"),
+            _loc.T("Return")
+        };
 
         int choice = _menuService.ShowMenu(options);
+
+        // gestion du retour
+        if (choice == 3)
+            return;
 
         var level = choice switch
         {
@@ -221,7 +246,9 @@ public class App
         var logs = _logService.GetByLevel(DateTime.Today, level);
 
         Console.Clear();
-        ConsoleHelper.Header($"Logs - {level}");
+        ConsoleHelper.Header(
+            string.Format(_loc.T("Logs.LevelHeader"), level)
+        );
 
         _logService.PrintSimple(logs);
 
