@@ -11,6 +11,11 @@ public class FullBackupStrategy : IBackupStrategy
 
     public void Execute(BackupJob job, FileService fileService, LogService logService, StateService stateService)
     {
+        if (!Directory.Exists(job.TargetPath))
+        {
+            Directory.CreateDirectory(job.TargetPath); 
+        }
+        
         if (!Directory.Exists(job.SourcePath))
             throw new DirectoryNotFoundException($"Source not found: {job.SourcePath}");
 

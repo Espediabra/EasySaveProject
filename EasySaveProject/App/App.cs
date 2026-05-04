@@ -2,6 +2,7 @@ using EasySaveProject.Services;
 using EasySaveProject.Core.Localization;
 using EasyLog;
 using System.Reflection.Metadata.Ecma335;
+using EasySaveProject.Helpers;
 
 public class App
 {
@@ -262,5 +263,38 @@ public class App
         _logService.PrintSimple(logs);
 
         Console.ReadKey();
+    }
+
+    public void RunCli(string arg)
+    {
+        var config = _configService.Load();
+
+        _loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
+
+        var indices = ArgumentParser.Parse(arg);
+
+        var jobs = _viewModel.GetJobsRaw();
+
+
+        if (jobs.Count == 0)
+        {
+            Console.WriteLine("No backup jobs found.");
+            Console.WriteLine("Run without arguments to create jobs.");
+            return;
+        }
+
+        foreach (var index in indices)
+        {
+            int realIndex = index - 1;
+
+            if (realIndex < 0 || realIndex >= jobs.Count)
+            {
+                Console.WriteLine($"Job {index} does not exist, skipping.");
+                continue;
+            }
+
+            _viewModel.ExecuteBackup(realIndex);
+            Console.WriteLine($"Executed job {index}");
+        }
     }
 }

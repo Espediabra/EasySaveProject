@@ -1,8 +1,17 @@
+using EasySaveProject.Helpers;
+
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
         var app = new App();
-        app.Run();
+
+        if (args.Length == 0)
+        {
+            app.Run();
+            return;
+        }
+
+        app.RunCli(args[0]);
     }
 }

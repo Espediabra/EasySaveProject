@@ -90,7 +90,38 @@ namespace EasySaveProject.Services
 
             var strategy = BackupStrategyFactory.Create(job.Type);
 
-            strategy.Execute(job, _fileService, _logService, _stateService);
+            try
+            {
+                strategy.Execute(job, _fileService, _logService, _stateService);
+            }
+            catch (Exception ex)
+            {
+                // LOG
+                _logService.LogError(
+                    job.Name,
+                    job.SourcePath,
+                    job.TargetPath,
+                    0,
+                    $"Job failed: {ex.Message}"
+                );
+
+                // STATE
+                _stateService.Update(new State
+                {
+                    BackupName = job.Name,
+                    Timestamp = DateTime.Now,
+                    Status = "Error",
+                    TotalFiles = 0,
+                    RemainingFiles = 0,
+                    TotalSize = 0,
+                    RemainingSize = 0,
+                    CurrentSourceFile = "",
+                    CurrentTargetFile = ""
+                });
+
+                // TEMPORAIRE (console)
+                Console.WriteLine($"Error for job '{job.Name}': {ex.Message}");
+            }
         }
 
         public void DeleteJob(int index)
