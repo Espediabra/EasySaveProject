@@ -1,14 +1,17 @@
 using EasySaveProject.Models;
+using EasySaveProject.Core.Localization;
 
 public class ConsoleView
 {
     private readonly MainViewModel _viewModel;
     private readonly MenuService _menu;
+    private readonly LocalizationService _loc = new();
 
-    public ConsoleView(MainViewModel viewModel, MenuService menu)
+    public ConsoleView(MainViewModel viewModel, MenuService menu, LocalizationService loc)
     {
         _viewModel = viewModel;
         _menu = menu;
+        _loc = loc;
     }
 
     public void ShowBackupMenu()
@@ -16,7 +19,7 @@ public class ConsoleView
         while (true)
         {
             Console.Clear();
-            ConsoleHelper.Header("Backup Menu");
+            ConsoleHelper.Header(_loc.T("Backup.Menu"));
 
             var jobs = _viewModel.GetBackupNames();
 
@@ -24,8 +27,8 @@ public class ConsoleView
 
             options.AddRange(jobs);
 
-            options.Add("Create new backup");
-            options.Add("Return");
+            options.Add(_loc.T("Backup.CreateNew"));
+            options.Add(_loc.T("Return"));
 
             int choice = _menu.ShowMenu(options);
 
@@ -47,15 +50,15 @@ public class ConsoleView
         while (true)
         {
             Console.Clear();
-            ConsoleHelper.Header("Job Options");
+            ConsoleHelper.Header(_loc.T("Job.Options"));
 
             var options = new List<string>
         {
-            "Run backup",
-            "View details",
-            "Change backup type",
-            "Delete backup",
-            "Return"
+            _loc.T("Backup.Run"),
+            _loc.T("View.Details"),
+            _loc.T("Backup.ChangeType"),
+            _loc.T("Backup.Delete"),
+            _loc.T("Return")
         };
 
             int choice = _menu.ShowMenu(options);
@@ -64,7 +67,7 @@ public class ConsoleView
             {
                 case 0:
                     _viewModel.ExecuteBackup(index);
-                    Console.WriteLine("Backup executed.");
+                    Console.WriteLine(_loc.T("Backup.Executed"));
                     Console.ReadKey();
                     break;
 
@@ -88,12 +91,12 @@ public class ConsoleView
 
     private void HandleNoJobs()
     {
-        Console.WriteLine("No backup jobs available.");
+        Console.WriteLine(_loc.T("Backup.NoBackupJobs"));
 
         var options = new List<string>
     {
-        "Create a backup job",
-        "Back"
+        _loc.T("Backup.CreateA"),
+        _loc.T("Back")
     };
 
         int choice = _menu.ShowMenu(options);
@@ -114,12 +117,12 @@ public class ConsoleView
         var job = _viewModel.GetJob(index);
 
         Console.Clear();
-        ConsoleHelper.Header("Job Details");
+        ConsoleHelper.Header(_loc.T("Job.Detail"));
 
-        Console.WriteLine($"Name: {job.Name}");
-        Console.WriteLine($"Source: {job.SourcePath}");
-        Console.WriteLine($"Target: {job.TargetPath}");
-        Console.WriteLine($"Type: {job.Type}");
+        Console.WriteLine($"{_loc.T("Job.Name")}: {job.Name}");
+        Console.WriteLine($"{_loc.T("Job.Source")}: {job.SourcePath}");
+        Console.WriteLine($"{_loc.T("Job.Target")}: {job.TargetPath}");
+        Console.WriteLine($"{_loc.T("Job.Type")}: {job.Type}");
 
         Console.ReadKey();
     }
@@ -140,11 +143,11 @@ public class ConsoleView
     private void HandleOverwrite()
     {
         Console.Clear();
-        ConsoleHelper.Header("Maximum jobs reached (5). Please select a job to overwrite.");
+        ConsoleHelper.Header(_loc.T("Job.MaxReached"));
 
         var jobs = _viewModel.GetBackupNames();
 
-        jobs.Add("Cancel");
+        jobs.Add(_loc.T("Cancel"));
 
         int choice = _menu.ShowMenu(jobs);
 
@@ -158,27 +161,26 @@ public class ConsoleView
     private void CreateJobForm()
     {
         Console.Clear();
-        ConsoleHelper.Header("Create Backup Job");
+        ConsoleHelper.Header(_loc.T("Form.CreateTitle"));
 
-        string name = AskRequired("Name: ");
-        string source = AskRequired("Source path: ");
-        string target = AskRequired("Target path: ");
+        string name = AskRequired(_loc.T("Form.NamePrompt"));
+        string source = AskRequired(_loc.T("Form.SourcePrompt"));
+        string target = AskRequired(_loc.T("Form.TargetPrompt"));
 
-        var type = AskBackupType("Select Backup Type");
+        var type = AskBackupType(_loc.T("Backup.TypeSelection"));
 
         _viewModel.CreateJob(name, source, target, type);
 
-        Console.WriteLine("Job created successfully.");
+        Console.WriteLine(_loc.T("Job.Created"));
 
-        bool runNow = Confirm("Do you want to run it now?");
+        bool runNow = Confirm(_loc.T("Confirm.RunNow"));
 
         if (runNow)
         {
-            // last job index (newly added one)
             int index = _viewModel.GetJobsRaw().Count - 1;
 
             _viewModel.ExecuteBackup(index);
-            Console.WriteLine("Backup executed.");
+            Console.WriteLine(_loc.T("Backup.Executed"));
             Console.ReadKey();
         }
     }
@@ -193,28 +195,28 @@ public class ConsoleView
             if (!string.IsNullOrWhiteSpace(input))
                 return input;
 
-            Console.WriteLine("Value cannot be empty.");
+            Console.WriteLine(_loc.T("Form.EmptyError"));
         }
     }
 
     private void ChangeBackupType(int index)
     {
-        var type = AskBackupType("Select Backup Type");
+        var type = AskBackupType(_loc.T("Backup.TypeSelection"));
 
         _viewModel.ChangeJobType(index, type);
 
-        Console.WriteLine("Backup type updated.");
+        Console.WriteLine(_loc.T("Backup.TypeUpdated"));
         Console.ReadKey();
     }
 
     private void DeleteBackup(int index)
     {
-        bool confirmed = Confirm("Confirm deletion");
+        bool confirmed = Confirm(_loc.T("Confirm.Delete"));
 
         if (confirmed)
         {
             _viewModel.DeleteJob(index);
-            Console.WriteLine("Backup deleted.");
+            Console.WriteLine(_loc.T("Backup.Delete"));
             Console.ReadKey();
         }
     }
@@ -226,8 +228,8 @@ public class ConsoleView
 
         var options = new List<string>
     {
-        "Full",
-        "Differential"
+        _loc.T("Backup.TypeFull"),
+        _loc.T("Backup.TypeDifferential")
     };
 
         int choice = _menu.ShowMenu(options);
@@ -247,7 +249,7 @@ public class ConsoleView
         Console.Clear();
         ConsoleHelper.Header(title);
 
-        var options = new List<string> { "Yes", "No" };
+        var options = new List<string> { _loc.T("Confirm.Yes"), _loc.T("Confirm.No") };
 
         return (_menu.ShowMenu(options) == 0);
     }

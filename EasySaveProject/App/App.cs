@@ -25,7 +25,7 @@ public class App
 
         _viewModel = new MainViewModel(backupService);
 
-        _view = new ConsoleView(_viewModel, _menuService);
+        _view = new ConsoleView(_viewModel, _menuService, _loc);
     }
     public void Run()
     {
