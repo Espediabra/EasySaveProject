@@ -4,92 +4,19 @@ using EasySaveProject.Core.Services;
 
 namespace EasySaveProject.Strategies;
 
-public class DifferentialBackupStrategy : IBackupStrategy
+public class DifferentialBackupStrategy : BaseBackupStrategy
 {
-
-    public void Execute(BackupJob job, FileService fileService, LogService logService, StateService stateService)
+    protected override string[] SelectFiles(BackupJob job)
     {
-        if (!Directory.Exists(job.TargetPath))
-        {
-            Directory.CreateDirectory(job.TargetPath);
-        }
-
-        if (!Directory.Exists(job.SourcePath))
-            throw new DirectoryNotFoundException($"Source not found: {job.SourcePath}");
-
-
         var allFiles = Directory.GetFiles(job.SourcePath, "*", SearchOption.AllDirectories);
 
-        var files = allFiles.Where(sourceFile =>
-        {
-            var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
-            var targetFile = Path.Combine(job.TargetPath, relativePath);
-
-            return !File.Exists(targetFile) ||
-                   File.GetLastWriteTime(sourceFile) > File.GetLastWriteTime(targetFile);
-        }).ToArray();
-
-        long totalSize = files.Sum(f => new FileInfo(f).Length);
-
-        var state = new State
-        {
-            BackupName = job.Name,
-            Status = "Active",
-            TotalFiles = files.Length,
-            RemainingFiles = files.Length,
-            TotalSize = totalSize,
-            RemainingSize = totalSize
-        };
-
-        foreach (var sourceFile in files)
-        {
-            var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
-            var targetFile = Path.Combine(job.TargetPath, relativePath);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
-
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-            try
+        return allFiles.Where(sourceFile =>
             {
-                fileService.CopyFile(sourceFile, targetFile);
+                var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
+                var targetFile = Path.Combine(job.TargetPath, relativePath);
 
-                stopwatch.Stop();
-
-                var fileSize = new FileInfo(sourceFile).Length;
-
-                state.Timestamp = DateTime.Now;
-                state.CurrentSourceFile = sourceFile;
-                state.CurrentTargetFile = targetFile;
-                state.RemainingFiles--;
-                state.RemainingSize -= fileSize;
-
-                stateService.Update(state);
-
-                logService.LogInfo(
-                    job.Name,
-                    sourceFile,
-                    targetFile,
-                    fileSize,
-                    stopwatch.ElapsedMilliseconds,
-                    "File copied successfully"
-                );
-            }
-            catch
-            {
-                stopwatch.Stop();
-
-                logService.LogError(
-                    job.Name,
-                    sourceFile,
-                    targetFile,
-                    0,
-                    "Error during file copy"
-                );
-            }
-        }
-
-        state.Status = "Completed";
-        stateService.Update(state);
+                return !File.Exists(targetFile) ||
+                       File.GetLastWriteTime(sourceFile) > File.GetLastWriteTime(targetFile);
+            }).ToArray();
     }
 }

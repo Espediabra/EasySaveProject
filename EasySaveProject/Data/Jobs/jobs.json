@@ -3,13 +3,7 @@
     "Name": "gjhhj",
     "SourcePath": "jikhjkhljlhjk",
     "TargetPath": "njhkhjk",
-    "Type": 0
-  },
-  {
-    "Name": "bob",
-    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
-    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
-    "Type": 0
+    "Type": 1
   },
   {
     "Name": "ddfsf",
@@ -28,5 +22,11 @@
     "SourcePath": "C:\\Users\\S D\\Downloads\\tests2",
     "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
     "Type": 1
+  },
+  {
+    "Name": "test",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests2",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests",
+    "Type": 0
   }
 ]

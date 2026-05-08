@@ -4,6 +4,7 @@ public class BackupMenuView
 {
     private readonly MainViewModel _viewModel;
     private readonly MenuComponent _menu;
+    private readonly InteractiveMenuComponent _interactiveMenu;
     private readonly LocalizationService _loc;
     private readonly CreateBackupForm _createForm;
     private readonly ConfirmDialog _confirm;
@@ -12,6 +13,7 @@ public class BackupMenuView
     public BackupMenuView(
     MainViewModel viewModel,
     MenuComponent menu,
+    InteractiveMenuComponent interactiveMenu,
     LocalizationService loc,
     CreateBackupForm createForm,
     ConfirmDialog confirm,
@@ -19,6 +21,7 @@ public class BackupMenuView
     {
         _viewModel = viewModel;
         _menu = menu;
+        _interactiveMenu = interactiveMenu;
         _loc = loc;
         _createForm = createForm;
         _confirm = confirm;
@@ -29,6 +32,7 @@ public class BackupMenuView
         while (true)
         {
             Console.Clear();
+
             HeaderComponent.Render(_loc.T("Backup.Menu"));
 
             var jobs = _viewModel.GetBackupNames();
@@ -43,109 +47,55 @@ public class BackupMenuView
                 continue;
             }
 
-            var options = new List<string>();
+            var result = _interactiveMenu.Show(
+                () => HeaderComponent.Render(_loc.T("Backup.Menu")),
+                jobs,
+                _loc.T("Backup.CreateNew"),
+                _loc.T("Backup.RunSelected"),
+                _loc.T("Return")
+            );
 
-            options.AddRange(jobs);
-
-            options.Add(_loc.T("Backup.RunMultiple"));
-            options.Add(_loc.T("Backup.CreateNew"));
-            options.Add(_loc.T("Return"));
-
-            int choice = _menu.Select(options);
-
-            if (choice == options.Count - 1)
-                return;
-
-            if (choice == options.Count - 2)
+            if (result.ActionType == InteractiveActionType.Create)
             {
                 CreateNewJobFlow();
                 continue;
             }
 
-            if (choice == options.Count - 3)
+            if (result.ActionType == InteractiveActionType.Back)
             {
-                RunMultipleJobsFlow();
+                return;
+            }
+
+            if (result.ActionType == InteractiveActionType.Run)
+            {
+                _viewModel.ExecuteMultipleBackups(result.SelectedIndices);
+
+                Console.WriteLine(_loc.T("Backup.Executed"));
+                Console.ReadKey();
                 continue;
             }
 
-            OpenJobMenu(choice);
-        }
-    }
-
-    // 🔽 On garde TEMPORAIREMENT les méthodes ici
-    // (on les extraira dans les prochaines étapes)
-
-    private void RunMultipleJobsFlow()
-    {
-        var jobs = _viewModel.GetBackupNames();
-
-        if (jobs.Count == 0)
-        {
-            Console.Clear();
-            Console.WriteLine(_loc.T("Backup.NoBackupJobs"));
-            Console.ReadKey();
-            return;
-        }
-
-        var selection = new bool[jobs.Count];
-
-        while (true)
-        {
-            Console.Clear();
-            HeaderComponent.Render(_loc.T("Backup.SelectMultiple"));
-
-            for (int i = 0; i < jobs.Count; i++)
+            if (result.IsMultiSelection)
             {
-                string coche = selection[i] ? "[X]" : "[ ]";
-                Console.WriteLine($"  {i + 1}. {coche} {jobs[i]}");
-            }
+                _viewModel.ExecuteMultipleBackups(
+                    result.SelectedIndices
+                );
 
-            Console.WriteLine();
-            Console.WriteLine(_loc.T("Backup.SelectInstruction"));
-            Console.WriteLine(_loc.T("Backup.ConfirmInstruction"));
-            Console.WriteLine(_loc.T("Backup.CancelInstruction"));
-            Console.WriteLine();
-            Console.Write("> ");
-
-            string? input = Console.ReadLine()?.Trim();
-
-            if (string.IsNullOrEmpty(input))
-            {
-                var indices = new List<int>();
-
-                for (int i = 0; i < selection.Length; i++)
-                    if (selection[i])
-                        indices.Add(i);
-
-                if (indices.Count == 0)
-                {
-                    Console.WriteLine(_loc.T("Backup.NoneSelected"));
-                    Console.ReadKey();
-                    return;
-                }
-
-                _viewModel.ExecuteMultipleBackups(indices);
                 Console.WriteLine(_loc.T("Backup.Executed"));
                 Console.ReadKey();
-                return;
+
+                continue;
             }
 
-            if (input.ToLower() == "q")
-                return;
-
-            if (int.TryParse(input, out int choix) && choix >= 1 && choix <= jobs.Count)
+            if (result.ActionType == InteractiveActionType.Job)
             {
-                selection[choix - 1] = !selection[choix - 1];
-            }
-            else
-            {
-                Console.WriteLine(_loc.T("Form.EmptyError"));
-                Console.ReadKey();
+                OpenJobMenu(result.SelectedIndex, result.HasActiveSelection);
             }
         }
     }
 
-    private void OpenJobMenu(int index)
+
+    private void OpenJobMenu(int index, bool HasActiveSelection)
     {
         while (true)
         {
@@ -161,32 +111,48 @@ public class BackupMenuView
                 _loc.T("Return")
             };
 
-            int choice = _menu.Select(options);
+            var disabled = new HashSet<int>();
+
+            if (HasActiveSelection)
+            {
+                disabled.Add(0); // Run
+                disabled.Add(2); // Change type
+                disabled.Add(3); // Delete
+            }
+
+            int choice = _menu.Select(options, disabled);
 
             switch (choice)
             {
                 case 0:
-                    _viewModel.ExecuteBackup(index);
-                    Console.WriteLine(_loc.T("Backup.Executed"));
-                    Console.ReadKey();
+                    if (!HasActiveSelection)
+                    {
+                        _viewModel.ExecuteBackup(index);
+                        Console.WriteLine(_loc.T("Backup.Executed"));
+                        Console.ReadKey();
+                    }
                     break;
-
                 case 1:
                     ShowJobDetails(index);
                     break;
-
                 case 2:
-                    ChangeBackupType(index);
+                    if (!HasActiveSelection)
+                    {
+                        ChangeBackupType(index);
+                    }
                     break;
-
                 case 3:
-                    DeleteBackup(index);
-                    return;
-
+                    if (!HasActiveSelection)
+                    {
+                        DeleteBackup(index);
+                        return;
+                    }
+                    break;
                 case 4:
                     return;
             }
         }
+
     }
 
     private bool HandleNoJobs()

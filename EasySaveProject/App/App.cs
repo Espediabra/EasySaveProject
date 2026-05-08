@@ -14,12 +14,14 @@ public class App
     private readonly LogService _logService;
     private readonly MainMenuView _mainMenu;
     private readonly MenuComponent _menu;
+    private readonly InteractiveMenuComponent _interactiveMenu;
     private readonly SettingsView _settingsView;
     private readonly LanguageForm _languageForm;
 
     public App()
     {
         _menu = new MenuComponent();
+        _interactiveMenu = new InteractiveMenuComponent(_loc);
 
         // Charger la config
         var config = _configService.Load();
@@ -61,6 +63,7 @@ public class App
         var backupMenuView = new BackupMenuView(
             _viewModel,
             _menu,
+            _interactiveMenu,
             _loc,
             createBackupForm,
             confirmDialog,
