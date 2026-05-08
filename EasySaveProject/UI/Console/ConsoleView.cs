@@ -23,20 +23,11 @@ public class ConsoleView
 
             var jobs = _viewModel.GetBackupNames();
 
-            if (jobs.Count == 0)
-            {
-                bool shouldExit = HandleNoJobs();
-
-                if (shouldExit)
-                    return;
-
-                continue;
-            }
-
             var options = new List<string>();
 
             options.AddRange(jobs);
 
+            options.Add(_loc.T("Backup.RunMultiple")); // Nouveau
             options.Add(_loc.T("Backup.CreateNew"));
             options.Add(_loc.T("Return"));
 
@@ -51,7 +42,85 @@ public class ConsoleView
                 continue;
             }
 
+            // Lancer plusieurs sauvegardes
+            if (choice == options.Count - 3)
+            {
+                RunMultipleJobsFlow();
+                continue;
+            }
+
             OpenJobMenu(choice);
+        }
+    }
+
+    private void RunMultipleJobsFlow()
+    {
+        var jobs = _viewModel.GetBackupNames();
+
+        if (jobs.Count == 0)
+        {
+            Console.Clear();
+            Console.WriteLine(_loc.T("Backup.NoBackupJobs"));
+            Console.ReadKey();
+            return;
+        }
+
+        // Tableau de cases à cocher
+        var selection = new bool[jobs.Count];
+
+        while (true)
+        {
+            Console.Clear();
+            ConsoleHelper.Header(_loc.T("Backup.SelectMultiple"));
+
+            // Affiche chaque job avec son état coché/décoché
+            for (int i = 0; i < jobs.Count; i++)
+            {
+                string coche = selection[i] ? "[X]" : "[ ]";
+                Console.WriteLine($"  {i + 1}. {coche} {jobs[i]}");
+            }
+
+            Console.WriteLine();
+            Console.WriteLine(_loc.T("Backup.SelectInstruction"));
+            Console.WriteLine(_loc.T("Backup.ConfirmInstruction"));
+            Console.WriteLine(_loc.T("Backup.CancelInstruction"));
+            Console.WriteLine();
+            Console.Write("> ");
+
+            string? input = Console.ReadLine()?.Trim();
+            if (string.IsNullOrEmpty(input))
+            {
+                var indices = new List<int>();
+
+                for (int i = 0; i < selection.Length; i++)
+                    if (selection[i])
+                        indices.Add(i);
+
+                if (indices.Count == 0)
+                {
+                    Console.WriteLine(_loc.T("Backup.NoneSelected"));
+                    Console.ReadKey();
+                    return;
+                }
+
+                _viewModel.ExecuteMultipleBackups(indices);
+                Console.WriteLine(_loc.T("Backup.Executed"));
+                Console.ReadKey();
+                return;
+            }
+
+            if (input.ToLower() == "q")
+                return;
+
+            if (int.TryParse(input, out int choix) && choix >= 1 && choix <= jobs.Count)
+            {
+                selection[choix - 1] = !selection[choix - 1];
+            }
+            else
+            {
+                Console.WriteLine(_loc.T("Form.EmptyError"));
+                Console.ReadKey();
+            }
         }
     }
 
@@ -63,13 +132,13 @@ public class ConsoleView
             ConsoleHelper.Header(_loc.T("Job.Options"));
 
             var options = new List<string>
-        {
-            _loc.T("Backup.Run"),
-            _loc.T("View.Details"),
-            _loc.T("Backup.ChangeType"),
-            _loc.T("Backup.Delete"),
-            _loc.T("Return")
-        };
+            {
+                _loc.T("Backup.Run"),
+                _loc.T("View.Details"),
+                _loc.T("Backup.ChangeType"),
+                _loc.T("Backup.Delete"),
+                _loc.T("Return")
+            };
 
             int choice = _menu.ShowMenu(options);
 
@@ -99,16 +168,15 @@ public class ConsoleView
         }
     }
 
-    private bool HandleNoJobs()
+    private void HandleNoJobs()
     {
-        Console.Clear();
-        ConsoleHelper.Header(_loc.T("Backup.NoBackupJobs"));
+        Console.WriteLine(_loc.T("Backup.NoBackupJobs"));
 
         var options = new List<string>
-    {
-        _loc.T("Backup.CreateA"),
-        _loc.T("Back")
-    };
+        {
+            _loc.T("Backup.CreateA"),
+            _loc.T("Back")
+        };
 
         int choice = _menu.ShowMenu(options);
 
@@ -116,13 +184,11 @@ public class ConsoleView
         {
             case 0:
                 CreateJobForm();
-                return false;
+                break;
 
             case 1:
-                return true;
+                return;
         }
-
-        return false;
     }
 
     private void ShowJobDetails(int index)
@@ -240,10 +306,10 @@ public class ConsoleView
         ConsoleHelper.Header(title);
 
         var options = new List<string>
-    {
-        _loc.T("Backup.TypeFull"),
-        _loc.T("Backup.TypeDifferential")
-    };
+        {
+            _loc.T("Backup.TypeFull"),
+            _loc.T("Backup.TypeDifferential")
+        };
 
         int choice = _menu.ShowMenu(options);
 
