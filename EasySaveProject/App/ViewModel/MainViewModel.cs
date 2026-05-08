@@ -52,4 +52,12 @@ public class MainViewModel
     {
         return _backupService.GetJobs().ToList();
     }
+
+    public void ExecuteMultipleBackups(List<int> indices)
+    {
+        foreach (int index in indices)
+        {
+            _backupService.RunJob(index);
+        }
+    }
 }
