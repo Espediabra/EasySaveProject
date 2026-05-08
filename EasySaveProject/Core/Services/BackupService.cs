@@ -1,9 +1,9 @@
 using EasySaveProject.Models;
-using EasySaveProject.Services;
+using EasySaveProject.Core.Services;
 using EasySaveProject.Factories;
 using System.Text.Json;
 
-namespace EasySaveProject.Services
+namespace EasySaveProject.Core.Services
 {
     public class BackupService
     {

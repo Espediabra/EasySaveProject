@@ -1,4 +1,4 @@
-namespace EasySaveProject.Services;
+namespace EasySaveProject.Core.Services;
 
 public class FileService
 {

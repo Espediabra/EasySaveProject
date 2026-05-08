@@ -1,6 +1,6 @@
-public class MenuService
+public class MenuComponent
 {
-    public int ShowMenu(List<string> options)
+    public int Select(List<string> options)
     {
         int index = 0;
         int startTop = Console.CursorTop;
@@ -18,14 +18,14 @@ public class MenuService
                     Console.BackgroundColor = ConsoleColor.White;
                 }
 
-                Console.Write($"{i + 1}. {options[i]}".PadRight(Console.WindowWidth));
+                Console.Write($"{options[i]}".PadRight(Console.WindowWidth));
                 Console.ResetColor();
 
                 if (i < options.Count - 1)
-                    Console.WriteLine();
+                    ConsoleRenderer.WriteLine();
             }
 
-            var key = Console.ReadKey(true);
+            var key = ConsoleRenderer.ReadKey(true);
 
             if (key.Key == ConsoleKey.UpArrow)
                 index = (index - 1 + options.Count) % options.Count;

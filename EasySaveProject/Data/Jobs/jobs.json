@@ -4,5 +4,29 @@
     "SourcePath": "jikhjkhljlhjk",
     "TargetPath": "njhkhjk",
     "Type": 0
+  },
+  {
+    "Name": "bob",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "Type": 0
+  },
+  {
+    "Name": "ddfsf",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests2",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "Type": 0
+  },
+  {
+    "Name": "fdgfdgdg",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests2",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "Type": 1
+  },
+  {
+    "Name": "gfdgdg",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests2",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "Type": 1
   }
 ]

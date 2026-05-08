@@ -6,12 +6,12 @@ class Program
     {
         var app = new App();
 
-        if (args.Length == 0)
-        {
-            app.Run();
-            return;
-        }
+        // if (args.Length == 0)
+        // {
+        app.Run();
+        //     return;
+        // }
 
-        app.RunCli(args[0]);
+        // app.RunCli(args[0]);
     }
 }

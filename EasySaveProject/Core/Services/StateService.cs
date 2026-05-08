@@ -1,7 +1,7 @@
 using System.Text.Json;
 using EasySaveProject.Models;
 
-namespace EasySaveProject.Services;
+namespace EasySaveProject.Core.Services;
 
 public class StateService
 {
