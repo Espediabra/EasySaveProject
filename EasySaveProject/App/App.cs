@@ -1,7 +1,6 @@
 using EasySaveProject.Services;
 using EasySaveProject.Core.Localization;
 using EasyLog;
-using System.Reflection.Metadata.Ecma335;
 using EasySaveProject.Helpers;
 
 public class App
@@ -14,12 +13,17 @@ public class App
     private readonly FileService _fileService = new();
     private readonly StateService _stateService = new();
     private readonly LogService _logService;
+    private AppConfig _config;
 
     public App()
     {
+        _config = _configService.Load();
+
         _menuService = new MenuService();
 
-        LogService.Initialize(_loc);
+        _loc.Load(string.IsNullOrWhiteSpace(_config.Langage) ? "en" : _config.Langage);
+
+        LogService.Initialize(_loc, _config.LogFormat);
         _logService = LogService.Instance;
 
         var backupService = new BackupService(
@@ -29,27 +33,24 @@ public class App
         );
 
         _viewModel = new MainViewModel(backupService);
-
         _view = new ConsoleView(_viewModel, _menuService, _loc);
     }
 
     public void Run()
     {
-        var config = _configService.Load();
+        _config = _configService.Load();
 
-        _loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
+        _loc.Load(string.IsNullOrWhiteSpace(_config.Langage) ? "en" : _config.Langage);
 
-        if (config.FirstRun)
+        if (_config.FirstRun)
         {
             string selectedLang = AskLanguage();
-
-            config.Langage = selectedLang;
-            config.FirstRun = false;
-
-            _configService.Save(config);
+            _config.Langage = selectedLang;
+            _config.FirstRun = false;
+            _configService.Save(_config);
         }
 
-        _loc.Load(config.Langage);
+        _loc.Load(_config.Langage);
 
         MainLoop();
     }
@@ -93,12 +94,8 @@ public class App
                 _loc.T("Confirm.No")
             };
 
-            int confirmChoice = _menuService.ShowMenu(confirmOptions);
-
-            if (confirmChoice == 0)
-            {
+            if (_menuService.ShowMenu(confirmOptions) == 0)
                 return selectedLang;
-            }
         }
     }
 
@@ -121,20 +118,10 @@ public class App
 
             switch (choice)
             {
-                case 0:
-                    _view.ShowBackupMenu();
-                    break;
-
-                case 1:
-                    ShowLogsMenu();
-                    break;
-
-                case 2:
-                    OpenSettings();
-                    break;
-
-                case 3:
-                    return;
+                case 0: _view.ShowBackupMenu(); break;
+                case 1: ShowLogsMenu(); break;
+                case 2: OpenSettings(); break;
+                case 3: return;
             }
         }
     }
@@ -149,6 +136,7 @@ public class App
             var options = new List<string>
             {
                 _loc.T("Settings.ChangeLanguage"),
+                _loc.T("Settings.ChangeLogFormat"),
                 _loc.T("Settings.Back")
             };
 
@@ -156,29 +144,40 @@ public class App
 
             switch (choice)
             {
-                case 0:
-                    ChangeLanguage();
-                    break;
-
-                case 1:
-                    return;
+                case 0: ChangeLanguage(); break;
+                case 1: ChangeLogFormat(); break;
+                case 2: return;
             }
         }
     }
 
     private void ChangeLanguage()
     {
-        var config = _configService.Load();
-
         string newLang = AskLanguage();
-
-        config.Langage = newLang;
-        _configService.Save(config);
-
+        _config.Langage = newLang;
+        _configService.Save(_config);
         _loc.Load(newLang);
 
         Console.Clear();
         ConsoleHelper.WriteLineWithWrap(_loc.T("Settings.LanguageUpdated"));
+        Console.ReadKey();
+    }
+
+    private void ChangeLogFormat()
+    {
+        Console.Clear();
+        ConsoleHelper.Header(_loc.T("Settings.ChooseLogFormat"));
+
+        var options = new List<string> { "JSON", "XML" };
+
+        int choice = _menuService.ShowMenu(options);
+
+        _config.LogFormat = choice == 1 ? LogFormat.Xml : LogFormat.Json;
+        _configService.Save(_config);
+
+        LogService.Initialize(_loc, _config.LogFormat);
+
+        Console.WriteLine(_loc.T("Settings.LogFormatUpdated"));
         Console.ReadKey();
     }
 
@@ -200,16 +199,9 @@ public class App
 
             switch (choice)
             {
-                case 0:
-                    ShowTodayLogs();
-                    break;
-
-                case 1:
-                    ShowLogsByLevel();
-                    break;
-
-                case 2:
-                    return;
+                case 0: ShowTodayLogs(); break;
+                case 1: ShowLogsByLevel(); break;
+                case 2: return;
             }
         }
     }
@@ -220,9 +212,7 @@ public class App
 
         Console.Clear();
         ConsoleHelper.Header(_loc.T("Logs.TodayHeader"));
-
         _logService.PrintSimple(logs);
-
         Console.ReadKey();
     }
 
@@ -241,7 +231,6 @@ public class App
 
         int choice = _menuService.ShowMenu(options);
 
-        // gestion du retour
         if (choice == 3)
             return;
 
@@ -256,25 +245,18 @@ public class App
         var logs = _logService.GetByLevel(DateTime.Today, level);
 
         Console.Clear();
-        ConsoleHelper.Header(
-            string.Format(_loc.T("Logs.LevelHeader"), level)
-        );
-
+        ConsoleHelper.Header(string.Format(_loc.T("Logs.LevelHeader"), level));
         _logService.PrintSimple(logs);
-
         Console.ReadKey();
     }
 
     public void RunCli(string arg)
     {
-        var config = _configService.Load();
-
-        _loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
+        _config = _configService.Load();
+        _loc.Load(string.IsNullOrWhiteSpace(_config.Langage) ? "en" : _config.Langage);
 
         var indices = ArgumentParser.Parse(arg);
-
         var jobs = _viewModel.GetJobsRaw();
-
 
         if (jobs.Count == 0)
         {
