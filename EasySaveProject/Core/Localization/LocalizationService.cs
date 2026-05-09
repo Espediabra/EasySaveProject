@@ -10,7 +10,7 @@ public class LocalizationService
     {
 
         var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
-        "..", "..", "..", "Core", "Localization", $"{language}.json"));
+        "Core", "Localization", $"{language}.json"));
 
         if (!File.Exists(path))
             throw new FileNotFoundException($"Language file not found: {path}");

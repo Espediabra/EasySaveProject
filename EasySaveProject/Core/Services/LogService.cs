@@ -57,7 +57,7 @@ public class LogService
         _loc = loc;
 
         string logDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
-        "..", "..", "..", "Data", "Logs"));
+        "Data", "Logs"));
 
         _provider = new JsonLogProvider(logDir);
         _wrapper = new EasyLogWrapper(_provider);

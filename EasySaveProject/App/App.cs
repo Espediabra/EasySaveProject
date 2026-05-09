@@ -104,36 +104,34 @@ public class App
         _mainMenu.Show();
     }
 
-    // public void RunCli(string arg)
-    // {
-    //     var config = _configService.Load();
+    public void RunCli(string[] args)
+    {
+        var config = _configService.Load();
 
-    //     _loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
+        _loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
 
-    //     var indices = ArgumentParser.Parse(arg);
+        var indices = ArgumentParser.Parse(args[0]);
 
-    //     var jobs = _viewModel.GetJobsRaw();
+        var jobs = _viewModel.GetJobsRaw();
 
+        if (jobs.Count == 0)
+        {
+            Console.WriteLine("No backup jobs found.");
+            return;
+        }
 
-    //     if (jobs.Count == 0)
-    //     {
-    //         Console.WriteLine("No backup jobs found.");
-    //         Console.WriteLine("Run without arguments to create jobs.");
-    //         return;
-    //     }
+        foreach (var index in indices)
+        {
+            int realIndex = index - 1;
 
-    //     foreach (var index in indices)
-    //     {
-    //         int realIndex = index - 1;
+            if (realIndex < 0 || realIndex >= jobs.Count)
+            {
+                Console.WriteLine($"Job {index} does not exist.");
+                continue;
+            }
 
-    //         if (realIndex < 0 || realIndex >= jobs.Count)
-    //         {
-    //             Console.WriteLine($"Job {index} does not exist, skipping.");
-    //             continue;
-    //         }
-
-    //         _viewModel.ExecuteBackup(realIndex);
-    //         Console.WriteLine($"Executed job {index}");
-    //     }
-    // }
+            _viewModel.ExecuteBackup(realIndex);
+            Console.WriteLine($"Executed job {index}");
+        }
+    }
 }

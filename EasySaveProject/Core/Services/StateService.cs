@@ -10,11 +10,8 @@ public class StateService
 
     public StateService()
     {
-        _filePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..",
-            "Data", "State", "state.json"
-        ));
+        _filePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
+        "Data", "State", "state.json"));
 
         // Assure que le dossier existe
         var directory = Path.GetDirectoryName(_filePath);
