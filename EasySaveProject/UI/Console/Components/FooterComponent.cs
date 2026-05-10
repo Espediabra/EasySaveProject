@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EasySaveProject.Core;
@@ -11,15 +9,22 @@ public static class FooterComponent
     private static CancellationTokenSource? _cts;
     private static readonly object _consoleLock = new();
 
-    private static readonly Queue<(DateTime time, long bytes)> _speedWindow = new();
-    private const double WindowSeconds = 4.0;
+    // ── ETA par progression linéaire ─────────────────────────────────────
+    // On mémorise l'instant et la fraction complétée au démarrage de la session
+    private static DateTime _sessionStart   = DateTime.MinValue;
+    private static double   _fractionAtStart = 0.0;
+    private static string   _currentBackup  = string.Empty;
+
+    // Lissage exponentiel de l'ETA (coefficient bas = très stable)
+    private static double _smoothedEtaSeconds = -1.0;
+    private const  double Alpha = 0.05; // 5% nouveau, 95% historique
 
     public static void Start()
     {
         if (_cts != null)
             return;
 
-        _speedWindow.Clear();
+        ResetSession();
         _cts = new CancellationTokenSource();
         Task.Run(() => PollLoop(_cts.Token));
     }
@@ -31,7 +36,7 @@ public static class FooterComponent
 
         _cts.Cancel();
         _cts = null;
-        _speedWindow.Clear();
+        ResetSession();
 
         lock (_consoleLock)
         {
@@ -46,13 +51,20 @@ public static class FooterComponent
         }
     }
 
+    private static void ResetSession()
+    {
+        _sessionStart    = DateTime.MinValue;
+        _fractionAtStart = 0.0;
+        _currentBackup   = string.Empty;
+        _smoothedEtaSeconds = -1.0;
+    }
+
     private static async Task PollLoop(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                // Lecture depuis la mémoire — aucun I/O, aucun conflit possible
                 var state = BackupStateHub.Read();
                 if (state != null)
                     Render(state);
@@ -70,52 +82,67 @@ public static class FooterComponent
         {
             try
             {
-                int width = Math.Max(10, Console.WindowWidth);
-                int row   = Math.Max(0, Console.WindowHeight - 1);
-
+                // ── Progression globale ───────────────────────────────────
                 long total       = Math.Max(1, state.TotalSize);
                 long remaining   = Math.Max(0, state.RemainingSize);
                 long transferred = total - remaining;
+                double fraction  = Math.Min(1.0, Math.Max(0.0, transferred / (double)total));
+                double percent   = fraction * 100.0;
 
-                double percent = Math.Min(100.0,
-                    Math.Max(0.0, transferred / (double)total * 100.0));
-
-                // Vitesse sur fenêtre glissante
-                DateTime now = DateTime.UtcNow;
-                _speedWindow.Enqueue((now, transferred));
-
-                while (_speedWindow.Count > 1 &&
-                       (now - _speedWindow.Peek().time).TotalSeconds > WindowSeconds)
-                    _speedWindow.Dequeue();
-
-                double speedBytesPerSec = 0.0;
-
-                if (_speedWindow.Count >= 2)
+                // ── Détection d'un nouveau job ────────────────────────────
+                // Si le backup change ou si la progression repart de zéro,
+                // on réinitialise la session pour repartir sur une base saine
+                if (state.BackupName != _currentBackup || fraction < _fractionAtStart)
                 {
-                    var oldest     = _speedWindow.Peek();
-                    var dt         = (now - oldest.time).TotalSeconds;
-                    var deltaBytes = transferred - oldest.bytes;
-
-                    if (dt > 0 && deltaBytes > 0)
-                        speedBytesPerSec = deltaBytes / dt;
+                    _currentBackup      = state.BackupName;
+                    _sessionStart       = DateTime.UtcNow;
+                    _fractionAtStart    = fraction;
+                    _smoothedEtaSeconds = -1.0;
                 }
 
-                string eta = (speedBytesPerSec > 0 && remaining > 0)
-                    ? FormatTime(TimeSpan.FromSeconds(remaining / speedBytesPerSec))
-                    : "--:--:--";
+                // ── Calcul ETA par progression linéaire ──────────────────
+                // Formule : elapsed / fractionFaiteDepuisDépart = tempsTotal
+                // ETA     = tempsTotal - elapsed
+                string eta = "--:--:--";
+
+                double fractionDone = fraction - _fractionAtStart;
+
+                if (_sessionStart != DateTime.MinValue && fractionDone > 0.005)
+                {
+                    // On attend 0.5% de progression avant de calculer
+                    // pour éviter une estimation délirante au tout début
+                    double elapsed       = (DateTime.UtcNow - _sessionStart).TotalSeconds;
+                    double totalEstimated = elapsed / fractionDone;
+                    double rawEta         = totalEstimated - elapsed;
+
+                    if (rawEta > 0)
+                    {
+                        // Lissage exponentiel très conservateur
+                        // Premier calcul : on initialise directement sans lisser
+                        _smoothedEtaSeconds = _smoothedEtaSeconds < 0
+                            ? rawEta
+                            : (_smoothedEtaSeconds * (1.0 - Alpha)) + (rawEta * Alpha);
+
+                        eta = FormatTime(TimeSpan.FromSeconds(_smoothedEtaSeconds));
+                    }
+                }
+
+                // ── Affichage ─────────────────────────────────────────────
+                int width = Math.Max(10, Console.WindowWidth);
+                int row   = Math.Max(0, Console.WindowHeight - 1);
 
                 int totalFiles = Math.Max(1, state.TotalFiles);
                 int doneFiles  = Math.Max(0, totalFiles - state.RemainingFiles);
 
                 int barWidth = Math.Max(10, width - 60);
-                int filled   = (int)Math.Round(barWidth * percent / 100.0);
+                int filled   = (int)Math.Round(barWidth * fraction);
                 string bar   = "["
                     + new string('=', filled)
                     + (filled < barWidth ? ">" : "=")
                     + new string(' ', Math.Max(0, barWidth - filled - 1))
                     + "]";
 
-                string left  = $"Files: {doneFiles}/{totalFiles} | {Percent(percent)} | {HumanSize(transferred)}/{HumanSize(total)}";
+                string left  = $"Files: {doneFiles}/{totalFiles} | {percent:0.0}% | {HumanSize(transferred)}/{HumanSize(total)}";
                 string right = $"ETA: {eta} | {TruncatePath(state.CurrentSourceFile, 30)}";
                 string line  = left.PadRight(2) + " "
                     + bar.PadRight(barWidth + 2) + " "
@@ -128,19 +155,17 @@ public static class FooterComponent
         }
     }
 
-    private static string Percent(double p) => p.ToString("0.0") + "%";
-
     private static string HumanSize(long bytes)
     {
         string[] sizes = { "B", "KB", "MB", "GB", "TB" };
         double len = bytes;
         int order = 0;
         while (len >= 1024 && order < sizes.Length - 1) { order++; len /= 1024; }
-        return string.Format("{0:0.##} {1}", len, sizes[order]);
+        return $"{len:0.##} {sizes[order]}";
     }
 
     private static string FormatTime(TimeSpan t) =>
-        string.Format("{0:D2}:{1:D2}:{2:D2}", (int)t.TotalHours, t.Minutes, t.Seconds);
+        $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
 
     private static string TruncatePath(string path, int maxLen)
     {
