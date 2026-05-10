@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using EasySaveProject.Core;
 using EasySaveProject.Models;
 
 public static class FooterComponent
@@ -12,20 +11,15 @@ public static class FooterComponent
     private static CancellationTokenSource? _cts;
     private static readonly object _consoleLock = new();
 
-    // ── Fenêtre glissante pour le calcul de vitesse ──────────────────────
-    // On conserve les (timestamp, bytesTransferred) des N dernières secondes
-    // et on calcule la vitesse sur cette fenêtre → beaucoup plus stable
     private static readonly Queue<(DateTime time, long bytes)> _speedWindow = new();
-    private const double WindowSeconds = 3.0; // fenêtre de 3 secondes
+    private const double WindowSeconds = 4.0;
 
     public static void Start()
     {
         if (_cts != null)
             return;
 
-        // Réinitialise la fenêtre à chaque démarrage
         _speedWindow.Clear();
-
         _cts = new CancellationTokenSource();
         Task.Run(() => PollLoop(_cts.Token));
     }
@@ -54,51 +48,14 @@ public static class FooterComponent
 
     private static async Task PollLoop(CancellationToken ct)
     {
-        var statePath = Path.GetFullPath(
-            Path.Combine(AppContext.BaseDirectory, "Data", "State", "state.json"));
-
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                if (File.Exists(statePath))
-                {
-                    string json = string.Empty;
-
-                    for (int i = 0; i < 3; i++)
-                    {
-                        try
-                        {
-                            json = File.ReadAllText(statePath);
-                            break;
-                        }
-                        catch (IOException)
-                        {
-                            await Task.Delay(50, ct);
-                        }
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(json))
-                    {
-                        try
-                        {
-                            var states = JsonSerializer.Deserialize<List<State>>(json);
-                            State? state = null;
-
-                            if (states != null && states.Count > 0)
-                            {
-                                state = states
-                                    .OrderByDescending(s => s.Timestamp)
-                                    .FirstOrDefault(s => s.Status == "Active")
-                                    ?? states.OrderByDescending(s => s.Timestamp).First();
-                            }
-
-                            if (state != null)
-                                Render(state);
-                        }
-                        catch { }
-                    }
-                }
+                // Lecture depuis la mémoire — aucun I/O, aucun conflit possible
+                var state = BackupStateHub.Read();
+                if (state != null)
+                    Render(state);
             }
             catch { }
 
@@ -123,48 +80,33 @@ public static class FooterComponent
                 double percent = Math.Min(100.0,
                     Math.Max(0.0, transferred / (double)total * 100.0));
 
-                // ── Calcul de vitesse sur fenêtre glissante ───────────────
+                // Vitesse sur fenêtre glissante
                 DateTime now = DateTime.UtcNow;
-
-                // Ajoute le point courant
                 _speedWindow.Enqueue((now, transferred));
 
-                // Retire les points plus vieux que WindowSeconds
                 while (_speedWindow.Count > 1 &&
                        (now - _speedWindow.Peek().time).TotalSeconds > WindowSeconds)
-                {
                     _speedWindow.Dequeue();
-                }
 
                 double speedBytesPerSec = 0.0;
 
                 if (_speedWindow.Count >= 2)
                 {
-                    // Vitesse = (bytes récents - bytes anciens) / durée de la fenêtre
-                    var oldest = _speedWindow.Peek();
-                    var dt     = (now - oldest.time).TotalSeconds;
+                    var oldest     = _speedWindow.Peek();
+                    var dt         = (now - oldest.time).TotalSeconds;
+                    var deltaBytes = transferred - oldest.bytes;
 
-                    if (dt > 0)
-                    {
-                        var deltaBytes = transferred - oldest.bytes;
-                        // deltaBytes peut être négatif si on reprend une sauvegarde
-                        // différente → on ignore ce cas
-                        speedBytesPerSec = deltaBytes > 0
-                            ? deltaBytes / dt
-                            : 0.0;
-                    }
+                    if (dt > 0 && deltaBytes > 0)
+                        speedBytesPerSec = deltaBytes / dt;
                 }
 
-                // ETA : on n'affiche que si on a une vraie vitesse positive
                 string eta = (speedBytesPerSec > 0 && remaining > 0)
                     ? FormatTime(TimeSpan.FromSeconds(remaining / speedBytesPerSec))
                     : "--:--:--";
 
-                // ── Informations fichiers ─────────────────────────────────
                 int totalFiles = Math.Max(1, state.TotalFiles);
                 int doneFiles  = Math.Max(0, totalFiles - state.RemainingFiles);
 
-                // ── Barre de progression ──────────────────────────────────
                 int barWidth = Math.Max(10, width - 60);
                 int filled   = (int)Math.Round(barWidth * percent / 100.0);
                 string bar   = "["
@@ -175,8 +117,7 @@ public static class FooterComponent
 
                 string left  = $"Files: {doneFiles}/{totalFiles} | {Percent(percent)} | {HumanSize(transferred)}/{HumanSize(total)}";
                 string right = $"ETA: {eta} | {TruncatePath(state.CurrentSourceFile, 30)}";
-
-                string line = left.PadRight(2) + " "
+                string line  = left.PadRight(2) + " "
                     + bar.PadRight(barWidth + 2) + " "
                     + right.PadLeft(Math.Max(0, width - (left.Length + bar.Length + 4)));
 
