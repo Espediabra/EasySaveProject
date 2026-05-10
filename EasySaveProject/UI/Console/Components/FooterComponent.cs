@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EasySaveProject.Core;
@@ -11,23 +9,15 @@ public static class FooterComponent
     private static CancellationTokenSource? _cts;
     private static readonly object _consoleLock = new();
 
-    // ── Session ───────────────────────────────────────────────────────────
-    private static DateTime _sessionStart    = DateTime.MinValue;
+    // ── ETA par progression linéaire ─────────────────────────────────────
+    // On mémorise l'instant et la fraction complétée au démarrage de la session
+    private static DateTime _sessionStart   = DateTime.MinValue;
     private static double   _fractionAtStart = 0.0;
-    private static string   _currentBackup   = string.Empty;
+    private static string   _currentBackup  = string.Empty;
 
-    // ── Historique des estimations brutes (médiane glissante) ─────────────
-    // On garde les N dernières valeurs rawEta et on affiche leur médiane
-    // La médiane élimine les pics sans délai de convergence
-    private const  int    MedianWindow = 12; // ~2.4 secondes à 200ms/poll
-    private static readonly Queue<double> _etaHistory = new();
-
-    // ── Gel d'affichage en cas de stagnation ──────────────────────────────
-    private static double   _lastFraction      = -1.0;
-    private static DateTime _lastFractionChange = DateTime.MinValue;
-    private static string   _frozenEta          = "--:--:--";
-    private const  double   StagnationThreshold  = 0.0001; // fraction minimale de mouvement
-    private const  double   FreezeAfterSeconds   = 1.5;    // gèle après 1.5s sans mouvement
+    // Lissage exponentiel de l'ETA (coefficient bas = très stable)
+    private static double _smoothedEtaSeconds = -1.0;
+    private const  double Alpha = 0.05; // 5% nouveau, 95% historique
 
     public static void Start()
     {
@@ -63,13 +53,10 @@ public static class FooterComponent
 
     private static void ResetSession()
     {
-        _sessionStart       = DateTime.MinValue;
-        _fractionAtStart    = 0.0;
-        _currentBackup      = string.Empty;
-        _etaHistory.Clear();
-        _lastFraction       = -1.0;
-        _lastFractionChange = DateTime.MinValue;
-        _frozenEta          = "--:--:--";
+        _sessionStart    = DateTime.MinValue;
+        _fractionAtStart = 0.0;
+        _currentBackup   = string.Empty;
+        _smoothedEtaSeconds = -1.0;
     }
 
     private static async Task PollLoop(CancellationToken ct)
@@ -95,65 +82,50 @@ public static class FooterComponent
         {
             try
             {
-                // ── Progression ───────────────────────────────────────────
+                // ── Progression globale ───────────────────────────────────
                 long total       = Math.Max(1, state.TotalSize);
                 long remaining   = Math.Max(0, state.RemainingSize);
                 long transferred = total - remaining;
                 double fraction  = Math.Min(1.0, Math.Max(0.0, transferred / (double)total));
                 double percent   = fraction * 100.0;
 
-                // ── Détection nouveau job ─────────────────────────────────
+                // ── Détection d'un nouveau job ────────────────────────────
+                // Si le backup change ou si la progression repart de zéro,
+                // on réinitialise la session pour repartir sur une base saine
                 if (state.BackupName != _currentBackup || fraction < _fractionAtStart)
                 {
-                    _currentBackup   = state.BackupName;
-                    _sessionStart    = DateTime.UtcNow;
-                    _fractionAtStart = fraction;
-                    _etaHistory.Clear();
-                    _lastFraction       = fraction;
-                    _lastFractionChange = DateTime.UtcNow;
-                    _frozenEta          = "--:--:--";
+                    _currentBackup      = state.BackupName;
+                    _sessionStart       = DateTime.UtcNow;
+                    _fractionAtStart    = fraction;
+                    _smoothedEtaSeconds = -1.0;
                 }
 
-                // ── Détection stagnation ──────────────────────────────────
-                DateTime now = DateTime.UtcNow;
-
-                if (Math.Abs(fraction - _lastFraction) > StagnationThreshold)
-                {
-                    // La fraction a bougé : on réactive le calcul
-                    _lastFraction       = fraction;
-                    _lastFractionChange = now;
-                }
-
-                bool isStagnating = (now - _lastFractionChange).TotalSeconds > FreezeAfterSeconds;
-
-                // ── Calcul ETA ────────────────────────────────────────────
-                string eta = _frozenEta; // par défaut : valeur gelée
+                // ── Calcul ETA par progression linéaire ──────────────────
+                // Formule : elapsed / fractionFaiteDepuisDépart = tempsTotal
+                // ETA     = tempsTotal - elapsed
+                string eta = "--:--:--";
 
                 double fractionDone = fraction - _fractionAtStart;
 
-                if (!isStagnating && _sessionStart != DateTime.MinValue && fractionDone > 0.005)
+                if (_sessionStart != DateTime.MinValue && fractionDone > 0.005)
                 {
-                    double elapsed        = (now - _sessionStart).TotalSeconds;
+                    // On attend 0.5% de progression avant de calculer
+                    // pour éviter une estimation délirante au tout début
+                    double elapsed       = (DateTime.UtcNow - _sessionStart).TotalSeconds;
                     double totalEstimated = elapsed / fractionDone;
-                    double rawEta         = Math.Max(0, totalEstimated - elapsed);
+                    double rawEta         = totalEstimated - elapsed;
 
-                    // Ajoute dans la fenêtre glissante
-                    _etaHistory.Enqueue(rawEta);
-                    while (_etaHistory.Count > MedianWindow)
-                        _etaHistory.Dequeue();
+                    if (rawEta > 0)
+                    {
+                        // Lissage exponentiel très conservateur
+                        // Premier calcul : on initialise directement sans lisser
+                        _smoothedEtaSeconds = _smoothedEtaSeconds < 0
+                            ? rawEta
+                            : (_smoothedEtaSeconds * (1.0 - Alpha)) + (rawEta * Alpha);
 
-                    // Médiane : trie la fenêtre et prend la valeur centrale
-                    // Insensible aux pics contrairement à la moyenne
-                    var sorted = _etaHistory.OrderBy(x => x).ToList();
-                    double medianEta = sorted.Count % 2 == 1
-                        ? sorted[sorted.Count / 2]
-                        : (sorted[sorted.Count / 2 - 1] + sorted[sorted.Count / 2]) / 2.0;
-
-                    // On met à jour l'ETA gelé seulement quand on a une valeur calculée
-                    _frozenEta = FormatTime(TimeSpan.FromSeconds(medianEta));
-                    eta        = _frozenEta;
+                        eta = FormatTime(TimeSpan.FromSeconds(_smoothedEtaSeconds));
+                    }
                 }
-                // Si stagnation : on garde _frozenEta tel quel, pas de "--:--:--"
 
                 // ── Affichage ─────────────────────────────────────────────
                 int width = Math.Max(10, Console.WindowWidth);
