@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -8,182 +9,206 @@ using EasySaveProject.Models;
 
 public static class FooterComponent
 {
-	private static CancellationTokenSource? _cts;
-	private static readonly object _consoleLock = new();
+    private static CancellationTokenSource? _cts;
+    private static readonly object _consoleLock = new();
 
-	// Sampling state for ETA calculation
-	private static long _previousTransferred = 0;
-	private static DateTime _previousSample = DateTime.MinValue;
+    // ── Fenêtre glissante pour le calcul de vitesse ──────────────────────
+    // On conserve les (timestamp, bytesTransferred) des N dernières secondes
+    // et on calcule la vitesse sur cette fenêtre → beaucoup plus stable
+    private static readonly Queue<(DateTime time, long bytes)> _speedWindow = new();
+    private const double WindowSeconds = 3.0; // fenêtre de 3 secondes
 
-	public static void Start()
-	{
-		if (_cts != null)
-			return; // already running
+    public static void Start()
+    {
+        if (_cts != null)
+            return;
 
-		_cts = new CancellationTokenSource();
-		Task.Run(() => PollLoop(_cts.Token));
-	}
+        // Réinitialise la fenêtre à chaque démarrage
+        _speedWindow.Clear();
 
-	public static void Stop()
-	{
-		if (_cts == null)
-			return;
+        _cts = new CancellationTokenSource();
+        Task.Run(() => PollLoop(_cts.Token));
+    }
 
-		_cts.Cancel();
-		_cts = null;
-		// Clear footer line after stop
-		lock (_consoleLock)
-		{
-			try
-			{
-				int row = Math.Max(0, Console.WindowHeight - 1);
-				Console.SetCursorPosition(0, row);
-				Console.Write(new string(' ', Console.WindowWidth));
-				Console.SetCursorPosition(0, row);
-			}
-			catch { }
-		}
-	}
+    public static void Stop()
+    {
+        if (_cts == null)
+            return;
 
-	private static async Task PollLoop(CancellationToken ct)
-	{
-		var statePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "Data", "State", "state.json"));
+        _cts.Cancel();
+        _cts = null;
+        _speedWindow.Clear();
 
-		while (!ct.IsCancellationRequested)
-		{
-			try
-			{
-				if (File.Exists(statePath))
-				{
-					string json = string.Empty;
-					// Read with retry in case file is being written
-					for (int i = 0; i < 3; i++)
-					{
-						try
-						{
-							json = File.ReadAllText(statePath);
-							break;
-						}
-						catch (IOException)
-						{
-							await Task.Delay(50, ct);
-						}
-					}
+        lock (_consoleLock)
+        {
+            try
+            {
+                int row = Math.Max(0, Console.WindowHeight - 1);
+                Console.SetCursorPosition(0, row);
+                Console.Write(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(0, row);
+            }
+            catch { }
+        }
+    }
 
-					if (!string.IsNullOrWhiteSpace(json))
-					{
-						try
-						{
-							var states = JsonSerializer.Deserialize<System.Collections.Generic.List<State>>(json);
-							State? state = null;
+    private static async Task PollLoop(CancellationToken ct)
+    {
+        var statePath = Path.GetFullPath(
+            Path.Combine(AppContext.BaseDirectory, "Data", "State", "state.json"));
 
-							if (states != null && states.Count > 0)
-							{
-								state = states.OrderByDescending(s => s.Timestamp).FirstOrDefault(s => s.Status == "Active")
-										?? states.OrderByDescending(s => s.Timestamp).First();
-							}
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                if (File.Exists(statePath))
+                {
+                    string json = string.Empty;
 
-							if (state != null)
-								Render(state);
-						}
-						catch { }
-					}
-				}
-			}
-			catch { }
+                    for (int i = 0; i < 3; i++)
+                    {
+                        try
+                        {
+                            json = File.ReadAllText(statePath);
+                            break;
+                        }
+                        catch (IOException)
+                        {
+                            await Task.Delay(50, ct);
+                        }
+                    }
 
-			try { await Task.Delay(200, ct); } catch (TaskCanceledException) { break; }
-		}
-	}
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        try
+                        {
+                            var states = JsonSerializer.Deserialize<List<State>>(json);
+                            State? state = null;
 
-	private static void Render(State state)
-	{
-		lock (_consoleLock)
-		{
-			try
-			{
-				int width = Math.Max(10, Console.WindowWidth);
-				int row = Math.Max(0, Console.WindowHeight - 1);
+                            if (states != null && states.Count > 0)
+                            {
+                                state = states
+                                    .OrderByDescending(s => s.Timestamp)
+                                    .FirstOrDefault(s => s.Status == "Active")
+                                    ?? states.OrderByDescending(s => s.Timestamp).First();
+                            }
 
-				long total = Math.Max(1, state.TotalSize);
-				long remaining = Math.Max(0, state.RemainingSize);
-				long transferred = total - remaining;
+                            if (state != null)
+                                Render(state);
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch { }
 
-				double percent = Math.Min(100.0, Math.Max(0.0, transferred / (double)total * 100.0));
+            try { await Task.Delay(200, ct); }
+            catch (TaskCanceledException) { break; }
+        }
+    }
 
-				// ETA calculation using sampled speed
-				DateTime now = DateTime.UtcNow;
-				double speedBytesPerSec = 0.0;
+    private static void Render(State state)
+    {
+        lock (_consoleLock)
+        {
+            try
+            {
+                int width = Math.Max(10, Console.WindowWidth);
+                int row   = Math.Max(0, Console.WindowHeight - 1);
 
-				if (_previousSample != DateTime.MinValue)
-				{
-					var dt = (now - _previousSample).TotalSeconds;
-					if (dt > 0)
-					{
-						var dBytes = transferred - _previousTransferred;
-						speedBytesPerSec = Math.Max(0.0, dBytes / dt);
-					}
-				}
+                long total       = Math.Max(1, state.TotalSize);
+                long remaining   = Math.Max(0, state.RemainingSize);
+                long transferred = total - remaining;
 
-				_previousSample = now;
-				_previousTransferred = transferred;
+                double percent = Math.Min(100.0,
+                    Math.Max(0.0, transferred / (double)total * 100.0));
 
-				string eta = speedBytesPerSec > 0
-					? FormatTime(TimeSpan.FromSeconds(remaining / speedBytesPerSec))
-					: "--:--:--";
+                // ── Calcul de vitesse sur fenêtre glissante ───────────────
+                DateTime now = DateTime.UtcNow;
 
-				// Files info
-				int totalFiles = Math.Max(1, state.TotalFiles);
-				int doneFiles = Math.Max(0, totalFiles - state.RemainingFiles);
+                // Ajoute le point courant
+                _speedWindow.Enqueue((now, transferred));
 
-				// Build bar
-				int barWidth = Math.Max(10, width - 60);
-				int filled = (int)Math.Round(barWidth * percent / 100.0);
-				string bar = "[" + new string('=', filled) + (filled < barWidth ? ">" : "=") + new string(' ', Math.Max(0, barWidth - filled - 1)) + "]";
+                // Retire les points plus vieux que WindowSeconds
+                while (_speedWindow.Count > 1 &&
+                       (now - _speedWindow.Peek().time).TotalSeconds > WindowSeconds)
+                {
+                    _speedWindow.Dequeue();
+                }
 
-				string left = $"Files: {doneFiles}/{totalFiles} | {Percent(percent)} | {HumanSize(transferred)}/{HumanSize(total)}";
-				string right = $"ETA: {eta} | {TruncatePath(state.CurrentSourceFile, 30)}";
+                double speedBytesPerSec = 0.0;
 
-				string line = left.PadRight(2) + " " + bar.PadRight(barWidth + 2) + " " + right.PadLeft(Math.Max(0, width - (left.Length + bar.Length + 4)));
+                if (_speedWindow.Count >= 2)
+                {
+                    // Vitesse = (bytes récents - bytes anciens) / durée de la fenêtre
+                    var oldest = _speedWindow.Peek();
+                    var dt     = (now - oldest.time).TotalSeconds;
 
-				// Ensure single line output
-				Console.SetCursorPosition(0, row);
-				Console.Write(line.Substring(0, Math.Min(line.Length, width)).PadRight(width));
-			}
-			catch { }
-		}
-	}
+                    if (dt > 0)
+                    {
+                        var deltaBytes = transferred - oldest.bytes;
+                        // deltaBytes peut être négatif si on reprend une sauvegarde
+                        // différente → on ignore ce cas
+                        speedBytesPerSec = deltaBytes > 0
+                            ? deltaBytes / dt
+                            : 0.0;
+                    }
+                }
 
-	private static string Percent(double p) => p.ToString("0.0") + "%";
+                // ETA : on n'affiche que si on a une vraie vitesse positive
+                string eta = (speedBytesPerSec > 0 && remaining > 0)
+                    ? FormatTime(TimeSpan.FromSeconds(remaining / speedBytesPerSec))
+                    : "--:--:--";
 
-	private static string HumanSize(long bytes)
-	{
-		string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-		double len = bytes;
-		int order = 0;
-		while (len >= 1024 && order < sizes.Length - 1)
-		{
-			order++;
-			len = len / 1024;
-		}
-		return string.Format("{0:0.##} {1}", len, sizes[order]);
-	}
+                // ── Informations fichiers ─────────────────────────────────
+                int totalFiles = Math.Max(1, state.TotalFiles);
+                int doneFiles  = Math.Max(0, totalFiles - state.RemainingFiles);
 
-	private static string FormatTime(TimeSpan t)
-	{
-		return string.Format("{0:D2}:{1:D2}:{2:D2}", (int)t.TotalHours, t.Minutes, t.Seconds);
-	}
+                // ── Barre de progression ──────────────────────────────────
+                int barWidth = Math.Max(10, width - 60);
+                int filled   = (int)Math.Round(barWidth * percent / 100.0);
+                string bar   = "["
+                    + new string('=', filled)
+                    + (filled < barWidth ? ">" : "=")
+                    + new string(' ', Math.Max(0, barWidth - filled - 1))
+                    + "]";
 
-	private static string TruncatePath(string path, int maxLen)
-	{
-		if (string.IsNullOrEmpty(path)) return string.Empty;
-		if (path.Length <= maxLen) return path;
-		var file = Path.GetFileName(path);
-		if (file.Length + 4 >= maxLen)
-			return "..." + file[^Math.Min(file.Length, maxLen - 3)..];
+                string left  = $"Files: {doneFiles}/{totalFiles} | {Percent(percent)} | {HumanSize(transferred)}/{HumanSize(total)}";
+                string right = $"ETA: {eta} | {TruncatePath(state.CurrentSourceFile, 30)}";
 
-		int left = maxLen - file.Length - 3;
-		return path.Substring(0, left) + "..." + file;
-	}
+                string line = left.PadRight(2) + " "
+                    + bar.PadRight(barWidth + 2) + " "
+                    + right.PadLeft(Math.Max(0, width - (left.Length + bar.Length + 4)));
+
+                Console.SetCursorPosition(0, row);
+                Console.Write(line.Substring(0, Math.Min(line.Length, width)).PadRight(width));
+            }
+            catch { }
+        }
+    }
+
+    private static string Percent(double p) => p.ToString("0.0") + "%";
+
+    private static string HumanSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1) { order++; len /= 1024; }
+        return string.Format("{0:0.##} {1}", len, sizes[order]);
+    }
+
+    private static string FormatTime(TimeSpan t) =>
+        string.Format("{0:D2}:{1:D2}:{2:D2}", (int)t.TotalHours, t.Minutes, t.Seconds);
+
+    private static string TruncatePath(string path, int maxLen)
+    {
+        if (string.IsNullOrEmpty(path)) return string.Empty;
+        if (path.Length <= maxLen) return path;
+        var file = Path.GetFileName(path);
+        if (file.Length + 4 >= maxLen)
+            return "..." + file[^Math.Min(file.Length, maxLen - 3)..];
+        int left = maxLen - file.Length - 3;
+        return path.Substring(0, left) + "..." + file;
+    }
 }
-

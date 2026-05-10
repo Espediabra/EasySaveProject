@@ -19,7 +19,15 @@ public class MainViewModel
 
     public void ExecuteBackup(int index)
     {
-        _backupService.RunJob(index);
+        FooterComponent.Start();
+        try
+        {
+            _backupService.RunJob(index);
+        }
+        finally
+        {
+            FooterComponent.Stop();
+        }
     }
 
     public void CreateJob(string name, string source, string target, BackupType type)
@@ -55,9 +63,17 @@ public class MainViewModel
 
     public void ExecuteMultipleBackups(List<int> indices)
     {
-        foreach (int index in indices)
+        FooterComponent.Start();
+        try
         {
-            _backupService.RunJob(index);
+            foreach (int index in indices)
+            {
+                _backupService.RunJob(index);
+            }
+        }
+        finally
+        {
+            FooterComponent.Stop();
         }
     }
 }
