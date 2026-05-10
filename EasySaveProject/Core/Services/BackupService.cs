@@ -14,10 +14,7 @@ namespace EasySaveProject.Core.Services
         private readonly List<BackupJob> _jobs = new();
 
         private readonly string _jobsPath = Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..",
-            "Data", "Jobs", "jobs.json"
-        );
+            AppContext.BaseDirectory, "Data", "Jobs", "jobs.json");
 
         public BackupService(FileService fileService, LogService logService, StateService stateService)
         {

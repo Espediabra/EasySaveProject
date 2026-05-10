@@ -12,7 +12,7 @@ class Program
             // Console.WriteLine("Aucun args fournis");
             return;
         }
-        // Console.WriteLine($"Les args sont {args[0]}");
-        // app.RunCli(args[0]);
+        Console.WriteLine($"Les args sont {string.Join(", ", args)}");
+        app.RunCli(args);
     }
 }

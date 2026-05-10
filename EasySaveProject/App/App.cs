@@ -17,6 +17,7 @@ public class App
     private readonly InteractiveMenuComponent _interactiveMenu;
     private readonly SettingsView _settingsView;
     private readonly LanguageForm _languageForm;
+    private readonly RunCliFlow _runCliFlow;
 
     public App()
     {
@@ -56,6 +57,13 @@ public class App
             inputForm,
             backupTypeForm,
             confirmDialog,
+            _loc
+        );
+
+        _runCliFlow = new RunCliFlow(
+            _viewModel,
+            createBackupForm,
+            _menu,
             _loc
         );
 
@@ -106,32 +114,6 @@ public class App
 
     public void RunCli(string[] args)
     {
-        var config = _configService.Load();
-
-        _loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
-
-        var indices = ArgumentParser.Parse(args[0]);
-
-        var jobs = _viewModel.GetJobsRaw();
-
-        if (jobs.Count == 0)
-        {
-            Console.WriteLine("No backup jobs found.");
-            return;
-        }
-
-        foreach (var index in indices)
-        {
-            int realIndex = index - 1;
-
-            if (realIndex < 0 || realIndex >= jobs.Count)
-            {
-                Console.WriteLine($"Job {index} does not exist.");
-                continue;
-            }
-
-            _viewModel.ExecuteBackup(realIndex);
-            Console.WriteLine($"Executed job {index}");
-        }
+        _runCliFlow.Execute(args);
     }
 }

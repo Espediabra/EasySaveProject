@@ -23,7 +23,7 @@ public class CreateBackupForm
         _loc = loc;
     }
 
-    public void Show()
+    public void Show(bool allowRun = true)
     {
         Console.Clear();
         HeaderComponent.Render(_loc.T("Form.CreateTitle"));
@@ -36,6 +36,10 @@ public class CreateBackupForm
 
         _viewModel.CreateJob(name, source, target, type);
 
+        // seulement si autorisé
+        if (!allowRun)
+            return;
+
         Console.WriteLine(_loc.T("Job.Created"));
 
         bool runNow = _confirm.Ask(_loc.T("Confirm.RunNow"));
@@ -45,6 +49,7 @@ public class CreateBackupForm
             int index = _viewModel.GetJobsRaw().Count - 1;
 
             _viewModel.ExecuteBackup(index);
+
             Console.WriteLine(_loc.T("Backup.Executed"));
             Console.ReadKey();
         }

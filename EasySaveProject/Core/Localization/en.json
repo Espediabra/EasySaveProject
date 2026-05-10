@@ -78,5 +78,11 @@
     "Logs.Details.Size": "Size",
     "Logs.Details.TransferTime": "Transfer time",
     "Logs.Details.Message": "Message",
-    "Menu.Controls": "ENTER → Open / Execute   SPACE → Select"
+    "Menu.Controls": "ENTER → Open / Execute   SPACE → Select",
+    "Cli.ResultTitle": "Result of operations",
+    "Cli.BackupExecuted": "Backup executed",
+    "Cli.BackupCreated": "Backup created",
+    "Cli.CreateBackup": "Create backup",
+    "Cli.SkipMissingBackups": "Skip missing backups",
+    "Cli.MissingBackupsTitle": "/!\\ Missing backups"
 }
