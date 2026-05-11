@@ -1,4 +1,28 @@
 // using EasySaveProject.Helpers;
+<<<<<<< HEAD
+=======
+
+// class Program
+// {
+//     static void Main(string[] args)
+//     {
+//         var app = new App();
+
+//         if (args.Length == 0)
+//         {
+//             app.Run();
+//             // Console.WriteLine("Aucun args fournis");
+//             return;
+//         }
+//         Console.WriteLine($"Les args sont {string.Join(", ", args)}");
+//         app.RunCli(args);
+//     }
+// }
+
+using Avalonia;
+using EasySaveProject.UI.Avalonia.Views;
+using EasySaveProject.UI.Avalonia.ViewModels;
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
 
 // class Program
 // {
@@ -33,11 +57,14 @@ class Program
     {
         // ── Mode UI Avalonia (défaut) ──────────────────────────────────────
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+<<<<<<< HEAD
 
         // ── Mode console (CLI) — décommentez pour revenir à l'ancienne app ─
         // var app = new App();
         // if (args.Length == 0) app.Run();
         // else app.RunCli(args[0]);
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     }
 
     public static AppBuilder BuildAvaloniaApp()
@@ -46,3 +73,7 @@ class Program
             .WithInterFont()
             .LogToTrace();
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f

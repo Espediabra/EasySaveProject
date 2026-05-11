@@ -11,6 +11,7 @@ public class DifferentialBackupStrategy : BaseBackupStrategy
         var allFiles = Directory.GetFiles(job.SourcePath, "*", SearchOption.AllDirectories);
 
         return allFiles.Where(sourceFile =>
+<<<<<<< HEAD
         {
             var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
             var targetFile = Path.Combine(job.TargetPath, relativePath);
@@ -18,5 +19,14 @@ public class DifferentialBackupStrategy : BaseBackupStrategy
             return !File.Exists(targetFile) ||
                    File.GetLastWriteTime(sourceFile) > File.GetLastWriteTime(targetFile);
         }).ToArray();
+=======
+            {
+                var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
+                var targetFile = Path.Combine(job.TargetPath, relativePath);
+
+                return !File.Exists(targetFile) ||
+                       File.GetLastWriteTime(sourceFile) > File.GetLastWriteTime(targetFile);
+            }).ToArray();
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     }
 }

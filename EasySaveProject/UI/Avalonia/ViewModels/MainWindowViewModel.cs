@@ -26,12 +26,20 @@ public partial class MainWindowViewModel : ObservableObject
     public bool IsLogsPageVisible => CurrentPage == "Logs";
     public bool IsSettingsPageVisible => CurrentPage == "Settings";
 
+<<<<<<< HEAD
     // ── Page Jobs
+=======
+    // Page Jobs
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     [ObservableProperty] private ObservableCollection<BackupJobViewModel> _jobs = new();
     [ObservableProperty] private BackupJobViewModel? _selectedJob;
     [ObservableProperty] private bool _showJobPanel = false;
 
+<<<<<<< HEAD
     // Formulaire de création
+=======
+    // Form création sauvegarde
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     [ObservableProperty] private bool _showCreateForm = false;
     [ObservableProperty] private string _formName = "";
     [ObservableProperty] private string _formSource = "";
@@ -39,11 +47,19 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _formType = "Full";
     [ObservableProperty] private string _formError = "";
 
+<<<<<<< HEAD
     // ── Page Logs ─────────────────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<LogEntryViewModel> _logEntries = new();
     [ObservableProperty] private string _selectedLogLevel = "All";
 
     // ── Page Settings ─────────────────────────────────────────────────────
+=======
+    // Page Logs
+    [ObservableProperty] private ObservableCollection<LogEntryViewModel> _logEntries = new();
+    [ObservableProperty] private string _selectedLogLevel = "All";
+
+    // Page Settings
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     [ObservableProperty] private string _selectedLanguage = "English";
 
     // ── Toast ─────────────────────────────────────────────────────────────
@@ -191,11 +207,14 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     void OpenCreateForm()
     {
+<<<<<<< HEAD
         if (Jobs.Count >= 5)
         {
             ShowToastMessage("Maximum 5 sauvegardes. Supprimez-en une d'abord.");
             return;
         }
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
         FormName = FormSource = FormTarget = FormError = "";
         FormType = "Full";
         ShowJobPanel = false;

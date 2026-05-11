@@ -2,7 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
+<<<<<<< HEAD
         Charte de couleurs EasySave
+=======
+        Color Identité entreprise
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
         ═══════════════════════════
         #AF9164  → Or chaud (accent principal, boutons, badges)
         #F7F3E3  → Crème (fond sidebar, surfaces secondaires)
@@ -31,14 +35,20 @@
         </Style.Resources>
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── Fenêtre ─────────────────────────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="Window">
         <Setter Property="Background" Value="#FEFCF7" />
         <Setter Property="FontFamily" Value="Inter, Segoe UI, sans-serif" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── Boutons primaires (or chaud) ────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="#AF9164" />
         <Setter Property="Foreground" Value="White" />
@@ -53,7 +63,10 @@
         <Setter Property="Background" Value="#9A7E56" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── Boutons secondaires ─────────────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="Button.secondary">
         <Setter Property="Background" Value="#F7F3E3" />
         <Setter Property="Foreground" Value="#2B2118" />
@@ -68,7 +81,10 @@
         <Setter Property="Background" Value="#EDE8D6" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── Boutons danger (bordeaux) ───────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="Button.danger">
         <Setter Property="Background" Value="#F5E0DC" />
         <Setter Property="Foreground" Value="#6F1A07" />
@@ -83,7 +99,10 @@
         <Setter Property="Background" Value="#E8C4BD" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── Boutons icon ────────────────────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="Button.icon">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Padding" Value="6" />
@@ -96,7 +115,10 @@
         <Setter Property="Background" Value="#F7F3E3" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── TextBox ─────────────────────────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="TextBox">
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="BorderBrush" Value="#D6D2C4" />
@@ -109,7 +131,10 @@
         <Setter Property="BorderBrush" Value="#AF9164" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── ComboBox ────────────────────────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="ComboBox">
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="BorderBrush" Value="#D6D2C4" />
@@ -118,7 +143,10 @@
         <Setter Property="FontSize" Value="13" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── Labels ──────────────────────────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="TextBlock.label">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Medium" />
@@ -142,14 +170,20 @@
         <Setter Property="Foreground" Value="#B3B6B7" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── Séparateur ──────────────────────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="Separator">
         <Setter Property="Background" Value="#E8E4D6" />
         <Setter Property="Height" Value="1" />
         <Setter Property="Margin" Value="0,8" />
     </Style>
 
+<<<<<<< HEAD
     <!-- ─── ListBox ─────────────────────────────────────────────────────── -->
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     <Style Selector="ListBox">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />

@@ -1,7 +1,10 @@
 using EasySaveProject.Models;
 using EasySaveProject.Core.Services;
+<<<<<<< HEAD
 using EasySaveProject.Infrastructure.Crypto;
 using EasySaveProject.Infrastructure.Monitoring;
+=======
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
 
 
 namespace EasySaveProject.Core.Strategies;
@@ -26,8 +29,12 @@ public abstract class BaseBackupStrategy : IBackupStrategy
             return;
         }
 
+<<<<<<< HEAD
         if (!Directory.Exists(job.SourcePath))
             throw new DirectoryNotFoundException($"Source not found: {job.SourcePath}");
+=======
+        var files = SelectFiles(job);
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
 
         if (!Directory.Exists(job.TargetPath))
             Directory.CreateDirectory(job.TargetPath);
@@ -135,9 +142,13 @@ public abstract class BaseBackupStrategy : IBackupStrategy
 
         state.Status = "Completed";
         stateService.Update(state);
+<<<<<<< HEAD
 
         BackupStateHub.Clear();
     }
 
+=======
+    }
+>>>>>>> f67e00b0db0d5bd98353b478cb7c9bebfa56a41f
     protected abstract string[] SelectFiles(BackupJob job);
 }
