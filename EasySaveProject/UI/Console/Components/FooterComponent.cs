@@ -1,73 +1,72 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using EasySaveProject.Core;
-using EasySaveProject.Models;
+using EasySaveProject.Core.Services;
 
-public static class FooterComponent
+namespace EasySaveProject.UI.Console.Components;
+
+/// <summary>
+/// Affiche la barre de progression en bas du terminal.
+/// Ne contient aucune logique de calcul — délègue à ProgressService.
+/// Écoute aussi la touche Espace pour pause/reprise via PauseService.
+/// </summary>
+public class FooterComponent
 {
-    private static CancellationTokenSource? _cts;
-    private static readonly object _consoleLock = new();
+    private readonly ProgressService _progressService;
+    private readonly PauseService    _pauseService;
 
-    // ── ETA par progression linéaire ─────────────────────────────────────
-    // On mémorise l'instant et la fraction complétée au démarrage de la session
-    private static DateTime _sessionStart   = DateTime.MinValue;
-    private static double   _fractionAtStart = 0.0;
-    private static string   _currentBackup  = string.Empty;
+    private CancellationTokenSource? _cts;
+    private readonly object          _consoleLock = new();
 
-    // Lissage exponentiel de l'ETA (coefficient bas = très stable)
-    private static double _smoothedEtaSeconds = -1.0;
-    private const  double Alpha = 0.05; // 5% nouveau, 95% historique
-
-    public static void Start()
+    public FooterComponent(ProgressService progressService, PauseService pauseService)
     {
-        if (_cts != null)
-            return;
-
-        ResetSession();
-        _cts = new CancellationTokenSource();
-        Task.Run(() => PollLoop(_cts.Token));
+        _progressService = progressService;
+        _pauseService    = pauseService;
     }
 
-    public static void Stop()
+    public void Start()
     {
-        if (_cts == null)
-            return;
+        if (_cts != null) return;
+
+        _cts = new CancellationTokenSource();
+
+        // Thread d'affichage : rafraîchit le footer toutes les 200ms
+        Task.Run(() => RenderLoop(_cts.Token));
+
+        // Thread d'écoute clavier : capte Espace pour pause/reprise
+        Task.Run(() => KeyboardLoop(_cts.Token));
+    }
+
+    public void Stop()
+    {
+        if (_cts == null) return;
 
         _cts.Cancel();
         _cts = null;
-        ResetSession();
 
         lock (_consoleLock)
         {
             try
             {
-                int row = Math.Max(0, Console.WindowHeight - 1);
-                Console.SetCursorPosition(0, row);
-                Console.Write(new string(' ', Console.WindowWidth));
-                Console.SetCursorPosition(0, row);
+                int row = Math.Max(0, System.Console.WindowHeight - 1);
+                System.Console.SetCursorPosition(0, row);
+                System.Console.Write(new string(' ', System.Console.WindowWidth));
+                System.Console.SetCursorPosition(0, row);
             }
             catch { }
         }
     }
 
-    private static void ResetSession()
-    {
-        _sessionStart    = DateTime.MinValue;
-        _fractionAtStart = 0.0;
-        _currentBackup   = string.Empty;
-        _smoothedEtaSeconds = -1.0;
-    }
+    // ── Boucle d'affichage ────────────────────────────────────────────────
 
-    private static async Task PollLoop(CancellationToken ct)
+    private async Task RenderLoop(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                var state = BackupStateHub.Read();
-                if (state != null)
-                    Render(state);
+                _progressService.Tick();
+                Render(_progressService.Current);
             }
             catch { }
 
@@ -76,84 +75,69 @@ public static class FooterComponent
         }
     }
 
-    private static void Render(State state)
+    private void Render(ProgressSnapshot snap)
     {
+        if (string.IsNullOrEmpty(snap.BackupName)) return;
+
         lock (_consoleLock)
         {
             try
             {
-                // ── Progression globale ───────────────────────────────────
-                long total       = Math.Max(1, state.TotalSize);
-                long remaining   = Math.Max(0, state.RemainingSize);
-                long transferred = total - remaining;
-                double fraction  = Math.Min(1.0, Math.Max(0.0, transferred / (double)total));
-                double percent   = fraction * 100.0;
-
-                // ── Détection d'un nouveau job ────────────────────────────
-                // Si le backup change ou si la progression repart de zéro,
-                // on réinitialise la session pour repartir sur une base saine
-                if (state.BackupName != _currentBackup || fraction < _fractionAtStart)
-                {
-                    _currentBackup      = state.BackupName;
-                    _sessionStart       = DateTime.UtcNow;
-                    _fractionAtStart    = fraction;
-                    _smoothedEtaSeconds = -1.0;
-                }
-
-                // ── Calcul ETA par progression linéaire ──────────────────
-                // Formule : elapsed / fractionFaiteDepuisDépart = tempsTotal
-                // ETA     = tempsTotal - elapsed
-                string eta = "--:--:--";
-
-                double fractionDone = fraction - _fractionAtStart;
-
-                if (_sessionStart != DateTime.MinValue && fractionDone > 0.005)
-                {
-                    // On attend 0.5% de progression avant de calculer
-                    // pour éviter une estimation délirante au tout début
-                    double elapsed       = (DateTime.UtcNow - _sessionStart).TotalSeconds;
-                    double totalEstimated = elapsed / fractionDone;
-                    double rawEta         = totalEstimated - elapsed;
-
-                    if (rawEta > 0)
-                    {
-                        // Lissage exponentiel très conservateur
-                        // Premier calcul : on initialise directement sans lisser
-                        _smoothedEtaSeconds = _smoothedEtaSeconds < 0
-                            ? rawEta
-                            : (_smoothedEtaSeconds * (1.0 - Alpha)) + (rawEta * Alpha);
-
-                        eta = FormatTime(TimeSpan.FromSeconds(_smoothedEtaSeconds));
-                    }
-                }
-
-                // ── Affichage ─────────────────────────────────────────────
-                int width = Math.Max(10, Console.WindowWidth);
-                int row   = Math.Max(0, Console.WindowHeight - 1);
-
-                int totalFiles = Math.Max(1, state.TotalFiles);
-                int doneFiles  = Math.Max(0, totalFiles - state.RemainingFiles);
-
+                int width    = Math.Max(10, System.Console.WindowWidth);
+                int row      = Math.Max(0, System.Console.WindowHeight - 1);
                 int barWidth = Math.Max(10, width - 60);
-                int filled   = (int)Math.Round(barWidth * fraction);
-                string bar   = "["
+                int filled   = (int)Math.Round(barWidth * snap.Fraction);
+
+                string bar = "["
                     + new string('=', filled)
                     + (filled < barWidth ? ">" : "=")
                     + new string(' ', Math.Max(0, barWidth - filled - 1))
                     + "]";
 
-                string left  = $"Files: {doneFiles}/{totalFiles} | {percent:0.0}% | {HumanSize(transferred)}/{HumanSize(total)}";
-                string right = $"ETA: {eta} | {TruncatePath(state.CurrentSourceFile, 30)}";
+                string etaStr = snap.Eta.HasValue
+                    ? $"{(int)snap.Eta.Value.TotalHours:D2}:{snap.Eta.Value.Minutes:D2}:{snap.Eta.Value.Seconds:D2}"
+                    : "--:--:--";
+
+                // Indicateur pause visible dans le footer
+                string pauseTag = _pauseService.IsPaused ? " [PAUSE]" : string.Empty;
+
+                string left  = $"Files: {snap.DoneFiles}/{snap.TotalFiles} | {snap.Fraction * 100:0.0}% | {HumanSize(snap.Transferred)}/{HumanSize(snap.Total)}";
+                string right = $"ETA: {etaStr}{pauseTag} | {TruncatePath(snap.CurrentFile, 30)}";
                 string line  = left.PadRight(2) + " "
                     + bar.PadRight(barWidth + 2) + " "
                     + right.PadLeft(Math.Max(0, width - (left.Length + bar.Length + 4)));
 
-                Console.SetCursorPosition(0, row);
-                Console.Write(line.Substring(0, Math.Min(line.Length, width)).PadRight(width));
+                System.Console.SetCursorPosition(0, row);
+                System.Console.Write(line.Substring(0, Math.Min(line.Length, width)).PadRight(width));
             }
             catch { }
         }
     }
+
+    // ── Boucle clavier ────────────────────────────────────────────────────
+
+    private async Task KeyboardLoop(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                // KeyAvailable évite de bloquer sur ReadKey quand il n'y a rien
+                if (System.Console.KeyAvailable)
+                {
+                    var key = System.Console.ReadKey(intercept: true); // intercept: ne pas afficher la touche
+                    if (key.Key == ConsoleKey.Spacebar)
+                        _pauseService.Toggle();
+                }
+            }
+            catch { }
+
+            try { await Task.Delay(50, ct); } // poll clavier plus réactif que le render
+            catch (TaskCanceledException) { break; }
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
 
     private static string HumanSize(long bytes)
     {
@@ -164,14 +148,11 @@ public static class FooterComponent
         return $"{len:0.##} {sizes[order]}";
     }
 
-    private static string FormatTime(TimeSpan t) =>
-        $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
-
     private static string TruncatePath(string path, int maxLen)
     {
         if (string.IsNullOrEmpty(path)) return string.Empty;
         if (path.Length <= maxLen) return path;
-        var file = Path.GetFileName(path);
+        var file = System.IO.Path.GetFileName(path);
         if (file.Length + 4 >= maxLen)
             return "..." + file[^Math.Min(file.Length, maxLen - 3)..];
         int left = maxLen - file.Length - 3;

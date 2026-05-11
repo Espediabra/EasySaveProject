@@ -9,7 +9,8 @@ namespace EasySaveProject.Strategies
             BackupJob job,
             FileService fileService,
             LogService logService,
-            StateService stateService
+            StateService stateService,
+            PauseService pauseService
         );
     }
 }
