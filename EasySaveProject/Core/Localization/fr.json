@@ -4,6 +4,7 @@
   "MainMenu.ViewLogs": "Voir les logs",
   "MainMenu.Settings": "Paramètres",
   "MainMenu.Exit": "Quitter",
+
   "Logs.ComingSoon": "Journaux bientôt disponibles...",
   "Logs.Title": "Journaux",
   "Logs.Today": "Journaux du jour",
@@ -11,11 +12,16 @@
   "Logs.SelectLevel": "Sélectionner un niveau",
   "Logs.TodayHeader": "Journaux du jour",
   "Logs.LevelHeader": "Journaux - {0}",
+
   "Settings.ComingSoon": "Paramètres bientôt disponibles...",
   "Settings.Title": "Paramètres",
   "Settings.ChangeLanguage": "Changer la langue",
   "Settings.LanguageUpdated": "Langue mise à jour avec succès",
+  "Settings.ChangeLogFormat": "Choisir le format des logs",
+  "Settings.ChooseLogFormat": "Choisir le format des logs",
+  "Settings.LogFormatUpdated": "Format des logs mis à jour",
   "Settings.Back": "Retour",
+
   "Backup.Menu": "Menu de sauvegarde",
   "Backup.CreateNew": "Créer une nouvelle sauvegarde",
   "Backup.CreateA": "Créer une tâche de sauvegarde",
@@ -24,10 +30,12 @@
   "Backup.Executed": "Sauvegarde exécutée.",
   "Backup.NoBackupJobs": "Aucune tâche de sauvegarde disponible.",
   "Backup.Run": "Exécuter la sauvegarde",
+  "Backup.RunSelected": "Lancer les sauvegardes sélectionnées",
   "Backup.TypeFull": "Complète",
   "Backup.TypeDifferential": "Différentielle",
   "Backup.TypeSelection": "Sélectionner le type de sauvegarde",
   "Backup.TypeUpdated": "Type de sauvegarde mis à jour.",
+
   "Job.Options": "Options de la tâche",
   "Job.Detail": "Détails de la tâche",
   "Job.Name": "Nom",
@@ -36,27 +44,34 @@
   "Job.Type": "Type",
   "Job.Created": "Tâche créée avec succès.",
   "Job.MaxReached": "Nombre maximum de tâches atteint (5). Veuillez en sélectionner une à remplacer.",
+
   "Form.CreateTitle": "Créer une tâche de sauvegarde",
   "Form.NamePrompt": "Nom : ",
   "Form.SourcePrompt": "Chemin source : ",
   "Form.TargetPrompt": "Chemin cible : ",
   "Form.EmptyError": "La valeur ne peut pas être vide.",
+
   "Confirm.RunNow": "Voulez-vous l'exécuter maintenant ?",
   "Confirm.Delete": "Confirmer la suppression.",
   "Confirm.Yes": "Oui",
   "Confirm.No": "Non",
+
   "View.Details": "Voir les détails",
+
   "Return": "Retour",
   "Back": "Retour",
   "Cancel": "Annuler",
+
   "Language.Choose": "Choisir la langue",
   "Language.English": "Anglais",
   "Language.French": "Français",
   "Language.ConfirmationTitle": "Confirmation",
   "Language.YouChose": "Vous avez choisi : {0}. Confirmez-vous ?",
+
   "Log.Level.Info": "Info",
   "Log.Level.Warning": "Avertissement",
   "Log.Level.Error": "Erreur",
+
   "Logs.Header.Time": "Heure",
   "Logs.Header.Level": "Niveau",
   "Logs.Header.Job": "Job",
@@ -65,10 +80,12 @@
   "Logs.Header.TargetFile": "Fichier cible",
   "Logs.Header.FileSize": "Taille du fichier",
   "Logs.Header.TransferTime": "Durée transfert",
+
   "Logs.Arrow": "   ➟   ",
   "Logs.Bytes": "octets",
   "Logs.Milliseconds": "ms",
   "Logs.Error": "ERREUR",
+
   "Logs.Details.Timestamp": "Horodatage",
   "Logs.Details.Level": "Niveau",
   "Logs.Details.Job": "Job",
@@ -77,7 +94,13 @@
   "Logs.Details.Size": "Taille",
   "Logs.Details.TransferTime": "Temps de transfert",
   "Logs.Details.Message": "Message",
-  "Settings.ChangeLogFormat": "Choisir le format des logs",
-  "Settings.ChooseLogFormat": "Choisir le format des logs",
-  "Settings.LogFormatUpdated": "Format des logs mis à jour"
+
+  "Menu.Controls": "ENTRÉE → Ouvrir / Exécuter   ESPACE → Sélectionner",
+
+  "Cli.ResultTitle": "Résultat des opérations",
+  "Cli.BackupExecuted": "Sauvegarde exécutée",
+  "Cli.BackupCreated": "Sauvegarde créée",
+  "Cli.CreateBackup": "Créer la sauvegarde",
+  "Cli.SkipMissingBackups": "Ignorer les sauvegardes manquantes",
+  "Cli.MissingBackupsTitle": "/!\\ Sauvegardes manquantes"
 }
