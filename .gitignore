@@ -5,6 +5,8 @@
 
 # custom files
 state.json
+bin/
+obj/
 
 # dotenv files
 .env

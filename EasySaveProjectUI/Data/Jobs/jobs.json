@@ -1,0 +1,32 @@
+[
+  {
+    "Name": "gjhhj",
+    "SourcePath": "jikhjkhljlhjk",
+    "TargetPath": "njhkhjk",
+    "Type": 0
+  },
+  {
+    "Name": "BackupTest",
+    "SourcePath": "C:\\TestData\\Source1",
+    "TargetPath": "C:\\TestData\\Target1",
+    "Type": 0
+  },
+  {
+    "Name": "SourceDif",
+    "SourcePath": "C:\\TestData\\Source1",
+    "TargetPath": "C:\\TestData\\Target1",
+    "Type": 1
+  },
+  {
+    "Name": "hdjhsjhjdqbhkj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "Type": 0
+  },
+  {
+    "Name": "dsfopjukshlkdsbfhjndskgfjhgdshjkfghhgkfj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "Type": 0
+  }
+]
