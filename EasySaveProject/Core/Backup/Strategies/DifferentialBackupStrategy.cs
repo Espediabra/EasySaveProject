@@ -2,7 +2,7 @@ using EasySaveProject.Models;
 using EasySaveProject.Core.Services;
 
 
-namespace EasySaveProject.Strategies;
+namespace EasySaveProject.Core.Strategies;
 
 public class DifferentialBackupStrategy : BaseBackupStrategy
 {

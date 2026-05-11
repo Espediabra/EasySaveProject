@@ -1,21 +1,19 @@
 using EasySaveProject.Models;
-using EasySaveProject.Core.Services;
 using EasySaveProject.Infrastructure.Crypto;
 using EasySaveProject.Infrastructure.Monitoring;
+using EasySaveProject.Core.Services;
 
+namespace EasySaveProject.Core.Strategies;
 
-namespace EasySaveProject.Strategies
+public interface IBackupStrategy
 {
-    public interface IBackupStrategy
-    {
-        void Execute(
-            BackupJob job,
-            FileService fileService,
-            LogService logService,
-            StateService stateService,
-            CryptoService cryptoService,
-            BusinessSoftwareWatcher watcher,
-            PauseService pauseService
-        );
-    }
+    void Execute(
+        BackupJob job,
+        FileService fileService,
+        LogService logService,
+        StateService stateService,
+        CryptoService cryptoService,
+        BusinessSoftwareWatcher watcher,
+        PauseService pauseService
+    );
 }

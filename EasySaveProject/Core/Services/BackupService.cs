@@ -9,8 +9,8 @@ namespace EasySaveProject.Core.Services
 {
     public class BackupService
     {
-        private readonly FileService  _fileService;
-        private readonly LogService   _logService;
+        private readonly FileService _fileService;
+        private readonly LogService _logService;
         private readonly StateService _stateService;
         private readonly CryptoService _cryptoService;
         private readonly BusinessSoftwareWatcher _watcher;
@@ -29,8 +29,8 @@ namespace EasySaveProject.Core.Services
             BusinessSoftwareWatcher watcher,
             PauseService pauseService)
         {
-            _fileService  = fileService;
-            _logService   = logService;
+            _fileService = fileService;
+            _logService = logService;
             _stateService = stateService;
             _cryptoService = cryptoService;
             _watcher = watcher;
@@ -49,7 +49,7 @@ namespace EasySaveProject.Core.Services
         {
             var json = File.ReadAllText(jsonPath);
             var jobs = JsonSerializer.Deserialize<List<BackupJob>>(json);
-            
+
             _jobs.Clear();
             if (jobs == null)
                 throw new Exception("Invalid jobs configuration file");
@@ -83,8 +83,15 @@ namespace EasySaveProject.Core.Services
 
             try
             {
-                strategy.Execute(job, _fileService, _logService,
-                                 _stateService, _cryptoService, _watcher);
+                strategy.Execute(
+                    job,
+                    _fileService,
+                    _logService,
+                    _stateService,
+                    _cryptoService,
+                    _watcher,
+                    _pauseService
+                );
             }
             catch (Exception ex)
             {
