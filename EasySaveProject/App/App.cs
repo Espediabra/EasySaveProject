@@ -3,6 +3,7 @@ using EasySaveProject.Core.Localization;
 using EasyLog;
 using System.Reflection.Metadata.Ecma335;
 using EasySaveProject.Helpers;
+using EasySaveProject.UI.Console.Components;
 
 public class App
 {
@@ -12,6 +13,8 @@ public class App
     private readonly FileService _fileService = new();
     private readonly StateService _stateService = new();
     private readonly LogService _logService;
+    private readonly PauseService _pauseService = new();
+    private readonly ProgressService _progressService = new();
     private readonly MainMenuView _mainMenu;
     private readonly MenuComponent _menu;
     private readonly InteractiveMenuComponent _interactiveMenu;
@@ -42,10 +45,13 @@ public class App
         var backupService = new BackupService(
             _fileService,
             _logService,
-            _stateService
+            _stateService,
+            _pauseService
         );
 
-        _viewModel = new MainViewModel(backupService);
+        var footer = new FooterComponent(_progressService, _pauseService); // ← nouveau
+
+        _viewModel = new MainViewModel(backupService, footer); // ← ajouté
 
         // Forms 
         var inputForm = new InputForm(_loc);
