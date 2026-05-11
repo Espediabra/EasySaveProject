@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Charte de couleurs EasySave
+        Color Identité entreprise
         ═══════════════════════════
         #AF9164  → Or chaud (accent principal, boutons, badges)
         #F7F3E3  → Crème (fond sidebar, surfaces secondaires)
@@ -31,14 +31,12 @@
         </Style.Resources>
     </Style>
 
-    <!-- ─── Fenêtre ─────────────────────────────────────────────────────── -->
     <Style Selector="Window">
         <Setter Property="Background" Value="#FEFCF7" />
         <Setter Property="FontFamily" Value="Inter, Segoe UI, sans-serif" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
-    <!-- ─── Boutons primaires (or chaud) ────────────────────────────────── -->
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="#AF9164" />
         <Setter Property="Foreground" Value="White" />
@@ -53,7 +51,6 @@
         <Setter Property="Background" Value="#9A7E56" />
     </Style>
 
-    <!-- ─── Boutons secondaires ─────────────────────────────────────────── -->
     <Style Selector="Button.secondary">
         <Setter Property="Background" Value="#F7F3E3" />
         <Setter Property="Foreground" Value="#2B2118" />
@@ -68,7 +65,6 @@
         <Setter Property="Background" Value="#EDE8D6" />
     </Style>
 
-    <!-- ─── Boutons danger (bordeaux) ───────────────────────────────────── -->
     <Style Selector="Button.danger">
         <Setter Property="Background" Value="#F5E0DC" />
         <Setter Property="Foreground" Value="#6F1A07" />
@@ -83,7 +79,6 @@
         <Setter Property="Background" Value="#E8C4BD" />
     </Style>
 
-    <!-- ─── Boutons icon ────────────────────────────────────────────────── -->
     <Style Selector="Button.icon">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Padding" Value="6" />
@@ -96,7 +91,6 @@
         <Setter Property="Background" Value="#F7F3E3" />
     </Style>
 
-    <!-- ─── TextBox ─────────────────────────────────────────────────────── -->
     <Style Selector="TextBox">
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="BorderBrush" Value="#D6D2C4" />
@@ -109,7 +103,6 @@
         <Setter Property="BorderBrush" Value="#AF9164" />
     </Style>
 
-    <!-- ─── ComboBox ────────────────────────────────────────────────────── -->
     <Style Selector="ComboBox">
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="BorderBrush" Value="#D6D2C4" />
@@ -118,7 +111,6 @@
         <Setter Property="FontSize" Value="13" />
     </Style>
 
-    <!-- ─── Labels ──────────────────────────────────────────────────────── -->
     <Style Selector="TextBlock.label">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Medium" />
@@ -142,14 +134,12 @@
         <Setter Property="Foreground" Value="#B3B6B7" />
     </Style>
 
-    <!-- ─── Séparateur ──────────────────────────────────────────────────── -->
     <Style Selector="Separator">
         <Setter Property="Background" Value="#E8E4D6" />
         <Setter Property="Height" Value="1" />
         <Setter Property="Margin" Value="0,8" />
     </Style>
 
-    <!-- ─── ListBox ─────────────────────────────────────────────────────── -->
     <Style Selector="ListBox">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />

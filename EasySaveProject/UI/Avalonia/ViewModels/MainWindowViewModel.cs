@@ -26,12 +26,12 @@ public partial class MainWindowViewModel : ObservableObject
     public bool IsLogsPageVisible => CurrentPage == "Logs";
     public bool IsSettingsPageVisible => CurrentPage == "Settings";
 
-    // ── Page Jobs
+    // Page Jobs
     [ObservableProperty] private ObservableCollection<BackupJobViewModel> _jobs = new();
     [ObservableProperty] private BackupJobViewModel? _selectedJob;
     [ObservableProperty] private bool _showJobPanel = false;
 
-    // Formulaire de création
+    // Form création sauvegarde
     [ObservableProperty] private bool _showCreateForm = false;
     [ObservableProperty] private string _formName = "";
     [ObservableProperty] private string _formSource = "";
@@ -39,11 +39,11 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _formType = "Full";
     [ObservableProperty] private string _formError = "";
 
-    // ── Page Logs ─────────────────────────────────────────────────────────
+    // Page Logs
     [ObservableProperty] private ObservableCollection<LogEntryViewModel> _logEntries = new();
     [ObservableProperty] private string _selectedLogLevel = "All";
 
-    // ── Page Settings ─────────────────────────────────────────────────────
+    // Page Settings
     [ObservableProperty] private string _selectedLanguage = "English";
 
     // ── Toast ─────────────────────────────────────────────────────────────
