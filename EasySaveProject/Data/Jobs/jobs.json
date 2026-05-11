@@ -16,5 +16,11 @@
     "SourcePath": "C:\\TestData\\Source1",
     "TargetPath": "C:\\TestData\\Target1",
     "Type": 1
+  },
+  {
+    "Name": "Test",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "Type": 0
   }
 ]
