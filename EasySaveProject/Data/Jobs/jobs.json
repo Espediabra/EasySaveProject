@@ -1,30 +1,8 @@
-<<<<<<< HEAD
 [
   {
     "Name": "gjhhj",
-    "SourcePath": "jikhjkhljlhjk",
-    "TargetPath": "njhkhjk",
-    "Type": 0
-  },
-  {
-    "Name": "BackupTest",
-    "SourcePath": "C:\\TestData\\Source1",
-    "TargetPath": "C:\\TestData\\Target1",
-    "Type": 0
-  },
-  {
-    "Name": "SourceDif",
-    "SourcePath": "C:\\TestData\\Source1",
-    "TargetPath": "C:\\TestData\\Target1",
-    "Type": 1
-  },
-  {
-    "Name": "Test",
-    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
-    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
     "Type": 0
   }
 ]
-=======
-[]
->>>>>>> origin/develop

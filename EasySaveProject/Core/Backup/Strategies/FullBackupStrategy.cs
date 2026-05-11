@@ -1,8 +1,7 @@
 using EasySaveProject.Models;
 using EasySaveProject.Core.Services;
-using EasySaveProject.Strategies;
 
-namespace EasySaveProject.Strategies;
+namespace EasySaveProject.Core.Strategies;
 
 /// <summary>
 /// Full backup strategy: copies all files from source to target.
