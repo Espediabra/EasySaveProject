@@ -1,3 +1,11 @@
+using EasySaveProject.Models;
+using EasySaveProject.Core.Services;
+using EasySaveProject.Infrastructure.Crypto;
+using EasySaveProject.Infrastructure.Monitoring;
+
+
+namespace EasySaveProject.Core.Strategies;
+
 public abstract class BaseBackupStrategy : IBackupStrategy
 {
     public void Execute(
@@ -43,11 +51,17 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         {
             if (watcher.IsRunning())
             {
+                logService.LogWarning(
+                    job.Name, sourceFile, string.Empty, 0, 0,
+                    "Backup interrupted: business software detected"
+                );
+
                 state.Status = "Interrupted";
                 stateService.Update(state);
                 return;
             }
 
+            // ⏸ Gestion pause
             pauseService.WaitIfPaused();
 
             var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
@@ -57,11 +71,17 @@ public abstract class BaseBackupStrategy : IBackupStrategy
             var fileSize = new FileInfo(sourceFile).Length;
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
+            state.Timestamp = DateTime.Now;
+            state.CurrentSourceFile = sourceFile;
+            state.CurrentTargetFile = targetFile;
+            stateService.Update(state);
+
             try
             {
                 fileService.CopyFileWithProgress(sourceFile, targetFile, bytesJustCopied =>
                 {
                     state.RemainingSize -= bytesJustCopied;
+                    state.Timestamp = DateTime.Now;
                     stateService.Update(state);
                 });
 
@@ -70,33 +90,49 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                 int cryptoTimeMs = cryptoService.TryEncrypt(targetFile);
 
                 state.RemainingFiles--;
+                state.RemainingSize = Math.Max(0, state.RemainingSize);
                 stateService.Update(state);
 
-                logService.LogInfo(
-                    job.Name, sourceFile, targetFile,
-                    fileSize,
-                    stopwatch.ElapsedMilliseconds,
-                    cryptoTimeMs > 0
+                if (cryptoTimeMs < 0)
+                {
+                    logService.LogError(
+                        job.Name, sourceFile, targetFile,
+                        fileSize,
+                        $"Encryption error (code {cryptoTimeMs})"
+                    );
+                }
+                else
+                {
+                    string message = cryptoTimeMs > 0
                         ? $"File copied and encrypted in {cryptoTimeMs} ms"
-                        : "File copied successfully"
-                );
+                        : "File copied successfully";
+
+                    logService.LogInfo(
+                        job.Name, sourceFile, targetFile,
+                        fileSize,
+                        stopwatch.ElapsedMilliseconds,
+                        message
+                    );
+                }
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
 
                 state.RemainingFiles--;
+                state.RemainingSize = Math.Max(0, state.RemainingSize - fileSize);
                 stateService.Update(state);
 
                 logService.LogError(
                     job.Name, sourceFile, targetFile,
                     0,
-                    $"Error: {ex.Message}"
+                    $"Error during file copy: {ex.Message}"
                 );
             }
         }
 
         pauseService.Reset();
+
         state.Status = "Completed";
         stateService.Update(state);
 
