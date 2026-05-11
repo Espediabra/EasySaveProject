@@ -1,38 +1,46 @@
 using EasySaveProject.Core.Services;
 using EasySaveProject.Models;
+using EasySaveProject.UI.Console.Components;
 
 public class MainViewModel
 {
-    private readonly BackupService _backupService;
+    private readonly BackupService    _backupService;
+    private readonly FooterComponent  _footer;
 
-    public MainViewModel(BackupService backupService)
+    public MainViewModel(
+        BackupService   backupService,
+        FooterComponent footer)
     {
         _backupService = backupService;
+        _footer        = footer;
     }
 
     public List<string> GetBackupNames()
     {
         return _backupService.GetJobs()
-                              .Select(j => j.Name)
-                              .ToList();
+                             .Select(j => j.Name)
+                             .ToList();
     }
 
     public void ExecuteBackup(int index)
     {
-        _backupService.RunJob(index);
+        _footer.Start();
+        try
+        {
+            _backupService.RunJob(index);
+        }
+        finally
+        {
+            _footer.Stop();
+        }
     }
 
     public void CreateJob(string name, string source, string target, BackupType type)
     {
-        var job = new BackupJob(
-            name,
-            source,
-            target,
-            type
-        );
-
+        var job = new BackupJob(name, source, target, type);
         _backupService.AddJob(job);
     }
+
     public void DeleteJob(int index)
     {
         _backupService.DeleteJob(index);
@@ -55,9 +63,15 @@ public class MainViewModel
 
     public void ExecuteMultipleBackups(List<int> indices)
     {
-        foreach (int index in indices)
+        _footer.Start();
+        try
         {
-            _backupService.RunJob(index);
+            foreach (int index in indices)
+                _backupService.RunJob(index);
+        }
+        finally
+        {
+            _footer.Stop();
         }
     }
 }
