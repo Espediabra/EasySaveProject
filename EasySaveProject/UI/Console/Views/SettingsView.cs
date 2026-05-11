@@ -1,5 +1,6 @@
 using EasySaveProject.Core.Localization;
 using EasySaveProject.Core.Services;
+using EasyLog;
 
 public class SettingsView
 {
@@ -30,6 +31,7 @@ public class SettingsView
             var options = new List<string>
             {
                 _loc.T("Settings.ChangeLanguage"),
+                _loc.T("Settings.ChangeLogFormat"),
                 _loc.T("Settings.Back")
             };
 
@@ -42,6 +44,10 @@ public class SettingsView
                     break;
 
                 case 1:
+                    ChangeLogFormat();
+                    break;
+
+                case 2:
                     return;
             }
         }
@@ -60,6 +66,25 @@ public class SettingsView
 
         Console.Clear();
         ConsoleHelper.WriteLineWithWrap(_loc.T("Settings.LanguageUpdated"));
+        Console.ReadKey();
+    }
+
+    private void ChangeLogFormat()
+    {
+        Console.Clear();
+        HeaderComponent.Render(_loc.T("Settings.ChooseLogFormat"));
+
+        var options = new List<string> { "JSON", "XML" };
+        int choice = _menu.Select(options);
+
+        var config = _configService.Load();
+
+        config.LogFormat = choice == 1 ? LogFormat.Xml : LogFormat.Json;
+        _configService.Save(config);
+
+        LogService.Initialize(_loc, config.LogFormat);
+
+        Console.WriteLine(_loc.T("Settings.LogFormatUpdated"));
         Console.ReadKey();
     }
 }
