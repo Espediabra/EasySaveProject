@@ -1,0 +1,216 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:EasySaveProject.UI.Avalonia.ViewModels"
+        xmlns:views="clr-namespace:EasySaveProject.UI.Avalonia.Views"
+        x:Class="EasySaveProject.UI.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="EasySave"
+        Width="960" Height="640"
+        MinWidth="800" MinHeight="520"
+        Background="#FEFCF7"
+        WindowStartupLocation="CenterScreen">
+
+    <Panel>
+
+    <!-- ═══ OVERLAY SÉLECTION DE LANGUE ══════════════════════════════════ -->
+    <Border IsVisible="{Binding IsLanguageSelectPageVisible}"
+            Background="#FEFCF7"
+            ZIndex="10">
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="28"
+                    MaxWidth="400">
+
+            <!-- Logo -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="EasySave"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Foreground="#AF9164"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Gestionnaire de sauvegardes"
+                           FontSize="14"
+                           Foreground="#8A7D6E"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Card -->
+            <Border Background="White"
+                    BorderBrush="#E8E4D6"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="32,28">
+                <StackPanel Spacing="20">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Choisissez votre langue"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Foreground="#2B2118"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Choose your language"
+                                   FontSize="13"
+                                   Foreground="#8A7D6E"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <ComboBox SelectedItem="{Binding SelectedLanguage}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBoxItem>English</ComboBoxItem>
+                        <ComboBoxItem>Français</ComboBoxItem>
+                    </ComboBox>
+
+                    <Button Classes="primary"
+                            Content="Continuer / Continue"
+                            Command="{Binding SaveLanguageCommand}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center" />
+
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </Border>
+
+    <!-- ═══ APPLICATION PRINCIPALE ═══════════════════════════════════════ -->
+    <Grid ColumnDefinitions="210,*" IsVisible="{Binding !IsLanguageSelectPageVisible}">
+
+        <!-- ═══ SIDEBAR (brun foncé #2B2118) ═════════════════════════════ -->
+        <Border Grid.Column="0"
+                Background="#2B2118">
+            <DockPanel>
+
+                <!-- Logo -->
+                <Border DockPanel.Dock="Top"
+                        Padding="20,24,20,20"
+                        BorderBrush="#3D3228"
+                        BorderThickness="0,0,0,1">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="EasySave"
+                                   FontSize="17"
+                                   FontWeight="Bold"
+                                   Foreground="#AF9164" />
+                        <TextBlock Text="Gestionnaire de sauvegardes"
+                                   FontSize="11"
+                                   Foreground="#8A7D6E" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Navigation -->
+                <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="12,20,12,0">
+
+                    <!-- Sauvegardes -->
+                    <Button HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="12,10"
+                            CornerRadius="8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Command="{Binding NavigateToCommand}"
+                            CommandParameter="Jobs">
+                        <Button.Background>
+                            <MultiBinding Converter="{x:Static views:NavBgConverter.Instance}">
+                                <Binding Path="CurrentPage" />
+                                <Binding Source="Jobs" />
+                            </MultiBinding>
+                        </Button.Background>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="⬛" FontSize="14" Foreground="#AF9164" VerticalAlignment="Center" />
+                            <TextBlock Text="Sauvegardes" FontSize="13" Foreground="#F7F3E3" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Journaux -->
+                    <Button HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="12,10"
+                            CornerRadius="8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Command="{Binding NavigateToCommand}"
+                            CommandParameter="Logs">
+                        <Button.Background>
+                            <MultiBinding Converter="{x:Static views:NavBgConverter.Instance}">
+                                <Binding Path="CurrentPage" />
+                                <Binding Source="Logs" />
+                            </MultiBinding>
+                        </Button.Background>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="📋" FontSize="14" Foreground="#AF9164" VerticalAlignment="Center" />
+                            <TextBlock Text="Journaux" FontSize="13" Foreground="#F7F3E3" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Paramètres -->
+                    <Button HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="12,10"
+                            CornerRadius="8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Command="{Binding NavigateToCommand}"
+                            CommandParameter="Settings">
+                        <Button.Background>
+                            <MultiBinding Converter="{x:Static views:NavBgConverter.Instance}">
+                                <Binding Path="CurrentPage" />
+                                <Binding Source="Settings" />
+                            </MultiBinding>
+                        </Button.Background>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="⚙" FontSize="14" Foreground="#AF9164" VerticalAlignment="Center" />
+                            <TextBlock Text="Paramètres" FontSize="13" Foreground="#F7F3E3" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+
+                <!-- Compteur jobs en bas -->
+                <Border DockPanel.Dock="Bottom" Padding="20,16">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding Jobs.Count, StringFormat={}{0} sauvegardes}"
+                                   FontSize="11"
+                                   Foreground="#8A7D6E" />
+                        <ProgressBar Value="{Binding Jobs.Count}"
+                                     Maximum="5"
+                                     Height="3"
+                                     CornerRadius="2"
+                                     Background="#3D3228"
+                                     Foreground="#AF9164" />
+                    </StackPanel>
+                </Border>
+
+            </DockPanel>
+        </Border>
+
+        <!-- ═══ CONTENU PRINCIPAL ═════════════════════════════════════════ -->
+        <Grid Grid.Column="1" RowDefinitions="*,Auto">
+
+            <Panel Grid.Row="0">
+                <views:JobsPage IsVisible="{Binding IsJobsPageVisible}"
+                                DataContext="{Binding}" />
+                <views:LogsPage IsVisible="{Binding IsLogsPageVisible}"
+                                DataContext="{Binding}" />
+                <views:SettingsPage IsVisible="{Binding IsSettingsPageVisible}"
+                                    DataContext="{Binding}" />
+            </Panel>
+
+            <!-- Toast -->
+            <Border Grid.Row="1"
+                    IsVisible="{Binding ShowToast}"
+                    Background="#2B2118"
+                    CornerRadius="8"
+                    Padding="16,10"
+                    Margin="24,0,24,16"
+                    HorizontalAlignment="Center">
+                <TextBlock Text="{Binding ToastMessage}"
+                           Foreground="#F7F3E3"
+                           FontSize="13" />
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+    </Panel>
+
+</Window>
