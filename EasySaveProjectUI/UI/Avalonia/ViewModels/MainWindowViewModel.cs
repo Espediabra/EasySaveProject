@@ -14,18 +14,17 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly LogService _logService;
 
     // ── Navigation ───────────────────────────────────────────────────────
-    [ObservableProperty] private string _currentPage = "Jobs";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLanguageSelectPageVisible))]
+    [NotifyPropertyChangedFor(nameof(IsJobsPageVisible))]
+    [NotifyPropertyChangedFor(nameof(IsLogsPageVisible))]
+    [NotifyPropertyChangedFor(nameof(IsSettingsPageVisible))]
+    private string _currentPage = "LanguageSelect";
 
+    public bool IsLanguageSelectPageVisible => CurrentPage == "LanguageSelect";
     public bool IsJobsPageVisible => CurrentPage == "Jobs";
     public bool IsLogsPageVisible => CurrentPage == "Logs";
     public bool IsSettingsPageVisible => CurrentPage == "Settings";
-
-    partial void OnCurrentPageChanged(string value)
-    {
-        OnPropertyChanged(nameof(IsJobsPageVisible));
-        // OnPropertyChanged(nameof(IsLogsPageVisible));
-        // OnPropertyChanged(nameof(IsSettingsPageVisible));
-    }
 
     // ── Page Jobs
     [ObservableProperty] private ObservableCollection<BackupJobViewModel> _jobs = new();
@@ -253,7 +252,11 @@ public partial class MainWindowViewModel : ObservableObject
         configService.Save(config);
 
         ShowSaveLanguageButton = false;
-        ShowToastMessage("Langue enregistrée. Redémarrez l'application.");
+
+        if (CurrentPage == "LanguageSelect")
+            CurrentPage = "Jobs";
+        else
+            ShowToastMessage("Langue enregistrée. Redémarrez l'application.");
     }
 
     // ── Toast ─────────────────────────────────────────────────────────────

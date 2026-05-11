@@ -5,7 +5,7 @@ using EasyLog;
 using EasySaveProject.Infrastructure;
 using EasySaveProject.Core.Localization;
 
-namespace EasySaveProject.Services;
+namespace EasySaveProject.Core.Services;
 
 
 // Service principal de logging + Pattern Singleton
@@ -57,7 +57,7 @@ public class LogService
         _loc = loc;
 
         string logDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
-        "..", "..", "..", "Data", "Logs"));
+        "Data", "Logs"));
 
         _provider = new JsonLogProvider(logDir);
         _wrapper = new EasyLogWrapper(_provider);
@@ -91,67 +91,5 @@ public class LogService
         => GetByDate(date)
            .Where(e => e.JobName.Equals(jobName, StringComparison.OrdinalIgnoreCase))
            .ToList();
-
-    // Méthodes d'affichage
-
-    /// Affiche une vue simplifiée d'une liste de logs dans la console.
-    public void PrintSimple(List<LogEntry> entries)
-    {
-        Console.WriteLine(
-            $"{_loc.T("Logs.Header.Time"),-10} " +
-            $"{_loc.T("Logs.Header.Level"),-10} " +
-            $"{_loc.T("Logs.Header.Job"),-25} " +
-            $"{_loc.T("Logs.Header.Message"),-30} " +
-            $"{_loc.T("Logs.Header.SourceFile"),-17} " +
-            $"{_loc.T(" "),-7} " +
-            $"{_loc.T("Logs.Header.TargetFile"),-17} " +
-            $"{_loc.T("Logs.Header.FileSize"),-12} " +
-            $"{_loc.T("Logs.Header.TransferTime"),-10}"
-        );
-
-        Console.WriteLine(new string('-', 152));
-
-        foreach (var e in entries)
-        {
-            Console.WriteLine(
-                $"{e.Timestamp:HH:mm:ss} " +
-                $"{_loc.T($"{e.Level}"),-10} " +
-                $"{e.JobName,-20} " +
-                $"{e.Message,-30} " +
-                $"...{e.SourcePath.Substring(Math.Max(0, e.SourcePath.Length - 17))}" +
-                $"{_loc.T("Logs.Arrow"),-7}" +
-                $"...{e.TargetPath.Substring(Math.Max(0, e.TargetPath.Length - 17))}" +
-                $"{e.FileSizeBytes,12} {_loc.T("Logs.Bytes")} " +
-                $"{(e.TransferTimeMs < 0
-                    ? _loc.T("Logs.Error")
-                    : $"{e.TransferTimeMs} {_loc.T("Logs.Milliseconds")}"),10}"
-            );
-        }
-    }
-
-    /// Vue de la console
-    public void PrintDetailed(List<LogEntry> entries)
-    {
-        foreach (var e in entries)
-        {
-            Console.WriteLine(new string('═', 60));
-
-            Console.WriteLine($"  {_loc.T("Logs.Details.Timestamp"),-15}: {e.Timestamp:yyyy-MM-dd HH:mm:ss}");
-            Console.WriteLine($"  {_loc.T("Logs.Details.Level"),-15}: {_loc.T($"Log.Level.{e.Level}")}");
-            Console.WriteLine($"  {_loc.T("Logs.Details.Job"),-15}: {e.JobName}");
-            Console.WriteLine($"  {_loc.T("Logs.Details.Source"),-15}: {e.SourcePath}");
-            Console.WriteLine($"  {_loc.T("Logs.Details.Destination"),-15}: {e.TargetPath}");
-            Console.WriteLine($"  {_loc.T("Logs.Details.Size"),-15}: {e.FileSizeBytes} {_loc.T("Logs.Bytes")}");
-            Console.WriteLine(
-                $"  {_loc.T("Logs.Details.TransferTime"),-15}: " +
-                $"{(e.TransferTimeMs < 0
-                    ? _loc.T("Logs.Error")
-                    : $"{e.TransferTimeMs} {_loc.T("Logs.Milliseconds")}")}"
-            );
-            Console.WriteLine($"  {_loc.T("Logs.Details.Message"),-15}: {e.Message}");
-        }
-
-        Console.WriteLine(new string('═', 60));
-    }
 }
 

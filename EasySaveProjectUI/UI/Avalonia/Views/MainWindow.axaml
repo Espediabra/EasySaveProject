@@ -10,7 +10,70 @@
         Background="#FEFCF7"
         WindowStartupLocation="CenterScreen">
 
-    <Grid ColumnDefinitions="210,*">
+    <Panel>
+
+    <!-- ═══ OVERLAY SÉLECTION DE LANGUE ══════════════════════════════════ -->
+    <Border IsVisible="{Binding IsLanguageSelectPageVisible}"
+            Background="#FEFCF7"
+            ZIndex="10">
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="28"
+                    MaxWidth="400">
+
+            <!-- Logo -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="EasySave"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Foreground="#AF9164"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Gestionnaire de sauvegardes"
+                           FontSize="14"
+                           Foreground="#8A7D6E"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Card -->
+            <Border Background="White"
+                    BorderBrush="#E8E4D6"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="32,28">
+                <StackPanel Spacing="20">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Choisissez votre langue"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Foreground="#2B2118"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Choose your language"
+                                   FontSize="13"
+                                   Foreground="#8A7D6E"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <ComboBox SelectedItem="{Binding SelectedLanguage}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBoxItem>English</ComboBoxItem>
+                        <ComboBoxItem>Français</ComboBoxItem>
+                    </ComboBox>
+
+                    <Button Classes="primary"
+                            Content="Continuer / Continue"
+                            Command="{Binding SaveLanguageCommand}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center" />
+
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </Border>
+
+    <!-- ═══ APPLICATION PRINCIPALE ═══════════════════════════════════════ -->
+    <Grid ColumnDefinitions="210,*" IsVisible="{Binding !IsLanguageSelectPageVisible}">
 
         <!-- ═══ SIDEBAR (brun foncé #2B2118) ═════════════════════════════ -->
         <Border Grid.Column="0"
@@ -147,4 +210,7 @@
         </Grid>
 
     </Grid>
+
+    </Panel>
+
 </Window>

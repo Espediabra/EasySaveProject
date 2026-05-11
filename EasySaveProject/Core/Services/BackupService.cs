@@ -1,9 +1,9 @@
 using EasySaveProject.Models;
-using EasySaveProject.Services;
+using EasySaveProject.Core.Services;
 using EasySaveProject.Factories;
 using System.Text.Json;
 
-namespace EasySaveProject.Services
+namespace EasySaveProject.Core.Services
 {
     public class BackupService
     {
@@ -14,10 +14,7 @@ namespace EasySaveProject.Services
         private readonly List<BackupJob> _jobs = new();
 
         private readonly string _jobsPath = Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..",
-            "Data", "Jobs", "jobs.json"
-        );
+            AppContext.BaseDirectory, "Data", "Jobs", "jobs.json");
 
         public BackupService(FileService fileService, LogService logService, StateService stateService)
         {

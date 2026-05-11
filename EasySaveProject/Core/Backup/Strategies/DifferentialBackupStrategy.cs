@@ -1,5 +1,6 @@
 using EasySaveProject.Models;
-using EasySaveProject.Services;
+using EasySaveProject.Core.Services;
+
 
 namespace EasySaveProject.Strategies;
 
@@ -10,12 +11,12 @@ public class DifferentialBackupStrategy : BaseBackupStrategy
         var allFiles = Directory.GetFiles(job.SourcePath, "*", SearchOption.AllDirectories);
 
         return allFiles.Where(sourceFile =>
-        {
-            var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
-            var targetFile = Path.Combine(job.TargetPath, relativePath);
+            {
+                var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
+                var targetFile = Path.Combine(job.TargetPath, relativePath);
 
-            return !File.Exists(targetFile) ||
-                   File.GetLastWriteTime(sourceFile) > File.GetLastWriteTime(targetFile);
-        }).ToArray();
+                return !File.Exists(targetFile) ||
+                       File.GetLastWriteTime(sourceFile) > File.GetLastWriteTime(targetFile);
+            }).ToArray();
     }
 }

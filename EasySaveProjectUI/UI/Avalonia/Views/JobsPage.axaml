@@ -46,7 +46,7 @@
                     <Grid ColumnDefinitions="*,16,180">
                         <StackPanel Grid.Column="0">
                             <TextBlock Classes="label" Text="Nom" />
-                            <TextBox Text="{Binding FormName}" Watermark="Ex : Documents Pro" />
+                            <TextBox Text="{Binding FormName}" PlaceholderText="Ex : Documents Pro" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Classes="label" Text="Type" />
@@ -60,12 +60,12 @@
 
                     <StackPanel>
                         <TextBlock Classes="label" Text="Chemin source" />
-                        <TextBox Text="{Binding FormSource}" Watermark="C:/Users/…" />
+                        <TextBox Text="{Binding FormSource}" PlaceholderText="C:/Users/…" />
                     </StackPanel>
 
                     <StackPanel>
                         <TextBlock Classes="label" Text="Chemin destination" />
-                        <TextBox Text="{Binding FormTarget}" Watermark="D:/Backups/…" />
+                        <TextBox Text="{Binding FormTarget}" PlaceholderText="D:/Backups/…" />
                     </StackPanel>
 
                     <TextBlock Text="{Binding FormError}"

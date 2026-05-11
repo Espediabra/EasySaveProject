@@ -1,4 +1,4 @@
-using EasySaveProject.Services;
+using EasySaveProject.Core.Services;
 using EasySaveProject.Models;
 
 public class MainViewModel
@@ -51,5 +51,13 @@ public class MainViewModel
     public List<BackupJob> GetJobsRaw()
     {
         return _backupService.GetJobs().ToList();
+    }
+
+    public void ExecuteMultipleBackups(List<int> indices)
+    {
+        foreach (int index in indices)
+        {
+            _backupService.RunJob(index);
+        }
     }
 }

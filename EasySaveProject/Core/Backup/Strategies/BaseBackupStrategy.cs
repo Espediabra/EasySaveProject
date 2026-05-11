@@ -1,5 +1,5 @@
 using EasySaveProject.Models;
-using EasySaveProject.Services;
+using EasySaveProject.Core.Services;
 
 namespace EasySaveProject.Strategies;
 
@@ -19,7 +19,6 @@ public abstract class BaseBackupStrategy : IBackupStrategy
             Directory.CreateDirectory(job.TargetPath); 
         }
 
-        // 🔥 Spécifique à la stratégie
         var files = SelectFiles(job);
 
         long totalSize = files.Sum(f => new FileInfo(f).Length);
@@ -85,7 +84,5 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         state.Status = "Completed";
         stateService.Update(state);
     }
-
-    // 🔥 Méthode abstraite = variation
     protected abstract string[] SelectFiles(BackupJob job);
 }

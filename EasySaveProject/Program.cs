@@ -9,9 +9,10 @@ class Program
         if (args.Length == 0)
         {
             app.Run();
+            // Console.WriteLine("Aucun args fournis");
             return;
         }
-
-        app.RunCli(args[0]);
+        Console.WriteLine($"Les args sont {string.Join(", ", args)}");
+        app.RunCli(args);
     }
 }
