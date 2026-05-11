@@ -1,16 +1,17 @@
+using EasySaveProject.Core;
 using EasySaveProject.Models;
 using EasySaveProject.Core.Services;
-using EasySaveProject.Core;
 
 namespace EasySaveProject.Strategies;
 
 public abstract class BaseBackupStrategy : IBackupStrategy
 {
     public void Execute(
-        BackupJob job,
-        FileService fileService,
-        LogService logService,
-        StateService stateService)
+        BackupJob     job,
+        FileService   fileService,
+        LogService    logService,
+        StateService  stateService,
+        PauseService  pauseService)   // ← injecté
     {
         if (!Directory.Exists(job.SourcePath))
             throw new DirectoryNotFoundException($"Source not found: {job.SourcePath}");
@@ -18,7 +19,7 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         if (!Directory.Exists(job.TargetPath))
             Directory.CreateDirectory(job.TargetPath);
 
-        var files = SelectFiles(job);
+        var files     = SelectFiles(job);
         long totalSize = files.Sum(f => new FileInfo(f).Length);
 
         var state = new State
@@ -35,6 +36,11 @@ public abstract class BaseBackupStrategy : IBackupStrategy
 
         foreach (var sourceFile in files)
         {
+            // ── Point de pause entre chaque fichier ───────────────────────
+            // Si pause demandée, on bloque ici jusqu'à la reprise.
+            // Le fichier en cours n'est jamais interrompu à mi-copie.
+            pauseService.WaitIfPaused();
+
             var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
             var targetFile   = Path.Combine(job.TargetPath, relativePath);
             Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
@@ -57,7 +63,6 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                 });
 
                 stopwatch.Stop();
-
                 state.RemainingFiles--;
                 state.RemainingSize = Math.Max(0, state.RemainingSize);
                 stateService.Update(state);
@@ -80,6 +85,7 @@ public abstract class BaseBackupStrategy : IBackupStrategy
             }
         }
 
+        pauseService.Reset();
         state.Status = "Completed";
         stateService.Update(state);
         BackupStateHub.Clear();

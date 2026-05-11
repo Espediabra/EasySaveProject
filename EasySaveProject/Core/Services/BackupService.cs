@@ -7,47 +7,45 @@ namespace EasySaveProject.Core.Services
 {
     public class BackupService
     {
-        private readonly FileService _fileService;
-        private readonly LogService _logService;
+        private readonly FileService  _fileService;
+        private readonly LogService   _logService;
         private readonly StateService _stateService;
+        private readonly PauseService _pauseService; // ← ajouté
 
         private readonly List<BackupJob> _jobs = new();
 
         private readonly string _jobsPath = Path.Combine(
             AppContext.BaseDirectory, "Data", "Jobs", "jobs.json");
 
-        public BackupService(FileService fileService, LogService logService, StateService stateService)
+        public BackupService(
+            FileService  fileService,
+            LogService   logService,
+            StateService stateService,
+            PauseService pauseService) // ← ajouté
         {
-            _fileService = fileService;
-            _logService = logService;
+            _fileService  = fileService;
+            _logService   = logService;
             _stateService = stateService;
+            _pauseService = pauseService; // ← ajouté
 
             if (File.Exists(_jobsPath))
             {
                 var json = File.ReadAllText(_jobsPath);
-
-                var jobs = System.Text.Json.JsonSerializer.Deserialize<List<BackupJob>>(json);
-
+                var jobs = JsonSerializer.Deserialize<List<BackupJob>>(json);
                 if (jobs != null)
-                {
                     _jobs.AddRange(jobs);
-                }
             }
         }
 
         public void LoadJobs(string jsonPath)
         {
             var json = File.ReadAllText(jsonPath);
-            var jobs = System.Text.Json.JsonSerializer.Deserialize<List<BackupJob>>(json);
-
+            var jobs = JsonSerializer.Deserialize<List<BackupJob>>(json);
             _jobs.Clear();
-
             if (jobs == null)
                 throw new Exception("Invalid jobs configuration file");
-
             _jobs.AddRange(jobs);
         }
-
 
         public void UpdateJobType(int index, BackupType type)
         {
@@ -55,16 +53,7 @@ namespace EasySaveProject.Core.Services
                 return;
 
             var oldJob = _jobs[index];
-
-            var updatedJob = new BackupJob(
-                oldJob.Name,
-                oldJob.SourcePath,
-                oldJob.TargetPath,
-                type
-            );
-
-            _jobs[index] = updatedJob;
-
+            _jobs[index] = new BackupJob(oldJob.Name, oldJob.SourcePath, oldJob.TargetPath, type);
             SaveJobs();
         }
 
@@ -74,7 +63,6 @@ namespace EasySaveProject.Core.Services
                 throw new InvalidOperationException("Maximum number of jobs reached");
 
             _jobs.Add(job);
-
             SaveJobs();
         }
 
@@ -83,40 +71,32 @@ namespace EasySaveProject.Core.Services
             if (index < 0 || index >= _jobs.Count)
                 return;
 
-            var job = _jobs[index];
-
+            var job      = _jobs[index];
             var strategy = BackupStrategyFactory.Create(job.Type);
 
             try
             {
-                strategy.Execute(job, _fileService, _logService, _stateService);
+                // ← pauseService transmis à Execute
+                strategy.Execute(job, _fileService, _logService, _stateService, _pauseService);
             }
             catch (Exception ex)
             {
-                // LOG
-                _logService.LogError(
-                    job.Name,
-                    job.SourcePath,
-                    job.TargetPath,
-                    0,
-                    $"Job failed: {ex.Message}"
-                );
+                _logService.LogError(job.Name, job.SourcePath, job.TargetPath, 0,
+                    $"Job failed: {ex.Message}");
 
-                // STATE
                 _stateService.Update(new State
                 {
-                    BackupName = job.Name,
-                    Timestamp = DateTime.Now,
-                    Status = "Error",
-                    TotalFiles = 0,
-                    RemainingFiles = 0,
-                    TotalSize = 0,
-                    RemainingSize = 0,
-                    CurrentSourceFile = "",
-                    CurrentTargetFile = ""
+                    BackupName        = job.Name,
+                    Timestamp         = DateTime.Now,
+                    Status            = "Error",
+                    TotalFiles        = 0,
+                    RemainingFiles    = 0,
+                    TotalSize         = 0,
+                    RemainingSize     = 0,
+                    CurrentSourceFile = string.Empty,
+                    CurrentTargetFile = string.Empty
                 });
 
-                // TEMPORAIRE (console)
                 Console.WriteLine($"Error for job '{job.Name}': {ex.Message}");
             }
         }
@@ -127,20 +107,16 @@ namespace EasySaveProject.Core.Services
                 return;
 
             _jobs.RemoveAt(index);
-
             SaveJobs();
         }
 
         private void SaveJobs()
         {
             var directory = Path.GetDirectoryName(_jobsPath);
-
             if (!Directory.Exists(directory))
-            {
                 Directory.CreateDirectory(directory!);
-            }
 
-            var json = System.Text.Json.JsonSerializer.Serialize(_jobs, new JsonSerializerOptions
+            var json = JsonSerializer.Serialize(_jobs, new JsonSerializerOptions
             {
                 WriteIndented = true
             });
@@ -148,9 +124,6 @@ namespace EasySaveProject.Core.Services
             File.WriteAllText(_jobsPath, json);
         }
 
-        public IReadOnlyList<BackupJob> GetJobs()
-        {
-            return _jobs;
-        }
+        public IReadOnlyList<BackupJob> GetJobs() => _jobs;
     }
 }
