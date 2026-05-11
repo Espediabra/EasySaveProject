@@ -1,7 +1,8 @@
 using EasySaveProject.Models;
-using EasySaveProject.Services;
+using EasySaveProject.Core.Services;
 using EasySaveProject.Infrastructure.Crypto;
 using EasySaveProject.Infrastructure.Monitoring;
+
 
 namespace EasySaveProject.Strategies
 {
@@ -13,7 +14,8 @@ namespace EasySaveProject.Strategies
             LogService logService,
             StateService stateService,
             CryptoService cryptoService,
-            BusinessSoftwareWatcher watcher
+            BusinessSoftwareWatcher watcher,
+            PauseService pauseService
         );
     }
 }

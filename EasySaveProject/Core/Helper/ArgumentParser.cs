@@ -5,7 +5,7 @@ public static class ArgumentParser
     public static List<int> Parse(string arg)
     {
         // Format tiret
-        if (arg.StartsWith("-"))
+        if (arg.Contains("-"))
             return ParseRange(arg);
 
         // Format point-virgule 
