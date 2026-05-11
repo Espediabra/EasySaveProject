@@ -1,40 +1,40 @@
 using EasySaveProject.Models;
-using EasySaveProject.Services;
+using EasySaveProject.Core.Services;
 using EasySaveProject.Factories;
 using EasySaveProject.Infrastructure.Crypto;
 using EasySaveProject.Infrastructure.Monitoring;
 using System.Text.Json;
 
-namespace EasySaveProject.Services
+namespace EasySaveProject.Core.Services
 {
     public class BackupService
     {
-        private readonly FileService _fileService;
-        private readonly LogService _logService;
+        private readonly FileService  _fileService;
+        private readonly LogService   _logService;
         private readonly StateService _stateService;
         private readonly CryptoService _cryptoService;
         private readonly BusinessSoftwareWatcher _watcher;
+        private readonly PauseService _pauseService; // ← ajouté
 
         private readonly List<BackupJob> _jobs = new();
 
         private readonly string _jobsPath = Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..",
-            "Data", "Jobs", "jobs.json"
-        );
+            AppContext.BaseDirectory, "Data", "Jobs", "jobs.json");
 
         public BackupService(
             FileService fileService,
             LogService logService,
             StateService stateService,
             CryptoService cryptoService,
-            BusinessSoftwareWatcher watcher)
+            BusinessSoftwareWatcher watcher,
+            PauseService pauseService)
         {
-            _fileService = fileService;
-            _logService = logService;
+            _fileService  = fileService;
+            _logService   = logService;
             _stateService = stateService;
             _cryptoService = cryptoService;
             _watcher = watcher;
+            _pauseService = pauseService; // ← ajouté
 
             if (File.Exists(_jobsPath))
             {
@@ -49,12 +49,10 @@ namespace EasySaveProject.Services
         {
             var json = File.ReadAllText(jsonPath);
             var jobs = JsonSerializer.Deserialize<List<BackupJob>>(json);
-
+            
             _jobs.Clear();
-
             if (jobs == null)
                 throw new Exception("Invalid jobs configuration file");
-
             _jobs.AddRange(jobs);
         }
 
@@ -124,10 +122,10 @@ namespace EasySaveProject.Services
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory!);
 
-            File.WriteAllText(_jobsPath, JsonSerializer.Serialize(_jobs, new JsonSerializerOptions
+            var json = JsonSerializer.Serialize(_jobs, new JsonSerializerOptions
             {
                 WriteIndented = true
-            }));
+            });
         }
 
         public IReadOnlyList<BackupJob> GetJobs() => _jobs;

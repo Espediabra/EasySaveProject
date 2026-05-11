@@ -1,4 +1,4 @@
-﻿namespace EasySaveProject.Services;
+﻿namespace EasySaveProject.Core.Services;
 
 // Permet à l'utilisateur de configurer des variables d'environnement
 public class EnvConfigService
