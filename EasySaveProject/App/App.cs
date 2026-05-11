@@ -1,5 +1,7 @@
 using EasySaveProject.Services;
 using EasySaveProject.Core.Localization;
+using EasySaveProject.Infrastructure.Crypto;
+using EasySaveProject.Infrastructure.Monitoring;
 using EasyLog;
 using EasySaveProject.Helpers;
 
@@ -12,13 +14,18 @@ public class App
     private readonly LocalizationService _loc = new();
     private readonly FileService _fileService = new();
     private readonly StateService _stateService = new();
-    private readonly LogService _logService;
+
+    private LogService _logService;
     private AppConfig _config;
+
+    private static readonly string CryptoSoftExePath = Path.GetFullPath(
+        Path.Combine(AppContext.BaseDirectory,
+            "..", "..", "..", "External", "CryptoSoft", "CryptoSoft.exe")
+    );
 
     public App()
     {
         _config = _configService.Load();
-
         _menuService = new MenuService();
 
         _loc.Load(string.IsNullOrWhiteSpace(_config.Langage) ? "en" : _config.Langage);
@@ -26,10 +33,20 @@ public class App
         LogService.Initialize(_loc, _config.LogFormat);
         _logService = LogService.Instance;
 
+        var cryptoService = new CryptoService(
+            _config.CryptoExtensions,
+            _config.CryptoKey,
+            CryptoSoftExePath
+        );
+
+        var watcher = new BusinessSoftwareWatcher(_config.BusinessSoftware);
+
         var backupService = new BackupService(
             _fileService,
             _logService,
-            _stateService
+            _stateService,
+            cryptoService,
+            watcher
         );
 
         _viewModel = new MainViewModel(backupService);
@@ -39,7 +56,6 @@ public class App
     public void Run()
     {
         _config = _configService.Load();
-
         _loc.Load(string.IsNullOrWhiteSpace(_config.Langage) ? "en" : _config.Langage);
 
         if (_config.FirstRun)
@@ -51,7 +67,6 @@ public class App
         }
 
         _loc.Load(_config.Langage);
-
         MainLoop();
     }
 
@@ -114,9 +129,7 @@ public class App
                 _loc.T("MainMenu.Exit")
             };
 
-            int choice = _menuService.ShowMenu(options);
-
-            switch (choice)
+            switch (_menuService.ShowMenu(options))
             {
                 case 0: _view.ShowBackupMenu(); break;
                 case 1: ShowLogsMenu(); break;
@@ -140,9 +153,7 @@ public class App
                 _loc.T("Settings.Back")
             };
 
-            int choice = _menuService.ShowMenu(options);
-
-            switch (choice)
+            switch (_menuService.ShowMenu(options))
             {
                 case 0: ChangeLanguage(); break;
                 case 1: ChangeLogFormat(); break;
@@ -168,14 +179,13 @@ public class App
         Console.Clear();
         ConsoleHelper.Header(_loc.T("Settings.ChooseLogFormat"));
 
-        var options = new List<string> { "JSON", "XML" };
-
-        int choice = _menuService.ShowMenu(options);
+        int choice = _menuService.ShowMenu(new List<string> { "JSON", "XML" });
 
         _config.LogFormat = choice == 1 ? LogFormat.Xml : LogFormat.Json;
         _configService.Save(_config);
 
         LogService.Initialize(_loc, _config.LogFormat);
+        _logService = LogService.Instance;
 
         Console.WriteLine(_loc.T("Settings.LogFormatUpdated"));
         Console.ReadKey();
@@ -195,9 +205,7 @@ public class App
                 _loc.T("Return")
             };
 
-            int choice = _menuService.ShowMenu(options);
-
-            switch (choice)
+            switch (_menuService.ShowMenu(options))
             {
                 case 0: ShowTodayLogs(); break;
                 case 1: ShowLogsByLevel(); break;
@@ -231,8 +239,7 @@ public class App
 
         int choice = _menuService.ShowMenu(options);
 
-        if (choice == 3)
-            return;
+        if (choice == 3) return;
 
         var level = choice switch
         {

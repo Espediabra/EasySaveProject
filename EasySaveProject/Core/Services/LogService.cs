@@ -16,13 +16,9 @@ public class LogService
 
     public static void Initialize(LocalizationService loc, LogFormat? format = null)
     {
-        if (_instance == null)
+        lock (_instanceLock)
         {
-            lock (_instanceLock)
-            {
-                if (_instance == null)
-                    _instance = new LogService(loc, format);
-            }
+            _instance = new LogService(loc, format);
         }
     }
 
@@ -132,7 +128,6 @@ public class LogService
         foreach (var e in entries)
         {
             Console.WriteLine(new string('═', 60));
-
             Console.WriteLine($"  {_loc.T("Logs.Details.Timestamp"),-15}: {e.Timestamp:yyyy-MM-dd HH:mm:ss}");
             Console.WriteLine($"  {_loc.T("Logs.Details.Level"),-15}: {_loc.T($"Log.Level.{e.Level}")}");
             Console.WriteLine($"  {_loc.T("Logs.Details.Job"),-15}: {e.JobName}");

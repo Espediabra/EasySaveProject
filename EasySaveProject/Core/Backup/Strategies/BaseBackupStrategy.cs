@@ -1,5 +1,7 @@
 using EasySaveProject.Models;
 using EasySaveProject.Services;
+using EasySaveProject.Infrastructure.Crypto;
+using EasySaveProject.Infrastructure.Monitoring;
 
 namespace EasySaveProject.Strategies;
 
@@ -9,17 +11,24 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         BackupJob job,
         FileService fileService,
         LogService logService,
-        StateService stateService)
+        StateService stateService,
+        CryptoService cryptoService,
+        BusinessSoftwareWatcher watcher)
     {
-        if (!Directory.Exists(job.SourcePath))
-            throw new DirectoryNotFoundException($"Source not found: {job.SourcePath}");
-            
-        if (!Directory.Exists(job.TargetPath))
+        // Vérification avant démarrage
+        if (watcher.IsRunning())
         {
-            Directory.CreateDirectory(job.TargetPath); 
+            logService.LogWarning(job.Name, job.SourcePath, job.TargetPath, 0, 0,
+                "Backup cancelled: business software detected");
+            return;
         }
 
-        // 🔥 Spécifique à la stratégie
+        if (!Directory.Exists(job.SourcePath))
+            throw new DirectoryNotFoundException($"Source not found: {job.SourcePath}");
+
+        if (!Directory.Exists(job.TargetPath))
+            Directory.CreateDirectory(job.TargetPath);
+
         var files = SelectFiles(job);
 
         long totalSize = files.Sum(f => new FileInfo(f).Length);
@@ -36,6 +45,17 @@ public abstract class BaseBackupStrategy : IBackupStrategy
 
         foreach (var sourceFile in files)
         {
+            // Vérification entre chaque fichier 
+            if (watcher.IsRunning())
+            {
+                logService.LogWarning(job.Name, sourceFile, string.Empty, 0, 0,
+                    "Backup interrupted: business software detected");
+
+                state.Status = "Interrupted";
+                stateService.Update(state);
+                return;
+            }
+
             var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
             var targetFile = Path.Combine(job.TargetPath, relativePath);
 
@@ -46,10 +66,12 @@ public abstract class BaseBackupStrategy : IBackupStrategy
             try
             {
                 fileService.CopyFile(sourceFile, targetFile);
-
                 stopwatch.Stop();
 
                 var fileSize = new FileInfo(sourceFile).Length;
+
+                // Chiffrement après la copie 
+                int cryptoTimeMs = cryptoService.TryEncrypt(targetFile);
 
                 state.Timestamp = DateTime.Now;
                 state.CurrentSourceFile = sourceFile;
@@ -59,26 +81,26 @@ public abstract class BaseBackupStrategy : IBackupStrategy
 
                 stateService.Update(state);
 
-                logService.LogInfo(
-                    job.Name,
-                    sourceFile,
-                    targetFile,
-                    fileSize,
-                    stopwatch.ElapsedMilliseconds,
-                    "File copied successfully"
-                );
+                if (cryptoTimeMs < 0)
+                {
+                    logService.LogError(job.Name, sourceFile, targetFile, fileSize,
+                        $"Encryption error (code {cryptoTimeMs})");
+                }
+                else
+                {
+                    string message = cryptoTimeMs > 0
+                        ? $"File copied and encrypted in {cryptoTimeMs} ms"
+                        : "File copied successfully";
+
+                    logService.LogInfo(job.Name, sourceFile, targetFile,
+                        fileSize, stopwatch.ElapsedMilliseconds, message);
+                }
             }
             catch
             {
                 stopwatch.Stop();
-
-                logService.LogError(
-                    job.Name,
-                    sourceFile,
-                    targetFile,
-                    0,
-                    "Error during file copy"
-                );
+                logService.LogError(job.Name, sourceFile, targetFile, 0,
+                    "Error during file copy");
             }
         }
 
@@ -86,6 +108,5 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         stateService.Update(state);
     }
 
-    // 🔥 Méthode abstraite = variation
     protected abstract string[] SelectFiles(BackupJob job);
 }
