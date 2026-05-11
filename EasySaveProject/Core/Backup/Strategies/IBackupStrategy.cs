@@ -1,5 +1,7 @@
 using EasySaveProject.Models;
 using EasySaveProject.Services;
+using EasySaveProject.Infrastructure.Crypto;
+using EasySaveProject.Infrastructure.Monitoring;
 
 namespace EasySaveProject.Strategies
 {
@@ -9,7 +11,9 @@ namespace EasySaveProject.Strategies
             BackupJob job,
             FileService fileService,
             LogService logService,
-            StateService stateService
+            StateService stateService,
+            CryptoService cryptoService,
+            BusinessSoftwareWatcher watcher
         );
     }
 }
