@@ -1,0 +1,20 @@
+[
+  {
+    "Name": "gjhhj",
+    "SourcePath": "jikhjkhljlhjk",
+    "TargetPath": "njhkhjk",
+    "Type": 0
+  },
+  {
+    "Name": "BackupTest",
+    "SourcePath": "C:\\TestData\\Source1",
+    "TargetPath": "C:\\TestData\\Target1",
+    "Type": 0
+  },
+  {
+    "Name": "SourceDif",
+    "SourcePath": "C:\\TestData\\Source1",
+    "TargetPath": "C:\\TestData\\Target1",
+    "Type": 1
+  }
+]

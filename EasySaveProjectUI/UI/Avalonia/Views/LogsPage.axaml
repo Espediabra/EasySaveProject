@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EasySaveProject.UI.Avalonia.ViewModels"
+             xmlns:views="clr-namespace:EasySaveProject.UI.Avalonia.Views"
+             x:Class="EasySaveProject.UI.Avalonia.Views.LogsPage"
+             x:DataType="vm:MainWindowViewModel">
+
+    <DockPanel>
+
+        <!-- En-tête -->
+        <Border DockPanel.Dock="Top"
+                Padding="28,24,28,16"
+                BorderBrush="#E8E4D6"
+                BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel>
+                    <TextBlock Classes="heading" Text="Journaux" />
+                    <TextBlock Classes="subheading"
+                               Text="Historique des opérations de sauvegarde"
+                               Margin="0,2,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="Filtrer :"
+                               FontSize="13"
+                               Foreground="#B3B6B7"
+                               VerticalAlignment="Center" />
+                    <ComboBox SelectedItem="{Binding SelectedLogLevel}"
+                              Width="120">
+                        <ComboBoxItem>All</ComboBoxItem>
+                        <ComboBoxItem>Info</ComboBoxItem>
+                        <ComboBoxItem>Warning</ComboBoxItem>
+                        <ComboBoxItem>Error</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Table des logs -->
+        <ScrollViewer DockPanel.Dock="Top" Padding="28,16,28,24">
+            <StackPanel Spacing="2">
+
+                <!-- En-tête tableau -->
+                <Grid ColumnDefinitions="80,80,140,*,80,80"
+                      Margin="0,0,0,6">
+                    <TextBlock Grid.Column="0" Classes="muted" Text="HEURE" />
+                    <TextBlock Grid.Column="1" Classes="muted" Text="NIVEAU" />
+                    <TextBlock Grid.Column="2" Classes="muted" Text="JOB" />
+                    <TextBlock Grid.Column="3" Classes="muted" Text="MESSAGE" />
+                    <TextBlock Grid.Column="4" Classes="muted" Text="TAILLE" />
+                    <TextBlock Grid.Column="5" Classes="muted" Text="DURÉE" />
+                </Grid>
+
+                <Separator Margin="0,0,0,4" />
+
+                <!-- Lignes -->
+                <ItemsControl ItemsSource="{Binding FilteredLogs}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:LogEntryViewModel">
+                            <Border Background="Transparent"
+                                    BorderBrush="#E8E4D6"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="0,10">
+                                <Grid ColumnDefinitions="80,80,140,*,80,80">
+
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding TimeFormatted}"
+                                               FontSize="12"
+                                               Foreground="#B3B6B7"
+                                               FontFamily="Consolas, monospace" />
+
+                                    <Border Grid.Column="1"
+                                            CornerRadius="4"
+                                            Padding="6,2"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding LevelBg}" />
+                                        </Border.Background>
+                                        <TextBlock Text="{Binding Level}" FontSize="11">
+                                            <TextBlock.Foreground>
+                                                <SolidColorBrush Color="{Binding LevelColor}" />
+                                            </TextBlock.Foreground>
+                                        </TextBlock>
+                                    </Border>
+
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding JobName}"
+                                               FontSize="13"
+                                               Foreground="#6B6256"
+                                               TextTrimming="CharacterEllipsis" />
+
+                                    <TextBlock Grid.Column="3"
+                                               Text="{Binding Message}"
+                                               FontSize="13"
+                                               Foreground="#2B2118"
+                                               TextTrimming="CharacterEllipsis" />
+
+                                    <TextBlock Grid.Column="4"
+                                               Text="{Binding SizeFormatted}"
+                                               FontSize="12"
+                                               Foreground="#B3B6B7" />
+
+                                    <TextBlock Grid.Column="5"
+                                               Text="{Binding TransferFormatted}"
+                                               FontSize="12"
+                                               Foreground="#B3B6B7" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Aucun log -->
+                <Border Padding="0,40">
+                    <TextBlock Text="Aucun journal pour ce filtre."
+                               FontSize="13"
+                               Foreground="#B3B6B7"
+                               HorizontalAlignment="Center" />
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+    </DockPanel>
+
+</UserControl>

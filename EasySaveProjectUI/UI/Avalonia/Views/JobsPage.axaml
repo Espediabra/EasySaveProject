@@ -1,0 +1,333 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EasySaveProject.UI.Avalonia.ViewModels"
+             xmlns:views="clr-namespace:EasySaveProject.UI.Avalonia.Views"
+             x:Class="EasySaveProject.UI.Avalonia.Views.JobsPage"
+             x:DataType="vm:MainWindowViewModel">
+
+    <Grid ColumnDefinitions="*,Auto">
+
+        <!-- ─── Liste des jobs ───────────────────────────────────────────── -->
+        <DockPanel Grid.Column="0">
+
+            <!-- En-tête -->
+            <Border DockPanel.Dock="Top"
+                    Padding="28,24,28,16"
+                    BorderBrush="#E8E4D6"
+                    BorderThickness="0,0,0,1">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel>
+                        <TextBlock Classes="heading" Text="Sauvegardes" />
+                        <TextBlock Classes="subheading"
+                                   Text="Gérez et exécutez vos tâches de sauvegarde"
+                                   Margin="0,2,0,0" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="primary"
+                            Content="+ Nouvelle sauvegarde"
+                            Command="{Binding OpenCreateFormCommand}"
+                            VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <!-- Formulaire de création inline -->
+            <Border DockPanel.Dock="Top"
+                    IsVisible="{Binding ShowCreateForm}"
+                    Background="#F7F3E3"
+                    BorderBrush="#E8E4D6"
+                    BorderThickness="0,0,0,1"
+                    Padding="28,20">
+                <StackPanel Spacing="14" MaxWidth="560" HorizontalAlignment="Left">
+                    <TextBlock Text="Nouvelle sauvegarde"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               Foreground="#2B2118" />
+
+                    <Grid ColumnDefinitions="*,16,180">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Classes="label" Text="Nom" />
+                            <TextBox Text="{Binding FormName}" Watermark="Ex : Documents Pro" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Classes="label" Text="Type" />
+                            <ComboBox SelectedItem="{Binding FormType}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBoxItem>Full</ComboBoxItem>
+                                <ComboBoxItem>Differential</ComboBoxItem>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel>
+                        <TextBlock Classes="label" Text="Chemin source" />
+                        <TextBox Text="{Binding FormSource}" Watermark="C:/Users/…" />
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Classes="label" Text="Chemin destination" />
+                        <TextBox Text="{Binding FormTarget}" Watermark="D:/Backups/…" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding FormError}"
+                               IsVisible="{Binding FormError, Converter={x:Static views:NotEmptyConverter.Instance}}"
+                               Foreground="#6F1A07"
+                               FontSize="12" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="primary"
+                                Content="Créer la sauvegarde"
+                                Command="{Binding SubmitCreateCommand}" />
+                        <Button Classes="secondary"
+                                Content="Annuler"
+                                Command="{Binding CancelCreateCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- État vide -->
+            <Border DockPanel.Dock="Top"
+                    IsVisible="{Binding Jobs.Count, Converter={x:Static views:ZeroToBoolConverter.Instance}}"
+                    Padding="28,48"
+                    HorizontalAlignment="Center">
+                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                    <TextBlock Text="Aucune sauvegarde"
+                               FontSize="15"
+                               FontWeight="Medium"
+                               Foreground="#2B2118"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Créez votre première tâche de sauvegarde pour commencer."
+                               Foreground="#B3B6B7"
+                               FontSize="13"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <!-- Liste -->
+            <ScrollViewer DockPanel.Dock="Top" Padding="28,16,28,24">
+                <ItemsControl ItemsSource="{Binding Jobs}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:BackupJobViewModel" x:CompileBindings="False">
+                            <Border Background="#FEFCF7"
+                                    BorderBrush="#E8E4D6"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Margin="0,0,0,10"
+                                    Padding="16,14"
+                                    Cursor="Hand">
+
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Exécuter"
+                                                  Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
+                                                  CommandParameter="{Binding}" />
+                                        <MenuItem Header="Supprimer"
+                                                  Command="{Binding $parent[UserControl].DataContext.DeleteJobCommand}"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </Border.ContextMenu>
+
+                                <Grid ColumnDefinitions="*,Auto">
+
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <Grid ColumnDefinitions="Auto,8,Auto,*">
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Name}"
+                                                       FontSize="14"
+                                                       FontWeight="Medium"
+                                                       Foreground="#2B2118" />
+                                            <!-- Badge type (or chaud) -->
+                                            <Border Grid.Column="2"
+                                                    CornerRadius="4"
+                                                    Padding="6,2"
+                                                    Background="#F1E8D8">
+                                                <TextBlock Text="{Binding TypeLabel}"
+                                                           FontSize="11"
+                                                           Foreground="#AF9164" />
+                                            </Border>
+                                        </Grid>
+
+                                        <TextBlock Text="{Binding SourcePath}"
+                                                   FontSize="12"
+                                                   Foreground="#B3B6B7"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Margin="0,2,0,0" />
+
+                                        <!-- Barre de progression -->
+                                        <StackPanel IsVisible="{Binding IsRunning}" Margin="0,6,0,0" Spacing="4">
+                                            <ProgressBar Value="{Binding Progress}"
+                                                         Maximum="100"
+                                                         Height="3"
+                                                         CornerRadius="2"
+                                                         Background="#E8E4D6"
+                                                         Foreground="#AF9164" />
+                                            <TextBlock Text="{Binding ProgressText}"
+                                                       FontSize="11"
+                                                       Foreground="#B3B6B7" />
+                                        </StackPanel>
+
+                                        <!-- Badge terminé -->
+                                        <Border IsVisible="{Binding IsCompleted}"
+                                                CornerRadius="4"
+                                                Padding="6,2"
+                                                Background="#E4F0E5"
+                                                HorizontalAlignment="Left"
+                                                Margin="0,4,0,0">
+                                            <TextBlock Text="✓ Terminé"
+                                                       FontSize="11"
+                                                       Foreground="#3D7A40" />
+                                        </Border>
+
+                                        <!-- Badge erreur -->
+                                        <Border IsVisible="{Binding IsError}"
+                                                CornerRadius="4"
+                                                Padding="6,2"
+                                                Background="#F5E0DC"
+                                                HorizontalAlignment="Left"
+                                                Margin="0,4,0,0">
+                                            <TextBlock Text="✕ Erreur"
+                                                       FontSize="11"
+                                                       Foreground="#6F1A07" />
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Boutons action -->
+                                    <StackPanel Grid.Column="1"
+                                                Orientation="Horizontal"
+                                                Spacing="6"
+                                                VerticalAlignment="Center">
+                                        <Button Classes="primary"
+                                                Content="▶ Exécuter"
+                                                FontSize="12"
+                                                Padding="10,6"
+                                                Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
+                                                CommandParameter="{Binding}"
+                                                IsEnabled="{Binding !IsRunning}" />
+                                        <Button Classes="icon"
+                                                Command="{Binding $parent[UserControl].DataContext.SelectJobCommand}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip.Tip="Détails">
+                                            <TextBlock Text="›"
+                                                       FontSize="18"
+                                                       Foreground="#B3B6B7" />
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+        </DockPanel>
+
+        <!-- ─── Panel de détail ──────────────────────────────────────────── -->
+        <Border Grid.Column="1"
+                IsVisible="{Binding ShowJobPanel}"
+                Width="300"
+                BorderBrush="#E8E4D6"
+                BorderThickness="1,0,0,0"
+                Background="#F7F3E3">
+
+            <DockPanel>
+                <Border DockPanel.Dock="Top"
+                        Padding="20,18,12,14"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="0,0,0,1">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="Détails"
+                                   FontSize="14"
+                                   FontWeight="Medium"
+                                   Foreground="#2B2118"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Classes="icon"
+                                Content="✕"
+                                Command="{Binding CloseJobPanelCommand}" />
+                    </Grid>
+                </Border>
+
+                <ScrollViewer DockPanel.Dock="Top" Padding="20,16">
+                    <StackPanel Spacing="16"
+                                x:CompileBindings="False"
+                                IsVisible="{Binding SelectedJob, Converter={x:Static views:NotNullConverter.Instance}}"
+                                DataContext="{Binding SelectedJob}">
+
+                        <StackPanel>
+                            <TextBlock Classes="label" Text="NOM" />
+                            <TextBlock Text="{Binding Name}"
+                                       FontSize="14"
+                                       FontWeight="Medium"
+                                       Foreground="#2B2118"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Separator />
+
+                        <StackPanel>
+                            <TextBlock Classes="label" Text="TYPE" />
+                            <Border CornerRadius="5"
+                                    Padding="8,4"
+                                    Background="#F1E8D8"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding TypeLabel}"
+                                           FontSize="13"
+                                           Foreground="#AF9164" />
+                            </Border>
+                        </StackPanel>
+
+                        <Separator />
+
+                        <StackPanel>
+                            <TextBlock Classes="label" Text="SOURCE" />
+                            <TextBlock Text="{Binding SourcePath}"
+                                       FontSize="12"
+                                       Foreground="#2B2118"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Separator />
+
+                        <StackPanel>
+                            <TextBlock Classes="label" Text="DESTINATION" />
+                            <TextBlock Text="{Binding TargetPath}"
+                                       FontSize="12"
+                                       Foreground="#2B2118"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Separator />
+
+                        <StackPanel>
+                            <TextBlock Classes="label" Text="STATUT" />
+                            <TextBlock Text="{Binding StatusLabel}"
+                                       FontSize="13"
+                                       Foreground="#2B2118" />
+                        </StackPanel>
+
+                        <Separator />
+
+                        <StackPanel Spacing="8">
+                            <Button Classes="primary"
+                                    Content="▶ Exécuter maintenant"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
+                                    CommandParameter="{Binding}"
+                                    IsEnabled="{Binding !IsRunning}" />
+                            <Button Classes="danger"
+                                    Content="Supprimer"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Command="{Binding $parent[UserControl].DataContext.DeleteJobCommand}"
+                                    CommandParameter="{Binding}" />
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+    </Grid>
+
+</UserControl>
