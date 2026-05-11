@@ -13,10 +13,8 @@ public class ConfigService
 
     public ConfigService()
     {
-        FilePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..", "Data", "Config", "appsettings.json"
-        ));
+        FilePath = Path.Combine(AppContext.BaseDirectory,
+        "Data", "Config", "appsettings.json");
     }
 
     public AppConfig Load()

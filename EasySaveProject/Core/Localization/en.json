@@ -4,6 +4,7 @@
   "MainMenu.ViewLogs": "View logs",
   "MainMenu.Settings": "Settings",
   "MainMenu.Exit": "Exit",
+
   "Logs.ComingSoon": "Logs coming soon...",
   "Logs.Title": "Logs",
   "Logs.Today": "Today's logs",
@@ -11,11 +12,16 @@
   "Logs.SelectLevel": "Select level",
   "Logs.TodayHeader": "Today's Logs",
   "Logs.LevelHeader": "Logs - {0}",
+
   "Settings.ComingSoon": "Settings coming soon...",
   "Settings.Title": "Settings",
   "Settings.ChangeLanguage": "Change language",
   "Settings.LanguageUpdated": "Language updated successfully",
+  "Settings.ChangeLogFormat": "Change log format",
+  "Settings.ChooseLogFormat": "Choose log format",
+  "Settings.LogFormatUpdated": "Log format updated.",
   "Settings.Back": "Back",
+
   "Backup.Menu": "Backup Menu",
   "Backup.CreateNew": "Create new backup",
   "Backup.CreateA": "Create a backup job",
@@ -24,10 +30,12 @@
   "Backup.Executed": "Backup executed.",
   "Backup.NoBackupJobs": "No backup jobs available.",
   "Backup.Run": "Run backup",
+  "Backup.RunSelected": "Run selected backups",
   "Backup.TypeFull": "Full",
   "Backup.TypeDifferential": "Differential",
   "Backup.TypeSelection": "Select Backup Type",
   "Backup.TypeUpdated": "Backup type updated.",
+
   "Job.Options": "Job Options",
   "Job.Detail": "Job Details",
   "Job.Name": "Name",
@@ -36,27 +44,34 @@
   "Job.Type": "Type",
   "Job.Created": "Job created successfully.",
   "Job.MaxReached": "Maximum jobs reached (5). Please select a job to overwrite.",
+
   "Form.CreateTitle": "Create Backup Job",
   "Form.NamePrompt": "Name: ",
   "Form.SourcePrompt": "Source path: ",
   "Form.TargetPrompt": "Target path: ",
   "Form.EmptyError": "Value cannot be empty.",
+
   "Confirm.RunNow": "Do you want to run it now?",
   "Confirm.Delete": "Confirm deletion.",
   "Confirm.Yes": "Yes",
   "Confirm.No": "No",
+
   "View.Details": "View details",
+
   "Return": "Return",
   "Back": "Back",
   "Cancel": "Cancel",
+
   "Language.Choose": "Choose Language",
   "Language.English": "English",
   "Language.French": "Français",
   "Language.ConfirmationTitle": "Confirmation",
   "Language.YouChose": "You have chosen: {0}. Do you confirm?",
+
   "Log.Level.Info": "Info",
   "Log.Level.Warning": "Warning",
   "Log.Level.Error": "Error",
+
   "Logs.Header.Time": "Time",
   "Logs.Header.Level": "Level",
   "Logs.Header.Job": "Job",
@@ -65,10 +80,12 @@
   "Logs.Header.TargetFile": "Target file",
   "Logs.Header.FileSize": "File size",
   "Logs.Header.TransferTime": "Transfer time",
+
   "Logs.Arrow": "   ➟   ",
   "Logs.Bytes": "bytes",
   "Logs.Milliseconds": "ms",
   "Logs.Error": "ERROR",
+
   "Logs.Details.Timestamp": "Timestamp",
   "Logs.Details.Level": "Level",
   "Logs.Details.Job": "Job",
@@ -77,7 +94,13 @@
   "Logs.Details.Size": "Size",
   "Logs.Details.TransferTime": "Transfer time",
   "Logs.Details.Message": "Message",
-  "Settings.ChangeLogFormat": "Change log format",
-  "Settings.ChooseLogFormat": "Choose log format",
-  "Settings.LogFormatUpdated": "Log format updated."
+
+  "Menu.Controls": "ENTER → Open / Execute   SPACE → Select",
+
+  "Cli.ResultTitle": "Result of operations",
+  "Cli.BackupExecuted": "Backup executed",
+  "Cli.BackupCreated": "Backup created",
+  "Cli.CreateBackup": "Create backup",
+  "Cli.SkipMissingBackups": "Skip missing backups",
+  "Cli.MissingBackupsTitle": "/!\\ Missing backups"
 }
