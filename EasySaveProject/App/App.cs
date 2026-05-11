@@ -28,10 +28,8 @@ public class App
     // 🔹 Ajouts HEAD
     private readonly AppConfig _config;
 
-    private static readonly string CryptoSoftExePath = Path.GetFullPath(
-        Path.Combine(AppContext.BaseDirectory,
-            "..", "..", "..", "External", "CryptoSoft", "CryptoSoft.exe")
-    );
+    private static readonly string CryptoSoftExePath =
+    Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe");
 
     public App()
     {
@@ -68,11 +66,10 @@ public class App
             _fileService,
             _logService,
             _stateService,
-            _pauseService,
             cryptoService,
-            watcher
+            watcher,
+            _pauseService
         );
-
         var footer = new FooterComponent(_progressService, _pauseService);
 
         _viewModel = new MainViewModel(backupService, footer);

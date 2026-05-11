@@ -3,6 +3,11 @@
   <ItemGroup>
     <ProjectReference Include="..\EasyLog\EasyLog.csproj" />
   </ItemGroup>
+  <ItemGroup>
+  <None Include="..\CryptoSoft\CryptoSoft.exe">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
 
   <ItemGroup>
     <None Include="Core\Localization\*.json">

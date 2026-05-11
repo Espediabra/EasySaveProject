@@ -1,5 +1,5 @@
 using EasySaveProject.Models;
-using EasySaveProject.Strategies;
+using EasySaveProject.Core.Strategies;
 
 namespace EasySaveProject.Factories
 {
