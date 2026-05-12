@@ -4,12 +4,22 @@ namespace EasySaveProject.Infrastructure.Monitoring;
 
 public class BusinessSoftwareWatcher
 {
-    private readonly string _processName;
+    private readonly List<string> _processNames;
 
-    public BusinessSoftwareWatcher(string processName)
+    public BusinessSoftwareWatcher(List<string> processNames)
     {
-        _processName = processName?.Trim() ?? string.Empty;
+        _processNames = processNames
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .ToList();
     }
 
-    public bool IsRunning() => ProcessHelper.IsProcessRunning(_processName);
+    public bool IsRunning()
+    {
+        return _processNames.Any(name => ProcessHelper.IsProcessRunning(name));
+    }
+
+    public string? GetRunningName()
+    {
+        return _processNames.FirstOrDefault(name => ProcessHelper.IsProcessRunning(name));
+    }
 }

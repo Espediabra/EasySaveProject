@@ -8,6 +8,5 @@ public class AppConfig
 
     public string CryptoKey { get; set; } = string.Empty;
     public List<string> CryptoExtensions { get; set; } = new();
-
-    public string BusinessSoftware { get; set; } = string.Empty;
+    public List<string> BusinessSoftwareList { get; set; } = new();
 }

@@ -14,7 +14,7 @@ namespace EasySaveProject.Core.Services
         private readonly StateService _stateService;
         private readonly CryptoService _cryptoService;
         private readonly BusinessSoftwareWatcher _watcher;
-        private readonly PauseService _pauseService; // ← ajouté
+        private readonly PauseService _pauseService;
 
         private readonly List<BackupJob> _jobs = new();
 
@@ -34,7 +34,7 @@ namespace EasySaveProject.Core.Services
             _stateService = stateService;
             _cryptoService = cryptoService;
             _watcher = watcher;
-            _pauseService = pauseService; // ← ajouté
+            _pauseService = pauseService;
 
             if (File.Exists(_jobsPath))
             {
@@ -133,6 +133,8 @@ namespace EasySaveProject.Core.Services
             {
                 WriteIndented = true
             });
+
+            File.WriteAllText(_jobsPath, json);
         }
 
         public IReadOnlyList<BackupJob> GetJobs() => _jobs;
