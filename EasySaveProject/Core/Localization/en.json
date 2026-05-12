@@ -22,6 +22,16 @@
   "Settings.LogFormatUpdated": "Log format updated.",
   "Settings.Back": "Back",
 
+  "Settings.BusinessSoftware": "Manage business software",
+  "Settings.BusinessSoftware.Empty": "No business software configured.",
+  "Settings.BusinessSoftware.Current": "Current business software:",
+  "Settings.BusinessSoftware.Add": "Add a business software",
+  "Settings.BusinessSoftware.Remove": "Remove a business software",
+  "Settings.BusinessSoftware.AddPrompt": "Process name (e.g. calc.exe): ",
+  "Settings.BusinessSoftware.Added": "Business software added.",
+  "Settings.BusinessSoftware.Removed": "Business software removed.",
+  "Settings.BusinessSoftware.AlreadyExists": "This business software is already in the list.",
+
   "Backup.Menu": "Backup Menu",
   "Backup.CreateNew": "Create new backup",
   "Backup.CreateA": "Create a backup job",
