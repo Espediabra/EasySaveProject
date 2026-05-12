@@ -25,6 +25,7 @@ public class App
     private readonly LanguageForm _languageForm;
     private readonly RunCliFlow _runCliFlow;
 
+    // 🔹 Ajouts HEAD
     private readonly AppConfig _config;
 
     private static readonly string CryptoSoftExePath =
@@ -35,28 +36,32 @@ public class App
         _menu = new MenuComponent();
         _interactiveMenu = new InteractiveMenuComponent(_loc);
 
+        // 🔹 Charger config
         _config = _configService.Load();
 
+        // 🔹 Langue
         var lang = string.IsNullOrWhiteSpace(_config.Langage)
             ? "en"
             : _config.Langage;
 
         _loc.Load(lang);
 
+        // 🔹 Logging (avec format venant de HEAD)
         LogService.Initialize(_loc, _config.LogFormat);
         _logService = LogService.Instance;
 
+        // 🔹 Services HEAD (crypto + monitoring)
         var cryptoService = new CryptoService(
             _config.CryptoExtensions,
             _config.CryptoKey,
             CryptoSoftExePath
         );
 
-        // Passe la LISTE des logiciels métier (plus un seul string)
         var watcher = new BusinessSoftwareWatcher(
-            _config.BusinessSoftwareList
+            _config.BusinessSoftware
         );
 
+        // 🔹 Service principal (fusion)
         var backupService = new BackupService(
             _fileService,
             _logService,
@@ -69,6 +74,7 @@ public class App
 
         _viewModel = new MainViewModel(backupService, footer);
 
+        // Forms 
         var inputForm = new InputForm(_loc);
         var confirmDialog = new ConfirmDialog(_menu, _loc);
         var backupTypeForm = new BackupTypeForm(_menu, _loc);
@@ -88,6 +94,7 @@ public class App
             _loc
         );
 
+        // Views
         var backupMenuView = new BackupMenuView(
             _viewModel,
             _menu,
