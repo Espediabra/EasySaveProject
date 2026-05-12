@@ -93,11 +93,16 @@ namespace EasySaveProject.Infrastructure
 
                 _provider.Write(entry);
 
-                Console.WriteLine(
-                    $"[{entry.Timestamp:HH:mm:ss}] " +
-                    $"[{entry.Level}] " +
-                    $"{entry.JobName} - {entry.Message}"
-                );
+                // Do not spam the console with INFO-level entries (one per file).
+                // Keep only WARNING/ERROR visible to the user.
+                if (entry.Level != LogLevel.INFO)
+                {
+                    Console.WriteLine(
+                        $"[{entry.Timestamp:HH:mm:ss}] " +
+                        $"[{entry.Level}] " +
+                        $"{entry.JobName} - {entry.Message}"
+                    );
+                }
             }
             catch (Exception ex)
             {
