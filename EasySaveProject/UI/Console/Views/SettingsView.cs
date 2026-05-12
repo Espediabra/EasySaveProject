@@ -49,7 +49,7 @@ public class SettingsView
                     break;
 
                 case 2:
-                    ShowBusinessSoftwareMenu();
+                    ManageBusinessSoftware();
                     break;
 
                 case 3:
@@ -93,7 +93,7 @@ public class SettingsView
         Console.ReadKey();
     }
 
-    private void ShowBusinessSoftwareMenu()
+    private void ManageBusinessSoftware()
     {
         while (true)
         {
@@ -101,25 +101,23 @@ public class SettingsView
             HeaderComponent.Render(_loc.T("Settings.BusinessSoftware"));
 
             var config = _configService.Load();
-            var list = config.BusinessSoftwareList;
 
-            if (list.Count == 0)
+            if (config.BusinessSoftware.Count == 0)
             {
-                Console.WriteLine(_loc.T("Business.Empty"));
-                Console.WriteLine();
+                Console.WriteLine(_loc.T("Settings.BusinessSoftware.Empty"));
             }
             else
             {
-                Console.WriteLine(_loc.T("Business.CurrentList"));
-                for (int i = 0; i < list.Count; i++)
-                    Console.WriteLine($"  {i + 1}. {list[i]}");
-                Console.WriteLine();
+                Console.WriteLine(_loc.T("Settings.BusinessSoftware.Current"));
+                for (int i = 0; i < config.BusinessSoftware.Count; i++)
+                    Console.WriteLine($"  {i + 1}. {config.BusinessSoftware[i]}");
             }
+            Console.WriteLine();
 
             var options = new List<string>
             {
-                _loc.T("Business.Add"),
-                _loc.T("Business.Remove"),
+                _loc.T("Settings.BusinessSoftware.Add"),
+                _loc.T("Settings.BusinessSoftware.Remove"),
                 _loc.T("Settings.Back")
             };
 
@@ -128,11 +126,11 @@ public class SettingsView
             switch (choice)
             {
                 case 0:
-                    AddBusinessSoftware();
+                    AddBusinessSoftware(config);
                     break;
 
                 case 1:
-                    RemoveBusinessSoftware();
+                    RemoveBusinessSoftware(config);
                     break;
 
                 case 2:
@@ -141,56 +139,48 @@ public class SettingsView
         }
     }
 
-    private void AddBusinessSoftware()
+    private void AddBusinessSoftware(AppConfig config)
     {
         Console.Clear();
-        HeaderComponent.Render(_loc.T("Business.Add"));
+        HeaderComponent.Render(_loc.T("Settings.BusinessSoftware.Add"));
+        Console.Write(_loc.T("Settings.BusinessSoftware.AddPrompt"));
 
-        Console.Write(_loc.T("Business.AddPrompt"));
-        string? input = Console.ReadLine()?.Trim().ToLowerInvariant();
-
+        string? input = Console.ReadLine();
         if (string.IsNullOrWhiteSpace(input))
-        {
-            Console.WriteLine(_loc.T("Form.EmptyError"));
-            Console.ReadKey();
             return;
+
+        string name = input.Trim();
+
+        bool alreadyExists = config.BusinessSoftware
+            .Any(p => p.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        if (!alreadyExists)
+        {
+            config.BusinessSoftware.Add(name);
+            _configService.Save(config);
+            Console.WriteLine(_loc.T("Settings.BusinessSoftware.Added"));
+        }
+        else
+        {
+            Console.WriteLine(_loc.T("Settings.BusinessSoftware.AlreadyExists"));
         }
 
-        if (!input.EndsWith(".exe"))
-            input += ".exe";
-
-        var config = _configService.Load();
-
-        if (config.BusinessSoftwareList.Contains(input, StringComparer.OrdinalIgnoreCase))
-        {
-            Console.WriteLine(_loc.T("Business.AlreadyExists"));
-            Console.ReadKey();
-            return;
-        }
-
-        config.BusinessSoftwareList.Add(input);
-        _configService.Save(config);
-
-        Console.WriteLine(string.Format(_loc.T("Business.Added"), input));
         Console.ReadKey();
     }
 
-    private void RemoveBusinessSoftware()
+    private void RemoveBusinessSoftware(AppConfig config)
     {
-        var config = _configService.Load();
-        var list = config.BusinessSoftwareList;
-
-        if (list.Count == 0)
+        if (config.BusinessSoftware.Count == 0)
         {
-            Console.WriteLine(_loc.T("Business.Empty"));
+            Console.WriteLine(_loc.T("Settings.BusinessSoftware.Empty"));
             Console.ReadKey();
             return;
         }
 
         Console.Clear();
-        HeaderComponent.Render(_loc.T("Business.Remove"));
+        HeaderComponent.Render(_loc.T("Settings.BusinessSoftware.Remove"));
 
-        var options = list.ToList();
+        var options = new List<string>(config.BusinessSoftware);
         options.Add(_loc.T("Settings.Back"));
 
         int choice = _menu.Select(options);
@@ -198,11 +188,10 @@ public class SettingsView
         if (choice == options.Count - 1)
             return;
 
-        string removed = list[choice];
-        list.RemoveAt(choice);
+        config.BusinessSoftware.RemoveAt(choice);
         _configService.Save(config);
 
-        Console.WriteLine(string.Format(_loc.T("Business.Removed"), removed));
+        Console.WriteLine(_loc.T("Settings.BusinessSoftware.Removed"));
         Console.ReadKey();
     }
 }
