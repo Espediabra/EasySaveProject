@@ -22,11 +22,17 @@
                                    Text="Gérez et exécutez vos tâches de sauvegarde"
                                    Margin="0,2,0,0" />
                     </StackPanel>
-                    <Button Grid.Column="1"
-                            Classes="primary"
-                            Content="+ Nouvelle sauvegarde"
-                            Command="{Binding OpenCreateFormCommand}"
-                            VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button Classes="secondary"
+                                Content="▶ Exécuter la sélection"
+                                IsVisible="{Binding HasSelectedJobs}"
+                                Command="{Binding RunSelectedJobsCommand}"
+                                VerticalAlignment="Center" />
+                        <Button Classes="primary"
+                                Content="+ Nouvelle sauvegarde"
+                                Command="{Binding OpenCreateFormCommand}"
+                                VerticalAlignment="Center" />
+                    </StackPanel>
                 </Grid>
             </Border>
 
@@ -84,6 +90,34 @@
                 </StackPanel>
             </Border>
 
+            <!-- Prompt "Exécuter maintenant?" -->
+            <Border DockPanel.Dock="Top"
+                    IsVisible="{Binding ShowRunNowPrompt}"
+                    Background="#EDF7EE"
+                    BorderBrush="#9BC99E"
+                    BorderThickness="0,0,0,1"
+                    Padding="28,16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Text="{Binding RunNowJobTitle}"
+                                   FontSize="13"
+                                   FontWeight="Medium"
+                                   Foreground="#2B4A2D" />
+                        <TextBlock Text="Voulez-vous l'exécuter maintenant ?"
+                                   FontSize="12"
+                                   Foreground="#3D7A40" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button Classes="primary"
+                                Content="▶ Exécuter"
+                                Command="{Binding RunNowCommand}" />
+                        <Button Classes="secondary"
+                                Content="Plus tard"
+                                Command="{Binding DismissRunNowCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
             <!-- État vide -->
             <Border DockPanel.Dock="Top"
                     IsVisible="{Binding Jobs.Count, Converter={x:Static views:ZeroToBoolConverter.Instance}}"
@@ -126,16 +160,22 @@
                                     </ContextMenu>
                                 </Border.ContextMenu>
 
-                                <Grid ColumnDefinitions="*,Auto">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
 
-                                    <StackPanel Grid.Column="0" Spacing="2">
+                                    <!-- Case à cocher multi-sélection -->
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{Binding IsSelected}"
+                                              VerticalAlignment="Top"
+                                              Margin="0,2,12,0" />
+
+                                    <StackPanel Grid.Column="1" Spacing="2">
                                         <Grid ColumnDefinitions="Auto,8,Auto,*">
                                             <TextBlock Grid.Column="0"
                                                        Text="{Binding Name}"
                                                        FontSize="14"
                                                        FontWeight="Medium"
                                                        Foreground="#2B2118" />
-                                            <!-- Badge type (or chaud) -->
+                                            <!-- Badge type -->
                                             <Border Grid.Column="2"
                                                     CornerRadius="4"
                                                     Padding="6,2"
@@ -191,7 +231,7 @@
                                     </StackPanel>
 
                                     <!-- Boutons action -->
-                                    <StackPanel Grid.Column="1"
+                                    <StackPanel Grid.Column="2"
                                                 Orientation="Horizontal"
                                                 Spacing="6"
                                                 VerticalAlignment="Center">
@@ -266,14 +306,22 @@
 
                         <StackPanel>
                             <TextBlock Classes="label" Text="TYPE" />
-                            <Border CornerRadius="5"
-                                    Padding="8,4"
-                                    Background="#F1E8D8"
-                                    HorizontalAlignment="Left">
-                                <TextBlock Text="{Binding TypeLabel}"
-                                           FontSize="13"
-                                           Foreground="#AF9164" />
-                            </Border>
+                            <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                                <ComboBox Grid.Column="0"
+                                          SelectedItem="{Binding Type}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBoxItem>Full</ComboBoxItem>
+                                    <ComboBoxItem>Differential</ComboBoxItem>
+                                </ComboBox>
+                                <Button Grid.Column="1"
+                                        Classes="secondary"
+                                        Content="✓"
+                                        Margin="8,0,0,0"
+                                        Padding="10,6"
+                                        ToolTip.Tip="Enregistrer le type"
+                                        Command="{Binding $parent[UserControl].DataContext.SaveJobTypeCommand}"
+                                        CommandParameter="{Binding}" />
+                            </Grid>
                         </StackPanel>
 
                         <Separator />

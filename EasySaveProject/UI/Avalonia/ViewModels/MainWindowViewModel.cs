@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasySaveProject.Models;
@@ -39,9 +41,26 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _formType = "Full";
     [ObservableProperty] private string _formError = "";
 
+    // Prompt "Exécuter maintenant?" après création
+    [ObservableProperty] private bool _showRunNowPrompt = false;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RunNowJobTitle))]
+    private string _runNowJobName = "";
+
+    private int _pendingRunJobIndex = -1;
+
+    public string RunNowJobTitle => $"Sauvegarde « {RunNowJobName} » créée avec succès.";
+
+    // Multi-sélection
+    public bool HasSelectedJobs => Jobs.Any(j => j.IsSelected);
+
     // Page Logs
     [ObservableProperty] private ObservableCollection<LogEntryViewModel> _logEntries = new();
     [ObservableProperty] private string _selectedLogLevel = "All";
+
+    public bool HasFilteredLogs => FilteredLogs.Any();
+    public bool HasNoFilteredLogs => !FilteredLogs.Any();
 
     // Page Settings
     [ObservableProperty] private string _selectedLanguage = "English";
@@ -52,16 +71,14 @@ public partial class MainWindowViewModel : ObservableObject
 
     public MainWindowViewModel()
     {
-        // ── Initialisation avec les vrais services du projet console ──────
         var fileService = new FileService();
         var stateService = new StateService();
         var loc = new LocalizationService();
 
-        // Charger la langue depuis la config
         var configService = new ConfigService();
         var config = configService.Load();
         try { loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage); }
-        catch { /* fichier langue introuvable — on continue */ }
+        catch { }
 
         SelectedLanguage = config.Langage == "fr" ? "Français" : "English";
 
@@ -71,11 +88,29 @@ public partial class MainWindowViewModel : ObservableObject
         _backupService = new BackupService(fileService, _logService, stateService);
         _coreViewModel = new MainViewModel(_backupService);
 
-        // Charger les jobs existants depuis jobs.json
-        LoadJobsFromService();
+        Jobs.CollectionChanged += OnJobsCollectionChanged;
 
-        // Charger les logs du jour
+        LoadJobsFromService();
         LoadTodayLogs();
+    }
+
+    private void OnJobsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+            foreach (BackupJobViewModel job in e.NewItems)
+                job.PropertyChanged += OnJobPropertyChanged;
+
+        if (e.OldItems != null)
+            foreach (BackupJobViewModel job in e.OldItems)
+                job.PropertyChanged -= OnJobPropertyChanged;
+
+        OnPropertyChanged(nameof(HasSelectedJobs));
+    }
+
+    private void OnJobPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(BackupJobViewModel.IsSelected))
+            OnPropertyChanged(nameof(HasSelectedJobs));
     }
 
     private void LoadJobsFromService()
@@ -117,7 +152,10 @@ public partial class MainWindowViewModel : ObservableObject
                 });
             }
         }
-        catch { /* pas de logs encore */ }
+        catch { }
+
+        OnPropertyChanged(nameof(HasFilteredLogs));
+        OnPropertyChanged(nameof(HasNoFilteredLogs));
     }
 
     // ── Navigation ────────────────────────────────────────────────────────
@@ -134,6 +172,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         SelectedJob = job;
         ShowCreateForm = false;
+        ShowRunNowPrompt = false;
         ShowJobPanel = true;
     }
 
@@ -169,7 +208,42 @@ public partial class MainWindowViewModel : ObservableObject
             ShowToastMessage($"Erreur : {ex.Message}");
         }
 
-        // Rafraîchir les logs
+        LoadTodayLogs();
+    }
+
+    // ── Lancer les sauvegardes sélectionnées ─────────────────────────────
+    [RelayCommand]
+    async Task RunSelectedJobs()
+    {
+        var selected = Jobs.Where(j => j.IsSelected).ToList();
+        if (!selected.Any()) return;
+
+        var indices = selected.Select(j => Jobs.IndexOf(j)).Where(i => i >= 0).ToList();
+
+        foreach (var job in selected)
+        {
+            job.IsSelected = false;
+            job.Status = "Active";
+            job.Progress = 0;
+        }
+
+        try
+        {
+            await Task.Run(() => _coreViewModel.ExecuteMultipleBackups(indices));
+            foreach (var job in selected)
+            {
+                job.Status = "Completed";
+                job.Progress = 100;
+            }
+            ShowToastMessage($"{selected.Count} sauvegarde(s) terminée(s) ✓");
+        }
+        catch (Exception ex)
+        {
+            foreach (var job in selected)
+                job.Status = "Error";
+            ShowToastMessage($"Erreur : {ex.Message}");
+        }
+
         LoadTodayLogs();
     }
 
@@ -191,10 +265,17 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     void OpenCreateForm()
     {
+        if (Jobs.Count >= 5)
+        {
+            ShowToastMessage("Maximum 5 sauvegardes atteint. Supprimez-en une avant d'en créer une nouvelle.");
+            return;
+        }
+
         FormName = FormSource = FormTarget = FormError = "";
         FormType = "Full";
         ShowJobPanel = false;
         SelectedJob = null;
+        ShowRunNowPrompt = false;
         ShowCreateForm = true;
     }
 
@@ -211,14 +292,52 @@ public partial class MainWindowViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(FormName)) { FormError = "Le nom est requis."; return; }
         if (string.IsNullOrWhiteSpace(FormSource)) { FormError = "Le chemin source est requis."; return; }
         if (string.IsNullOrWhiteSpace(FormTarget)) { FormError = "Le chemin cible est requis."; return; }
+        if (Jobs.Count >= 5) { FormError = "Maximum 5 sauvegardes atteint."; return; }
 
         var type = FormType == "Differential" ? BackupType.Differential : BackupType.Full;
         _coreViewModel.CreateJob(FormName, FormSource, FormTarget, type);
 
-        Jobs.Add(BackupJobViewModel.FromJob(FormName, FormSource, FormTarget, FormType));
+        var vm = BackupJobViewModel.FromJob(FormName, FormSource, FormTarget, FormType);
+        Jobs.Add(vm);
+
+        _pendingRunJobIndex = Jobs.IndexOf(vm);
+        RunNowJobName = FormName;
+
         ShowCreateForm = false;
         FormError = "";
-        ShowToastMessage($"Sauvegarde « {FormName} » créée.");
+        ShowRunNowPrompt = true;
+    }
+
+    // ── Prompt "Exécuter maintenant?" ─────────────────────────────────────
+    [RelayCommand]
+    async Task RunNow()
+    {
+        ShowRunNowPrompt = false;
+        if (_pendingRunJobIndex < 0 || _pendingRunJobIndex >= Jobs.Count) return;
+
+        var job = Jobs[_pendingRunJobIndex];
+        _pendingRunJobIndex = -1;
+        await RunJob(job);
+    }
+
+    [RelayCommand]
+    void DismissRunNow()
+    {
+        ShowRunNowPrompt = false;
+        _pendingRunJobIndex = -1;
+        ShowToastMessage($"Sauvegarde « {RunNowJobName} » créée.");
+    }
+
+    // ── Modifier le type d'un job ─────────────────────────────────────────
+    [RelayCommand]
+    void SaveJobType(BackupJobViewModel job)
+    {
+        int index = Jobs.IndexOf(job);
+        if (index < 0) return;
+
+        var type = job.Type == "Differential" ? BackupType.Differential : BackupType.Full;
+        _coreViewModel.ChangeJobType(index, type);
+        ShowToastMessage("Type de sauvegarde mis à jour.");
     }
 
     // ── Filtrage des logs ──────────────────────────────────────────────────
@@ -228,7 +347,11 @@ public partial class MainWindowViewModel : ObservableObject
             : LogEntries.Where(l => l.Level == SelectedLogLevel);
 
     partial void OnSelectedLogLevelChanged(string value)
-        => OnPropertyChanged(nameof(FilteredLogs));
+    {
+        OnPropertyChanged(nameof(FilteredLogs));
+        OnPropertyChanged(nameof(HasFilteredLogs));
+        OnPropertyChanged(nameof(HasNoFilteredLogs));
+    }
 
     partial void OnSelectedLanguageChanged(string value)
         => ShowSaveLanguageButton = true;

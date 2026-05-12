@@ -7,12 +7,22 @@ public partial class BackupJobViewModel : ObservableObject
     [ObservableProperty] private string _name = "";
     [ObservableProperty] private string _sourcePath = "";
     [ObservableProperty] private string _targetPath = "";
-    [ObservableProperty] private string _type = "Full";
 
-    [ObservableProperty] private string _status = "Idle";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TypeLabel))]
+    private string _type = "Full";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsRunning))]
+    [NotifyPropertyChangedFor(nameof(IsCompleted))]
+    [NotifyPropertyChangedFor(nameof(IsError))]
+    [NotifyPropertyChangedFor(nameof(StatusLabel))]
+    private string _status = "Idle";
+
     [ObservableProperty] private int _progress = 0;
     [ObservableProperty] private int _totalFiles = 0;
     [ObservableProperty] private int _remainingFiles = 0;
+    [ObservableProperty] private bool _isSelected = false;
 
     public bool IsRunning => Status == "Active";
     public bool IsCompleted => Status == "Completed";

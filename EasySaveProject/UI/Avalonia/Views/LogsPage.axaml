@@ -112,7 +112,8 @@
                 </ItemsControl>
 
                 <!-- Aucun log -->
-                <Border Padding="0,40">
+                <Border Padding="0,40"
+                        IsVisible="{Binding HasNoFilteredLogs}">
                     <TextBlock Text="Aucun journal pour ce filtre."
                                FontSize="13"
                                Foreground="#B3B6B7"
