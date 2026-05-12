@@ -20,7 +20,17 @@
   "Settings.ChangeLogFormat": "Change log format",
   "Settings.ChooseLogFormat": "Choose log format",
   "Settings.LogFormatUpdated": "Log format updated.",
+  "Settings.BusinessSoftware": "Manage business software",
   "Settings.Back": "Back",
+
+  "Business.CurrentList": "Configured business software:",
+  "Business.Empty": "No business software configured.",
+  "Business.Add": "Add business software",
+  "Business.AddPrompt": "Process name (e.g. calc.exe): ",
+  "Business.Remove": "Remove business software",
+  "Business.Added": "'{0}' added successfully.",
+  "Business.Removed": "'{0}' removed successfully.",
+  "Business.AlreadyExists": "This process is already in the list.",
 
   "Backup.Menu": "Backup Menu",
   "Backup.CreateNew": "Create new backup",
