@@ -17,15 +17,12 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         BusinessSoftwareWatcher watcher,
         PauseService pauseService)
     {
-        // Vérification AVANT démarrage : refus immédiat si logiciel métier actif
         if (watcher.IsRunning())
         {
-            var detected = watcher.GetRunningName() ?? "unknown";
-            Console.WriteLine($"[EasySave] Backup refused: business software detected ({detected})");
-
+            string blockers = string.Join(", ", watcher.GetRunningProcesses());
             logService.LogWarning(
                 job.Name, job.SourcePath, job.TargetPath, 0, 0,
-                $"Backup refused: business software detected ({detected})"
+                $"Backup cancelled: business software already running ({blockers})"
             );
             return;
         }
@@ -53,34 +50,9 @@ public abstract class BaseBackupStrategy : IBackupStrategy
 
         foreach (var sourceFile in files)
         {
+            watcher.WaitUntilFree(pauseService, logService, job, state, stateService);
+
             pauseService.WaitIfPaused();
-
-            if (watcher.IsRunning())
-            {
-                var detected = watcher.GetRunningName() ?? "unknown";
-                Console.WriteLine($"[EasySave] Backup paused: business software detected ({detected})");
-
-                logService.LogWarning(
-                    job.Name, sourceFile, string.Empty, 0, 0,
-                    $"Backup paused: business software detected ({detected})"
-                );
-
-                state.Status = "Paused";
-                stateService.Update(state);
-
-                while (watcher.IsRunning())
-                    Thread.Sleep(500);
-
-                Console.WriteLine("[EasySave] Business software closed, resuming backup...");
-
-                logService.LogInfo(
-                    job.Name, string.Empty, string.Empty, 0, 0,
-                    "Business software closed, backup resumed"
-                );
-
-                state.Status = "Active";
-                stateService.Update(state);
-            }
 
             var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
             var targetFile = Path.Combine(job.TargetPath, relativePath);
