@@ -32,8 +32,11 @@ public class ConfigService
             return JsonSerializer.Deserialize<AppConfig>(json, _options)
                    ?? new AppConfig();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[ConfigService] Failed to read appsettings.json: {ex.Message}");
+            Console.WriteLine($"[ConfigService] Path: {FilePath}");
+            Console.WriteLine("[ConfigService] Using default configuration. Business software detection will be DISABLED.");
             return new AppConfig();
         }
     }
