@@ -22,6 +22,16 @@
   "Settings.LogFormatUpdated": "Format des logs mis à jour",
   "Settings.Back": "Retour",
 
+  "Settings.BusinessSoftware": "Gérer les logiciels métiers",
+  "Settings.BusinessSoftware.Empty": "Aucun logiciel métier configuré.",
+  "Settings.BusinessSoftware.Current": "Logiciels métiers actuels :",
+  "Settings.BusinessSoftware.Add": "Ajouter un logiciel métier",
+  "Settings.BusinessSoftware.Remove": "Supprimer un logiciel métier",
+  "Settings.BusinessSoftware.AddPrompt": "Nom du processus (ex : calc.exe) : ",
+  "Settings.BusinessSoftware.Added": "Logiciel métier ajouté.",
+  "Settings.BusinessSoftware.Removed": "Logiciel métier supprimé.",
+  "Settings.BusinessSoftware.AlreadyExists": "Ce logiciel métier est déjà dans la liste.",
+
   "Backup.Menu": "Menu de sauvegarde",
   "Backup.CreateNew": "Créer une nouvelle sauvegarde",
   "Backup.CreateA": "Créer une tâche de sauvegarde",
