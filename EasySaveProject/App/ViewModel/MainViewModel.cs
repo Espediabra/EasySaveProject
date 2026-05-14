@@ -4,74 +4,71 @@ using EasySaveProject.UI.Console.Components;
 
 public class MainViewModel
 {
-    private readonly BackupService    _backupService;
-    private readonly FooterComponent  _footer;
+    private readonly BackupService _backupService;
 
-    public MainViewModel(
-        BackupService   backupService,
-        FooterComponent footer)
+    public bool IsRunning { get; private set; }
+    public event Action<bool>? OnExecutionStateChanged;
+
+    public MainViewModel(BackupService backupService)
     {
         _backupService = backupService;
-        _footer        = footer;
+    }
+
+    private void SetRunning(bool state)
+    {
+        IsRunning = state;
+        OnExecutionStateChanged?.Invoke(state);
     }
 
     public List<string> GetBackupNames()
     {
-        return _backupService.GetJobs()
-                             .Select(j => j.Name)
-                             .ToList();
+        return _backupService.GetJobs().Select(j => j.Name).ToList();
     }
 
     public void ExecuteBackup(int index)
     {
-        _footer.Start();
+        SetRunning(true);
         try
         {
             _backupService.RunJob(index);
         }
         finally
         {
-            _footer.Stop();
+            SetRunning(false);
+        }
+    }
+
+    public void ExecuteMultipleBackups(List<int> indices)
+    {
+        SetRunning(true);
+        try
+        {
+            foreach (var i in indices)
+                _backupService.RunJob(i);
+        }
+        finally
+        {
+            SetRunning(false);
         }
     }
 
     public void CreateJob(string name, string source, string target, BackupType type)
     {
-        var job = new BackupJob(name, source, target, type);
-        _backupService.AddJob(job);
+        if (_backupService.GetJobs().Count >= 5)
+            throw new InvalidOperationException("Max jobs reached");
+
+        _backupService.AddJob(new BackupJob(name, source, target, type));
     }
 
-    public void DeleteJob(int index)
-    {
-        _backupService.DeleteJob(index);
-    }
+    public void DeleteJob(int index) => _backupService.DeleteJob(index);
 
     public void ChangeJobType(int index, BackupType type)
-    {
-        _backupService.UpdateJobType(index, type);
-    }
-
+        => _backupService.UpdateJobType(index, type);
     public BackupJob GetJob(int index)
     {
         return _backupService.GetJobs()[index];
     }
 
     public List<BackupJob> GetJobsRaw()
-    {
-        return _backupService.GetJobs().ToList();
-    }
-
-    public void ExecuteMultipleBackups(List<int> indices)
-    {
-        _footer.Start();
-        try
-        {
-            foreach (int index in indices)
-                _backupService.RunJob(index);
-        }
-        finally
-        {
-            _footer.Stop();
-        }
-    }
+        => _backupService.GetJobs().ToList();
 }

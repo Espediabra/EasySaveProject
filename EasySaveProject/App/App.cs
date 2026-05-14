@@ -17,7 +17,6 @@ public class App
     private readonly LogService _logService;
     private readonly PauseService _pauseService = new();
     private readonly ProgressService _progressService = new();
-
     private readonly MainMenuView _mainMenu;
     private readonly MenuComponent _menu;
     private readonly InteractiveMenuComponent _interactiveMenu;
@@ -70,9 +69,21 @@ public class App
             watcher,
             _pauseService
         );
+        
+        _viewModel = new MainViewModel(backupService);
+
         var footer = new FooterComponent(_progressService, _pauseService);
 
-        _viewModel = new MainViewModel(backupService, footer);
+        _viewModel.OnExecutionStateChanged += running =>
+        {
+            if (running) footer.Start();
+            else footer.Stop();
+        };
+
+        var logViewModel = new LogViewModel(_logService);
+
+        var logView = new LogView(_menu, _loc, logViewModel);
+
 
         // Forms 
         var inputForm = new InputForm(_loc);
@@ -113,8 +124,6 @@ public class App
             _configService,
             _languageForm
         );
-
-        var logView = new LogView(_menu, _loc, _logService);
 
         _mainMenu = new MainMenuView(
             _menu,
