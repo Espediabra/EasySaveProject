@@ -198,15 +198,14 @@ public class BackupMenuView
 
     private void CreateNewJobFlow()
     {
-        var jobs = _viewModel.GetJobsRaw();
-
-        if (jobs.Count >= 5)
+        try
+        {
+            _createForm.Show();
+        }
+        catch (InvalidOperationException)
         {
             HandleOverwrite();
-            return;
         }
-
-        _createForm.Show();
     }
 
     private void HandleOverwrite()
