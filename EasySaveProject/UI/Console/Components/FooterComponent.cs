@@ -17,23 +17,29 @@ namespace EasySaveProject.UI.Console.Components;
 /// </summary>
 public class FooterComponent
 {
-    private readonly ProgressService          _progressService;
-    private readonly PauseService             _pauseService;
+    private readonly ProgressService              _progressService;
+    private readonly PauseService                 _pauseService;
     private readonly Func<string, JobController?> _getController;
+    private readonly Action                       _resumeAll;
+    private readonly Action                       _stopAll;
 
     private CancellationTokenSource? _cts;
     private readonly object          _consoleLock  = new();
     private int                      _lastRowCount = 0;
-    private int                      _selectedRow  = -1; // -1 = global, 0..n-1 = job bar
+    private int                      _selectedRow  = -1; // -1 = global/hint, 0..n-1 = job bar
 
     public FooterComponent(
         ProgressService progressService,
         PauseService pauseService,
-        Func<string, JobController?> getController)
+        Func<string, JobController?> getController,
+        Action resumeAll,
+        Action stopAll)
     {
         _progressService = progressService;
         _pauseService    = pauseService;
         _getController   = getController;
+        _resumeAll       = resumeAll;
+        _stopAll         = stopAll;
     }
 
     public void Start()
@@ -198,18 +204,33 @@ public class FooterComponent
 
                     switch (key.Key)
                     {
+                        // Visual layout (top→bottom): hint[-1], bar[count-1], ..., bar[0]
+                        // ↑ moves UP on screen → higher bar index or hint
                         case ConsoleKey.UpArrow:
-                            _selectedRow = Math.Max(-1, _selectedRow - 1);
+                            if (_selectedRow == count - 1)
+                                _selectedRow = -1;
+                            else if (_selectedRow >= 0)
+                                _selectedRow++;
+                            // at -1 (hint), stay
                             break;
 
+                        // ↓ moves DOWN on screen → lower bar index or from hint to top bar
                         case ConsoleKey.DownArrow:
-                            _selectedRow = Math.Min(count - 1, _selectedRow + 1);
+                            if (_selectedRow == -1)
+                                _selectedRow = count > 0 ? count - 1 : -1;
+                            else if (_selectedRow > 0)
+                                _selectedRow--;
+                            // at 0 (bottom), stay
                             break;
 
                         case ConsoleKey.Spacebar:
                             if (_selectedRow < 0 || _selectedRow >= count)
                             {
-                                _pauseService.Toggle();
+                                // Smart global toggle: if anything is paused → resume all; else pause all
+                                bool anyPaused = _pauseService.IsPaused
+                                    || snaps.Any(s => _getController(s.BackupName)?.IsPaused == true);
+                                if (anyPaused) _resumeAll();
+                                else _pauseService.Pause();
                             }
                             else
                             {
@@ -220,7 +241,7 @@ public class FooterComponent
                         case ConsoleKey.Escape:
                             if (_selectedRow < 0 || _selectedRow >= count)
                             {
-                                _pauseService.Stop();
+                                _stopAll();
                             }
                             else
                             {
