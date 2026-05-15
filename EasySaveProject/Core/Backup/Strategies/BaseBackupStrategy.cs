@@ -138,6 +138,12 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                         state.RemainingSize -= bytesJustCopied;
                         state.Timestamp = DateTime.Now;
                         stateService.Update(state);
+
+                        pauseService.WaitIfPaused();
+                        jobController.WaitIfPaused();
+
+                        if (pauseService.IsStopRequested || jobController.IsStopRequested)
+                            throw new OperationCanceledException();
                     });
 
                     stopwatch.Stop();
@@ -170,6 +176,11 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                         );
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    stopwatch.Stop();
+                    stopped = true;
+                }
                 catch (Exception ex)
                 {
                     stopwatch.Stop();
@@ -195,6 +206,8 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                     priorityRemaining--;
                 }
             }
+
+            if (stopped) break;
         }
 
         // ── 6) Drain remaining priority files if stopped early ──────────────

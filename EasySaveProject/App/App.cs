@@ -82,7 +82,9 @@ public class App
         var footer = new FooterComponent(
             _progressService,
             _pauseService,
-            name => backupService.GetControllerByName(name)
+            name => backupService.GetControllerByName(name),
+            () => backupService.ResumeAll(),
+            () => backupService.StopAll()
         );
 
         _viewModel.OnExecutionStateChanged += running =>
