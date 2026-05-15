@@ -3,23 +3,24 @@ using EasySaveProject.Models;
 namespace EasySaveProject.Core;
 
 /// <summary>
-/// Canal de communication en mémoire entre la stratégie de copie et le footer.
-/// Thread-safe via lock. Aucun I/O impliqué dans la lecture par le footer.
+/// In-memory publish/subscribe channel between backup strategies and the footer.
+/// Thread-safe via lock. Zero I/O on the hot path.
+/// Stores one State per backup job (keyed by BackupName) to support parallel execution.
 /// </summary>
 public static class BackupStateHub
 {
     private static readonly object _lock = new();
-    private static State? _current;
+    private static readonly Dictionary<string, State> _states = new();
 
     /// <summary>
-    /// Appelé par la stratégie après chaque chunk copié.
+    /// Called by the strategy after each file chunk. Clones the state to avoid
+    /// the footer reading a partially-mutated object.
     /// </summary>
     public static void Publish(State state)
     {
         lock (_lock)
         {
-            // On clone pour éviter que le footer lise un objet en cours de modification
-            _current = new State
+            _states[state.BackupName] = new State
             {
                 BackupName        = state.BackupName,
                 Status            = state.Status,
@@ -35,13 +36,26 @@ public static class BackupStateHub
     }
 
     /// <summary>
-    /// Appelé par le footer toutes les 200ms. Retourne null si rien n'est publié.
+    /// Returns the state of the first active job. Kept for backward compatibility
+    /// with single-job callers.
     /// </summary>
     public static State? Read()
     {
         lock (_lock)
         {
-            return _current;
+            return _states.Values.FirstOrDefault();
+        }
+    }
+
+    /// <summary>
+    /// Returns a snapshot of all currently tracked job states.
+    /// Called every 200 ms by the footer to render one bar per job.
+    /// </summary>
+    public static IReadOnlyList<State> ReadAll()
+    {
+        lock (_lock)
+        {
+            return _states.Values.ToList();
         }
     }
 
@@ -49,7 +63,7 @@ public static class BackupStateHub
     {
         lock (_lock)
         {
-            _current = null;
+            _states.Clear();
         }
     }
 }
