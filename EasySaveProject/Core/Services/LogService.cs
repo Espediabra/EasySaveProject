@@ -15,7 +15,7 @@ public class LogService
     private static LogService? _instance;
     private static readonly object _instanceLock = new object();
 
-    // AppConfig optionnel, Sans AppConfig on est en mode Localidentique à la 2.0
+    // AppConfig optionnel, Sans AppConfig on est en mode Local identique à la 2.0
     public static void Initialize(
         LocalizationService loc,
         LogFormat? format = null,
