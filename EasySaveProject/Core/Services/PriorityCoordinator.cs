@@ -12,25 +12,35 @@ public class PriorityCoordinator
     // Reset = at least one priority file pending (non-priority threads block).
     private readonly ManualResetEventSlim _noPriorityPending = new(initialState: true);
     private int _pendingCount = 0;
-    private HashSet<string> _extensions;
+    private List<string> _extensions;
 
     public PriorityCoordinator(IEnumerable<string> priorityExtensions)
     {
-        _extensions = BuildSet(priorityExtensions);
+        _extensions = BuildList(priorityExtensions);
     }
 
     public void Update(IEnumerable<string> priorityExtensions)
     {
-        _extensions = BuildSet(priorityExtensions);
+        _extensions = BuildList(priorityExtensions);
     }
 
-    private static HashSet<string> BuildSet(IEnumerable<string> extensions)
-        => new(extensions.Select(e => e.ToLowerInvariant()), StringComparer.OrdinalIgnoreCase);
+    private static List<string> BuildList(IEnumerable<string> extensions)
+        => extensions.Select(e => e.ToLowerInvariant()).ToList();
 
     public bool IsEnabled => _extensions.Count > 0;
 
-    public bool IsPriorityFile(string filePath)
-        => IsEnabled && _extensions.Contains(Path.GetExtension(filePath).ToLowerInvariant());
+    /// <summary>
+    /// Returns the 0-based position of the file's extension in the priority list.
+    /// Lower = higher priority. Returns int.MaxValue for non-priority files.
+    /// </summary>
+    public int GetPriorityRank(string filePath)
+    {
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        var idx = _extensions.IndexOf(ext);
+        return idx < 0 ? int.MaxValue : idx;
+    }
+
+    public bool IsPriorityFile(string filePath) => GetPriorityRank(filePath) < int.MaxValue;
 
     /// <summary>
     /// Called once per job at the start of its execution, after scanning files.
