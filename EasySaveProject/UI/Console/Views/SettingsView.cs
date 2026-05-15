@@ -230,6 +230,7 @@ public class SettingsView
             {
                 _loc.T("Settings.PriorityExtensions.Add"),
                 _loc.T("Settings.PriorityExtensions.Remove"),
+                _loc.T("Settings.PriorityExtensions.Reorder"),
                 _loc.T("Settings.Back")
             };
 
@@ -239,7 +240,8 @@ public class SettingsView
             {
                 case 0: AddPriorityExtension(config);    break;
                 case 1: RemovePriorityExtension(config); break;
-                case 2: return;
+                case 2: ReorderPriorityExtensions(config); break;
+                case 3: return;
             }
         }
     }
@@ -301,6 +303,67 @@ public class SettingsView
 
         Console.WriteLine(_loc.T("Settings.PriorityExtensions.Removed"));
         Console.ReadKey();
+    }
+
+    private void ReorderPriorityExtensions(AppConfig config)
+    {
+        if (config.PriorityExtensions.Count < 2)
+        {
+            Console.WriteLine(_loc.T("Settings.PriorityExtensions.Empty"));
+            Console.ReadKey();
+            return;
+        }
+
+        int cursor = 0;
+
+        while (true)
+        {
+            Console.Clear();
+            HeaderComponent.Render(_loc.T("Settings.PriorityExtensions.Reorder"));
+            Console.WriteLine(_loc.T("Settings.PriorityExtensions.ReorderHelp"));
+            Console.WriteLine();
+
+            int count = config.PriorityExtensions.Count;
+            for (int i = 0; i < count; i++)
+            {
+                string marker = i == cursor ? " → " : "   ";
+                Console.WriteLine($"{marker}{config.PriorityExtensions[i]}");
+            }
+
+            var key = Console.ReadKey(intercept: true);
+
+            switch (key.Key)
+            {
+                case ConsoleKey.UpArrow when cursor > 0:
+                    cursor--;
+                    break;
+
+                case ConsoleKey.DownArrow when cursor < count - 1:
+                    cursor++;
+                    break;
+
+                case ConsoleKey.LeftArrow when cursor > 0:
+                    (config.PriorityExtensions[cursor], config.PriorityExtensions[cursor - 1]) =
+                        (config.PriorityExtensions[cursor - 1], config.PriorityExtensions[cursor]);
+                    cursor--;
+                    break;
+
+                case ConsoleKey.RightArrow when cursor < count - 1:
+                    (config.PriorityExtensions[cursor], config.PriorityExtensions[cursor + 1]) =
+                        (config.PriorityExtensions[cursor + 1], config.PriorityExtensions[cursor]);
+                    cursor++;
+                    break;
+
+                case ConsoleKey.Enter:
+                    _configService.Save(config);
+                    Console.WriteLine(_loc.T("Settings.PriorityExtensions.ReorderSaved"));
+                    Console.ReadKey();
+                    return;
+
+                case ConsoleKey.Escape:
+                    return;
+            }
+        }
     }
 
     // ── Large file threshold ──────────────────────────────────────────────

@@ -41,6 +41,9 @@
   "Settings.PriorityExtensions.Added": "Extension added.",
   "Settings.PriorityExtensions.Removed": "Extension removed.",
   "Settings.PriorityExtensions.AlreadyExists": "This extension is already in the list.",
+  "Settings.PriorityExtensions.Reorder": "Reorder extensions",
+  "Settings.PriorityExtensions.ReorderHelp": "↑↓ Select   ← Move up   → Move down   ENTER Save   ESC Cancel",
+  "Settings.PriorityExtensions.ReorderSaved": "Order saved.",
 
   "Settings.LargeFileThreshold": "Set large file transfer threshold",
   "Settings.LargeFileThreshold.Current": "Current threshold: {0} KB  (0 = disabled)",
