@@ -1,0 +1,192 @@
+[
+  {
+    "Timestamp": "2026-05-15T15:27:54.0344042+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:27:54.1537292+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:27:54.1878971+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:27:54.2220282+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 4,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:28:01.3440242+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "WARNING",
+    "Message": "Backup cancelled: business software already running (spotify.exe)"
+  },
+  {
+    "Timestamp": "2026-05-15T15:28:12.7784222+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "WARNING",
+    "Message": "Backup cancelled: business software already running (spotify.exe)"
+  },
+  {
+    "Timestamp": "2026-05-15T15:28:16.9273261+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "WARNING",
+    "Message": "Backup cancelled: business software already running (spotify.exe)"
+  },
+  {
+    "Timestamp": "2026-05-15T15:28:18.3328891+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "WARNING",
+    "Message": "Backup cancelled: business software already running (spotify.exe)"
+  },
+  {
+    "Timestamp": "2026-05-15T15:28:18.9914076+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "WARNING",
+    "Message": "Backup cancelled: business software already running (spotify.exe)"
+  },
+  {
+    "Timestamp": "2026-05-15T15:28:19.9084184+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "WARNING",
+    "Message": "Backup cancelled: business software already running (spotify.exe)"
+  },
+  {
+    "Timestamp": "2026-05-15T15:28:41.368539+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "WARNING",
+    "Message": "Backup cancelled: business software already running (spotify.exe)"
+  },
+  {
+    "Timestamp": "2026-05-15T15:29:06.6683584+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 2,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:29:06.7002948+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:29:06.7424394+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 6,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:29:06.7726879+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:29:43.2399452+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:29:43.268976+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 3,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:29:43.2925983+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T15:29:43.3166019+00:00",
+    "JobName": "z",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  }
+]
