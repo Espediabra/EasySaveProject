@@ -30,7 +30,7 @@ public class LegacyConsoleApp
     private static readonly string CryptoSoftExePath =
     Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe");
 
-    public App()
+    public LegacyConsoleApp()
     {
         _menu = new MenuComponent();
         _interactiveMenu = new InteractiveMenuComponent(_loc);

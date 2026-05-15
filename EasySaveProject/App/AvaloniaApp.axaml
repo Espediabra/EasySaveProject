@@ -5,6 +5,8 @@
 
     <Application.Styles>
         <FluentTheme />
+
+        <StyleInclude Source="avares://EasySaveProject/UI/Avalonia/Assets/AppStyles.axaml"/>
     </Application.Styles>
 
 </Application>
