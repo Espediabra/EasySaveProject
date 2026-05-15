@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 class LogServer
 {
-    private static readonly int    Port   = int.Parse(Environment.GetEnvironmentVariable("LOG_SERVER_PORT") ?? "9000");
+    private static readonly int Port = int.Parse(Environment.GetEnvironmentVariable("LOG_SERVER_PORT") ?? "9000");
     private static readonly string LogDir = Environment.GetEnvironmentVariable("LOG_DIR") ?? "/logs";
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, object>
@@ -17,7 +17,7 @@ class LogServer
     private static readonly JsonSerializerOptions _options = new()
     {
         WriteIndented = true,
-        Converters    = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() }
     };
 
     static async Task Main()
@@ -45,7 +45,7 @@ class LogServer
         try
         {
             using var stream = client.GetStream();
-            var buffer  = new StringBuilder();
+            var buffer = new StringBuilder();
             var readBuf = new byte[4096];
             int bytesRead;
 
@@ -54,7 +54,7 @@ class LogServer
                 buffer.Append(Encoding.UTF8.GetString(readBuf, 0, bytesRead));
 
                 var content = buffer.ToString();
-                var lines   = content.Split('\n');
+                var lines = content.Split('\n');
 
                 for (int i = 0; i < lines.Length - 1; i++)
                 {
@@ -85,8 +85,8 @@ class LogServer
             var envelope = JsonSerializer.Deserialize<LogEnvelope>(json, _options);
             if (envelope?.Entry == null) return;
 
-            var date     = envelope.Entry.Timestamp.ToString("yyyy-MM-dd");
-            var machine  = SanitizeFilename(envelope.MachineId);
+            var date = envelope.Entry.Timestamp.ToString("yyyy-MM-dd");
+            var machine = SanitizeFilename(envelope.MachineId);
             var filePath = Path.Combine(LogDir, $"{date}_{machine}.json");
 
             var fileLock = _fileLocks.GetOrAdd(filePath, _ => new object());
@@ -112,7 +112,7 @@ class LogServer
 
         try
         {
-            var json   = File.ReadAllText(filePath);
+            var json = File.ReadAllText(filePath);
             var parsed = JsonSerializer.Deserialize<List<LogEntry>>(json, _options);
             return parsed ?? new List<LogEntry>();
         }
@@ -132,20 +132,20 @@ class LogServer
 
 public class LogEnvelope
 {
-    public string   MachineId { get; set; } = string.Empty;
-    public LogEntry Entry     { get; set; } = new();
+    public string MachineId { get; set; } = string.Empty;
+    public LogEntry Entry { get; set; } = new();
 }
 
 public class LogEntry
 {
-    public DateTime Timestamp      { get; set; }
-    public string   JobName        { get; set; } = string.Empty;
-    public string   SourcePath     { get; set; } = string.Empty;
-    public string   TargetPath     { get; set; } = string.Empty;
-    public long     FileSizeBytes  { get; set; }
-    public long     TransferTimeMs { get; set; }
-    public LogLevel Level          { get; set; }
-    public string   Message        { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; }
+    public string JobName { get; set; } = string.Empty;
+    public string SourcePath { get; set; } = string.Empty;
+    public string TargetPath { get; set; } = string.Empty;
+    public long FileSizeBytes { get; set; }
+    public long TransferTimeMs { get; set; }
+    public LogLevel Level { get; set; }
+    public string Message { get; set; } = string.Empty;
 }
 
 public enum LogLevel { INFO, WARNING, ERROR }

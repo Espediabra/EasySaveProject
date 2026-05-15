@@ -1,0 +1,352 @@
+[
+  {
+    "Timestamp": "2026-05-15T22:16:30.7712073+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 2,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:16:30.7963291+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:16:30.8092695+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:16:30.849468+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 3,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:17:21.8344809+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 0,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:17:21.8499774+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:17:21.865937+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 3,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:17:21.880592+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 3,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:17:24.2054441+00:00",
+    "JobName": "gjhhj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": -1,
+    "Level": "ERROR",
+    "Message": "Job failed: Source not found: C:\\Users\\S D\\Downloads\\tests"
+  },
+  {
+    "Timestamp": "2026-05-15T22:19:38.7068634+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:19:38.6846817+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:19:38.7250197+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 3,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:19:38.7871228+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 45,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:19:41.6592739+00:00",
+    "JobName": "gjhhj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": -1,
+    "Level": "ERROR",
+    "Message": "Job failed: Source not found: C:\\Users\\S D\\Downloads\\tests"
+  },
+  {
+    "Timestamp": "2026-05-15T22:19:42.7513754+00:00",
+    "JobName": "gjhhj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": -1,
+    "Level": "ERROR",
+    "Message": "Job failed: Source not found: C:\\Users\\S D\\Downloads\\tests"
+  },
+  {
+    "Timestamp": "2026-05-15T22:21:33.8389851+00:00",
+    "JobName": "gjhhj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": -1,
+    "Level": "ERROR",
+    "Message": "Job failed: Source not found: C:\\Users\\S D\\Downloads\\tests"
+  },
+  {
+    "Timestamp": "2026-05-15T22:21:36.3238829+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:21:36.3377291+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:21:36.3520451+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:21:36.3718397+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 4,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:37:41.0032776+00:00",
+    "JobName": "gjhhj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": -1,
+    "Level": "ERROR",
+    "Message": "Job failed: Source not found: C:\\Users\\S D\\Downloads\\tests"
+  },
+  {
+    "Timestamp": "2026-05-15T22:37:43.2724539+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 2,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:37:43.2993757+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 2,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:37:43.3140554+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:37:43.3323259+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 4,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:39:59.8685934+00:00",
+    "JobName": "gjhhj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": -1,
+    "Level": "ERROR",
+    "Message": "Job failed: Source not found: C:\\Users\\S D\\Downloads\\tests"
+  },
+  {
+    "Timestamp": "2026-05-15T22:40:02.0905064+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:40:02.1093468+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:40:02.1248238+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 2,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:40:02.1453593+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 4,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:43:05.2923681+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 4,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:43:05.2593603+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (3).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (3).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 1,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:43:05.3255491+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca.txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca.txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 4,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:43:05.2180666+00:00",
+    "JobName": "bruh",
+    "SourcePath": "C:\\Users\\romai\\OneDrive\\Bureau\\Cl\u00E9ment\\Caca - Copie (2).txt",
+    "TargetPath": "C:\\Users\\romai\\OneDrive\\Bureau\\Esp\u00E9ra\\Caca - Copie (2).txt",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": 2,
+    "Level": "INFO",
+    "Message": "File copied successfully"
+  },
+  {
+    "Timestamp": "2026-05-15T22:43:07.716962+00:00",
+    "JobName": "gjhhj",
+    "SourcePath": "C:\\Users\\S D\\Downloads\\tests",
+    "TargetPath": "C:\\Users\\S D\\Downloads\\tests2",
+    "FileSizeBytes": 0,
+    "TransferTimeMs": -1,
+    "Level": "ERROR",
+    "Message": "Job failed: Source not found: C:\\Users\\S D\\Downloads\\tests"
+  }
+]
