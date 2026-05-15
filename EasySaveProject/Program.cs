@@ -1,5 +1,6 @@
 using Avalonia;
-using System;
+using EasySaveProject.UI.Avalonia.Views;
+using EasySaveProject.UI.Avalonia.ViewModels;
 
 namespace EasySaveProject.UI.Avalonia;
 
@@ -8,17 +9,14 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        // ── Mode UI Avalonia (défaut) ──────────────────────────────────────
+        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<AvaloniaApp>()
+        => AppBuilder.Configure<EasySaveProject.UI.Avalonia.AvaloniaApp>()
             .UsePlatformDetect()
             .WithInterFont()
-            .LogToTrace()
-#if DEBUG
-            .WithDeveloperTools()
-#endif
-            ;
+            .LogToTrace();
 }
+
