@@ -10,7 +10,7 @@
 
     <NoWarn>CS8618</NoWarn>
 
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- <ApplicationManifest>app.manifest</ApplicationManifest> -->
 
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
