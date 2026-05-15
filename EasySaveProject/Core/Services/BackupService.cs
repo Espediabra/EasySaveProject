@@ -17,6 +17,7 @@ namespace EasySaveProject.Core.Services
         private readonly PauseService _pauseService;
         private readonly PriorityCoordinator _priorityCoordinator;
         private readonly LargeFileTransferGuard _largeFileGuard;
+        private readonly ConfigService _configService;
 
         private readonly List<BackupJob> _jobs = new();
 
@@ -31,7 +32,8 @@ namespace EasySaveProject.Core.Services
             BusinessSoftwareWatcher watcher,
             PauseService pauseService,
             PriorityCoordinator priorityCoordinator,
-            LargeFileTransferGuard largeFileGuard)
+            LargeFileTransferGuard largeFileGuard,
+            ConfigService configService)
         {
             _fileService = fileService;
             _logService = logService;
@@ -41,6 +43,7 @@ namespace EasySaveProject.Core.Services
             _pauseService = pauseService;
             _priorityCoordinator = priorityCoordinator;
             _largeFileGuard = largeFileGuard;
+            _configService = configService;
 
             if (File.Exists(_jobsPath))
             {
@@ -80,11 +83,19 @@ namespace EasySaveProject.Core.Services
             SaveJobs();
         }
 
+        private void RefreshConfig()
+        {
+            var config = _configService.Load();
+            _priorityCoordinator.Update(config.PriorityExtensions);
+            _largeFileGuard.Update(config.LargeFileThresholdKb);
+        }
+
         /// <summary>
         /// Runs a single job synchronously. Resets pause state and clears the hub afterward.
         /// </summary>
         public void RunJob(int index)
         {
+            RefreshConfig();
             ExecuteJobCore(index);
             _pauseService.Reset();
             BackupStateHub.Clear();
@@ -100,6 +111,7 @@ namespace EasySaveProject.Core.Services
             var valid = indices.Where(i => i >= 0 && i < _jobs.Count).ToList();
             if (valid.Count == 0) return;
 
+            RefreshConfig();
             await Task.WhenAll(valid.Select(i => Task.Run(() => ExecuteJobCore(i))));
 
             _pauseService.Reset();

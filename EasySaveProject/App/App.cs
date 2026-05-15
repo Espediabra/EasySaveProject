@@ -73,7 +73,8 @@ public class App
             watcher,
             _pauseService,
             priorityCoordinator,
-            largeFileGuard
+            largeFileGuard,
+            _configService
         );
         
         _viewModel = new MainViewModel(backupService);
