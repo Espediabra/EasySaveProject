@@ -60,6 +60,10 @@ public class App
             _config.BusinessSoftware
         );
 
+        // V3: coordinators for parallel backup rules
+        var priorityCoordinator = new PriorityCoordinator(_config.PriorityExtensions);
+        var largeFileGuard = new LargeFileTransferGuard(_config.LargeFileThresholdKb);
+
         // 🔹 Service principal (fusion)
         var backupService = new BackupService(
             _fileService,
@@ -67,7 +71,9 @@ public class App
             _stateService,
             cryptoService,
             watcher,
-            _pauseService
+            _pauseService,
+            priorityCoordinator,
+            largeFileGuard
         );
         
         _viewModel = new MainViewModel(backupService);
