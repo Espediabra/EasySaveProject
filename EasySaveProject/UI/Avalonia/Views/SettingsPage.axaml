@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EasySaveProject.UI.Avalonia.ViewModels"
+             x:Class="EasySaveProject.UI.Avalonia.Views.SettingsPage"
+             x:DataType="vm:MainWindowViewModel">
+
+	<DockPanel>
+
+		<!-- HEADER -->
+		<Border DockPanel.Dock="Top"
+                Padding="28,24,28,16"
+                BorderBrush="#E8E4D6"
+                BorderThickness="0,0,0,1">
+			<StackPanel>
+				<TextBlock Classes="heading" Text="Paramètres" />
+				<TextBlock Classes="subheading"
+                           Text="Configurez l'application selon vos préférences"
+                           Margin="0,2,0,0" />
+			</StackPanel>
+		</Border>
+
+		<!-- BODY -->
+		<ScrollViewer DockPanel.Dock="Top" Padding="28,24">
+			<StackPanel Spacing="0" MaxWidth="520">
+
+				<Border Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18"
+                        Margin="0,0,0,16">
+					<StackPanel Spacing="14">
+
+						<StackPanel Spacing="2">
+							<TextBlock Text="Langue de l'interface"
+                                       FontSize="14"
+                                       FontWeight="Medium"
+                                       Foreground="#2B2118" />
+							<TextBlock Text="Choisissez la langue affichée dans l'application."
+                                       FontSize="12"
+                                       Foreground="#B3B6B7" />
+						</StackPanel>
+
+						<Separator />
+
+						<Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+							<ComboBox Grid.Column="0"
+                                      SelectedItem="{Binding SelectedLanguage}"
+                                      HorizontalAlignment="Left"
+                                      Width="200">
+								<ComboBoxItem>English</ComboBoxItem>
+								<ComboBoxItem>Français</ComboBoxItem>
+							</ComboBox>
+							<Button Grid.Column="1"
+                                    Classes="primary"
+                                    Content="Enregistrer"
+                                    Command="{Binding SaveLanguageCommand}"
+                                    IsVisible="{Binding ShowSaveLanguageButton}"
+                                    VerticalAlignment="Center" />
+						</Grid>
+
+					</StackPanel>
+				</Border>
+			</StackPanel>
+		</ScrollViewer>
+
+	</DockPanel>
+
+</UserControl>

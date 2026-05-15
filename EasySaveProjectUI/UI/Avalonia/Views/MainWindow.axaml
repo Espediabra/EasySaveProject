@@ -167,7 +167,7 @@
                 <!-- Compteur jobs en bas -->
                 <Border DockPanel.Dock="Bottom" Padding="20,16">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="{Binding Jobs.Count, StringFormat={}{0} sauvegardes}"
+                        <TextBlock Text="{Binding Jobs.Count, StringFormat={}{0}/5 sauvegardes}"
                                    FontSize="11"
                                    Foreground="#8A7D6E" />
                         <ProgressBar Value="{Binding Jobs.Count}"
