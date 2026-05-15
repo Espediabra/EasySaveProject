@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using EasySaveProject.UI.Avalonia.Views;
 using EasySaveProject.UI.Avalonia.ViewModels;
+using EasySaveProject.UI.Avalonia.Views;
 
 namespace EasySaveProject.UI.Avalonia;
 
