@@ -5,6 +5,7 @@ using EasySaveProject.Infrastructure.Monitoring;
 using EasyLog;
 using EasySaveProject.Helpers;
 using EasySaveProject.UI.Console.Components;
+using EasySaveProject.Models;
 
 public class LegacyConsoleApp
 {
@@ -46,7 +47,9 @@ public class LegacyConsoleApp
         _loc.Load(lang);
 
         // 🔹 Logging (avec format venant de HEAD)
-        LogService.Initialize(_loc, _config.LogFormat);
+        var easyLogFormat = _config.LogFormat == AppLogFormat.Xml ? EasyLog.LogFormat.Xml : EasyLog.LogFormat.Json;
+
+        LogService.Initialize(_loc, easyLogFormat);
         _logService = LogService.Instance;
 
         // 🔹 Services HEAD (crypto + monitoring)
@@ -69,7 +72,7 @@ public class LegacyConsoleApp
             watcher,
             _pauseService
         );
-        
+
         _viewModel = new MainViewModel(backupService);
 
         var footer = new FooterComponent(_progressService, _pauseService);

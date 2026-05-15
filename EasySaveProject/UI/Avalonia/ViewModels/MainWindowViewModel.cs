@@ -8,11 +8,13 @@ using EasySaveProject.Core.Services;
 using EasySaveProject.Core.Localization;
 using EasySaveProject.Infrastructure.Crypto;
 using EasySaveProject.Infrastructure.Monitoring;
+using EasySaveProject.Core.Localization;
 
 namespace EasySaveProject.UI.Avalonia.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
+    public LocalizationManager Loc => LocalizationManager.Instance;
     private readonly BackupService _backupService;
     private readonly LogService _logService;
 
@@ -25,6 +27,7 @@ public partial class MainWindowViewModel : ObservableObject
         IsRunning = state;
         OnExecutionStateChanged?.Invoke(state);
     }
+    
 
     // ── Navigation ───────────────────────────────────────────────────────
     [ObservableProperty]
@@ -32,7 +35,7 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsJobsPageVisible))]
     [NotifyPropertyChangedFor(nameof(IsLogsPageVisible))]
     [NotifyPropertyChangedFor(nameof(IsSettingsPageVisible))]
-    private string _currentPage = "LanguageSelect";
+    private string _currentPage = "Jobs";
 
     public bool IsLanguageSelectPageVisible => CurrentPage == "LanguageSelect";
     public bool IsJobsPageVisible => CurrentPage == "Jobs";
@@ -76,8 +79,27 @@ public partial class MainWindowViewModel : ObservableObject
     public bool HasFilteredLogs => FilteredLogs.Any();
     public bool HasNoFilteredLogs => !FilteredLogs.Any();
 
+    // ── Settings ───────────────────────────────────────────────────────────
+
     // Page Settings
     [ObservableProperty] private string _selectedLanguage = "English";
+
+    // Format logs
+    [ObservableProperty]
+    private string _selectedLogFormat = "JSON";
+
+    public List<string> LogFormats { get; } =
+    [
+        "JSON",
+    "XML"
+    ];
+
+    // Business software
+    [ObservableProperty]
+    private ObservableCollection<string> _businessSoftware = new();
+
+    [ObservableProperty]
+    private string _newBusinessSoftware = "";
 
     // ── Toast ─────────────────────────────────────────────────────────────
     [ObservableProperty] private string _toastMessage = "";
@@ -91,6 +113,9 @@ public partial class MainWindowViewModel : ObservableObject
 
         var configService = new ConfigService();
         var config = configService.Load();
+        LanguageIndex = config.Langage == "fr" ? 1 : 0;
+
+        CurrentPage = config.FirstRun ? "LanguageSelect" : "Jobs";
 
         try
         {
@@ -98,9 +123,12 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch { }
 
-        SelectedLanguage = config.Langage == "fr"
-            ? "Français"
-            : "English";
+        SelectedLanguage = config.Langage == "fr" ? "Français" : "English";
+        SelectedLogFormat = config.LogFormat == AppLogFormat.Xml ? "XML" : "JSON";
+
+        BusinessSoftware = new ObservableCollection<string>(
+            config.BusinessSoftware
+        );
 
         LogService.Initialize(loc);
         _logService = LogService.Instance;
@@ -447,11 +475,12 @@ public partial class MainWindowViewModel : ObservableObject
 
     // ── Langue ────────────────────────────────────────────────────────────
     [ObservableProperty] private bool _showSaveLanguageButton = true;
+    [ObservableProperty] private int _languageIndex = 0;
 
     [RelayCommand]
     void SaveLanguage()
     {
-        var langCode = SelectedLanguage == "Français" ? "fr" : "en";
+        var langCode = LanguageIndex == 1 ? "fr" : "en";
         var configService = new ConfigService();
         var config = configService.Load();
         config.Langage = langCode;
@@ -490,5 +519,127 @@ public partial class MainWindowViewModel : ObservableObject
     public List<BackupJob> GetJobsRaw()
     {
         return _backupService.GetJobs().ToList();
+    }
+
+    // ── Changement format logs─────────────────────────────────────────────
+    [RelayCommand]
+    void SaveLogFormat()
+    {
+        var configService = new ConfigService();
+        var config = configService.Load();
+
+        config.LogFormat = SelectedLogFormat == "XML"
+            ? AppLogFormat.Xml
+            : AppLogFormat.Json;
+
+        configService.Save(config);
+
+        var easyLogFormat = config.LogFormat == AppLogFormat.Xml ? EasyLog.LogFormat.Xml : EasyLog.LogFormat.Json;
+
+        LogService.Initialize(
+            new LocalizationService(),
+            easyLogFormat
+        );
+
+        ShowToastMessage("Format des logs enregistré.");
+    }
+
+    // ── Add Business Software ─────────────────────────────────────────────
+    [RelayCommand]
+    void AddBusinessSoftware()
+    {
+        if (string.IsNullOrWhiteSpace(NewBusinessSoftware))
+            return;
+
+        string name = NewBusinessSoftware.Trim();
+
+        bool exists = BusinessSoftware.Any(x =>
+            x.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        if (exists)
+        {
+            ShowToastMessage("Ce logiciel existe déjà.");
+            return;
+        }
+
+        BusinessSoftware.Add(name);
+
+        var configService = new ConfigService();
+        var config = configService.Load();
+
+        config.BusinessSoftware = BusinessSoftware.ToList();
+
+        configService.Save(config);
+
+        NewBusinessSoftware = "";
+
+        ShowToastMessage("Logiciel ajouté.");
+    }
+
+    // ── Delete Business Software ──────────────────────────────────────────
+    [RelayCommand]
+    void RemoveBusinessSoftware(string software)
+    {
+        if (string.IsNullOrWhiteSpace(software))
+            return;
+
+        BusinessSoftware.Remove(software);
+
+        var configService = new ConfigService();
+        var config = configService.Load();
+
+        config.BusinessSoftware = BusinessSoftware.ToList();
+
+        configService.Save(config);
+
+        ShowToastMessage("Logiciel supprimé.");
+    }
+
+    // ── Research settings ─────────────────────────────────────────────────
+    private string _searchSettings = "";
+
+    public string SearchSettings
+    {
+        get => _searchSettings;
+        set
+        {
+            SetProperty(ref _searchSettings, value);
+            UpdateSettingsVisibility();
+        }
+    }
+
+    private void UpdateSettingsVisibility()
+    {
+        var search = SearchSettings?.ToLower() ?? "";
+
+        ShowLanguageSetting =
+            string.IsNullOrEmpty(search) || "langue language".Contains(search);
+
+        ShowLogFormatSetting =
+            string.IsNullOrEmpty(search) || "log format journaux".Contains(search);
+
+        ShowBusinessSoftwareSetting =
+            string.IsNullOrEmpty(search) || "logiciel business software".Contains(search);
+    }
+
+    private bool _showLanguageSetting = true;
+    public bool ShowLanguageSetting
+    {
+        get => _showLanguageSetting;
+        set => SetProperty(ref _showLanguageSetting, value);
+    }
+
+    private bool _showLogFormatSetting = true;
+    public bool ShowLogFormatSetting
+    {
+        get => _showLogFormatSetting;
+        set => SetProperty(ref _showLogFormatSetting, value);
+    }
+
+    private bool _showBusinessSoftwareSetting = true;
+    public bool ShowBusinessSoftwareSetting
+    {
+        get => _showBusinessSoftwareSetting;
+        set => SetProperty(ref _showBusinessSoftwareSetting, value);
     }
 }
