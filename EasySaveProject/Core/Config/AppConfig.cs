@@ -13,6 +13,12 @@ public class AppConfig
 
     [JsonConverter(typeof(StringOrListConverter))]
     public List<string> BusinessSoftware { get; set; } = new();
+
+    // V3: extensions processed before all other files across parallel jobs (e.g. [".zip", ".iso"])
+    public List<string> PriorityExtensions { get; set; } = new();
+
+    // V3: max file size (KB) allowed to transfer simultaneously. 0 = disabled.
+    public long LargeFileThresholdKb { get; set; } = 0;
 }
 
 public class StringOrListConverter : JsonConverter<List<string>>
