@@ -6,7 +6,7 @@ using EasyLog;
 using EasySaveProject.Helpers;
 using EasySaveProject.UI.Console.Components;
 
-public class App
+public class LegacyConsoleApp
 {
     private readonly ConfigService _configService = new();
     private readonly MainViewModel _viewModel;
