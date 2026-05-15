@@ -43,8 +43,8 @@ public class MainViewModel
         SetRunning(true);
         try
         {
-            foreach (var i in indices)
-                _backupService.RunJob(i);
+            // V3: jobs run in parallel; blocks the calling thread until all complete.
+            _backupService.RunJobsParallelAsync(indices).GetAwaiter().GetResult();
         }
         finally
         {

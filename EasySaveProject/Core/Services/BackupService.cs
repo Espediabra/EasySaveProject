@@ -15,6 +15,8 @@ namespace EasySaveProject.Core.Services
         private readonly CryptoService _cryptoService;
         private readonly BusinessSoftwareWatcher _watcher;
         private readonly PauseService _pauseService;
+        private readonly PriorityCoordinator _priorityCoordinator;
+        private readonly LargeFileTransferGuard _largeFileGuard;
 
         private readonly List<BackupJob> _jobs = new();
 
@@ -27,7 +29,9 @@ namespace EasySaveProject.Core.Services
             StateService stateService,
             CryptoService cryptoService,
             BusinessSoftwareWatcher watcher,
-            PauseService pauseService)
+            PauseService pauseService,
+            PriorityCoordinator priorityCoordinator,
+            LargeFileTransferGuard largeFileGuard)
         {
             _fileService = fileService;
             _logService = logService;
@@ -35,6 +39,8 @@ namespace EasySaveProject.Core.Services
             _cryptoService = cryptoService;
             _watcher = watcher;
             _pauseService = pauseService;
+            _priorityCoordinator = priorityCoordinator;
+            _largeFileGuard = largeFileGuard;
 
             if (File.Exists(_jobsPath))
             {
@@ -74,7 +80,41 @@ namespace EasySaveProject.Core.Services
             SaveJobs();
         }
 
+        /// <summary>
+        /// Runs a single job synchronously. Resets pause state and clears the hub afterward.
+        /// </summary>
         public void RunJob(int index)
+        {
+            ExecuteJobCore(index);
+            _pauseService.Reset();
+            BackupStateHub.Clear();
+        }
+
+        /// <summary>
+        /// Runs multiple jobs in parallel. All jobs share the global PauseService,
+        /// PriorityCoordinator and LargeFileTransferGuard. Resets shared state once
+        /// all jobs complete (success or error).
+        /// </summary>
+        public async Task RunJobsParallelAsync(List<int> indices)
+        {
+            var valid = indices.Where(i => i >= 0 && i < _jobs.Count).ToList();
+            if (valid.Count == 0) return;
+
+            await Task.WhenAll(valid.Select(i => Task.Run(() => ExecuteJobCore(i))));
+
+            _pauseService.Reset();
+            BackupStateHub.Clear();
+        }
+
+        public void DeleteJob(int index)
+        {
+            if (index < 0 || index >= _jobs.Count) return;
+
+            _jobs.RemoveAt(index);
+            SaveJobs();
+        }
+
+        private void ExecuteJobCore(int index)
         {
             if (index < 0 || index >= _jobs.Count) return;
 
@@ -90,7 +130,9 @@ namespace EasySaveProject.Core.Services
                     _stateService,
                     _cryptoService,
                     _watcher,
-                    _pauseService
+                    _pauseService,
+                    _priorityCoordinator,
+                    _largeFileGuard
                 );
             }
             catch (Exception ex)
@@ -113,14 +155,6 @@ namespace EasySaveProject.Core.Services
 
                 Console.WriteLine($"Error for job '{job.Name}': {ex.Message}");
             }
-        }
-
-        public void DeleteJob(int index)
-        {
-            if (index < 0 || index >= _jobs.Count) return;
-
-            _jobs.RemoveAt(index);
-            SaveJobs();
         }
 
         private void SaveJobs()
