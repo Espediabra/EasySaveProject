@@ -147,6 +147,9 @@ _ReSharper*/
 .claude/
 CLAUDE.md
 
+# Conversation files
+conversation_easysave*
+
 # TeamCity is a build add-in
 _TeamCity*
 
