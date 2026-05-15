@@ -9,10 +9,15 @@ namespace EasySaveProject.Core.Services;
 public class LargeFileTransferGuard
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly long _thresholdBytes;
+    private long _thresholdBytes;
 
     /// <param name="thresholdKb">Size limit in KB. 0 disables the guard entirely.</param>
     public LargeFileTransferGuard(long thresholdKb)
+    {
+        _thresholdBytes = thresholdKb * 1024;
+    }
+
+    public void Update(long thresholdKb)
     {
         _thresholdBytes = thresholdKb * 1024;
     }
