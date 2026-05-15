@@ -64,11 +64,20 @@ public class MainViewModel
 
     public void ChangeJobType(int index, BackupType type)
         => _backupService.UpdateJobType(index, type);
-    public BackupJob GetJob(int index)
-    {
-        return _backupService.GetJobs()[index];
-    }
 
-    public List<BackupJob> GetJobsRaw()
-        => _backupService.GetJobs().ToList();
+    public BackupJob GetJob(int index) => _backupService.GetJobs()[index];
+
+    public List<BackupJob> GetJobsRaw() => _backupService.GetJobs().ToList();
+
+    // ── Pause / Stop controls (delegated to BackupService) ────────────────
+    // GUI will bind per-job buttons and global buttons to these methods.
+
+    public void PauseAll()                  => _backupService.PauseAll();
+    public void ResumeAll()                 => _backupService.ResumeAll();
+    public void StopAll()                   => _backupService.StopAll();
+    public void TogglePauseJob(string name) => _backupService.TogglePauseJob(name);
+    public void StopJob(string name)        => _backupService.StopJob(name);
+
+    /// <summary>Returns the live controller for a running job, or null if not active.</summary>
+    public JobController? GetActiveController(string name) => _backupService.GetControllerByName(name);
 }
