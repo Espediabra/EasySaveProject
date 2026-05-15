@@ -16,6 +16,7 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         CryptoService cryptoService,
         BusinessSoftwareWatcher watcher,
         PauseService pauseService,
+        JobController jobController,
         PriorityCoordinator priorityCoordinator,
         LargeFileTransferGuard largeFileGuard)
     {
@@ -69,6 +70,7 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         // ── 3) Register this job's pending priority files globally ──────────
         int priorityCount = sorted.Count(f => priorityCoordinator.IsPriorityFile(f));
         priorityCoordinator.RegisterPendingPriorityFiles(priorityCount);
+        int priorityRemaining = priorityCount;
 
         var state = new State
         {
@@ -82,16 +84,33 @@ public abstract class BaseBackupStrategy : IBackupStrategy
 
         stateService.Update(state);
 
+        bool stopped = false;
+
         foreach (var sourceFile in sorted)
         {
+            // ── 4) Stop check before each file ─────────────────────────────
+            if (pauseService.IsStopRequested || jobController.IsStopRequested)
+            {
+                stopped = true;
+                break;
+            }
+
             bool isPriority = priorityCoordinator.IsPriorityFile(sourceFile);
             bool largeAcquired = false;
 
             try
             {
-                // ── 4) Synchronization gates (order matters) ────────────────
+                // ── 5) Synchronization gates (order matters) ────────────────
                 watcher.WaitUntilFree(pauseService, logService, job, state, stateService);
                 pauseService.WaitIfPaused();
+                jobController.WaitIfPaused();
+
+                // Re-check stop after waking from any pause
+                if (pauseService.IsStopRequested || jobController.IsStopRequested)
+                {
+                    stopped = true;
+                    break;
+                }
 
                 // Block non-priority file if any priority file is still pending globally.
                 priorityCoordinator.WaitIfNonPriority(sourceFile);
@@ -170,11 +189,23 @@ public abstract class BaseBackupStrategy : IBackupStrategy
             {
                 // Always release regardless of success or error, to prevent deadlocks.
                 largeFileGuard.Release(largeAcquired);
-                if (isPriority) priorityCoordinator.OnPriorityFileCompleted();
+                if (isPriority)
+                {
+                    priorityCoordinator.OnPriorityFileCompleted();
+                    priorityRemaining--;
+                }
             }
         }
 
-        state.Status = "Completed";
+        // ── 6) Drain remaining priority files if stopped early ──────────────
+        // Prevents other parallel jobs from blocking forever on WaitIfNonPriority.
+        if (stopped && priorityRemaining > 0)
+        {
+            for (int i = 0; i < priorityRemaining; i++)
+                priorityCoordinator.OnPriorityFileCompleted();
+        }
+
+        state.Status = stopped ? "Stopped" : "Completed";
         stateService.Update(state);
 
         // pauseService.Reset() and BackupStateHub.Clear() are now the

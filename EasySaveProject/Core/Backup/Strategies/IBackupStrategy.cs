@@ -15,6 +15,7 @@ public interface IBackupStrategy
         CryptoService cryptoService,
         BusinessSoftwareWatcher watcher,
         PauseService pauseService,
+        JobController jobController,
         PriorityCoordinator priorityCoordinator,
         LargeFileTransferGuard largeFileGuard
     );
