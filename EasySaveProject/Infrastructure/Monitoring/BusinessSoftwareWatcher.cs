@@ -6,15 +6,23 @@ namespace EasySaveProject.Infrastructure.Monitoring;
 
 public class BusinessSoftwareWatcher
 {
-    private readonly List<string> _processNames;
+    private List<string> _processNames;
 
     public BusinessSoftwareWatcher(IEnumerable<string>? processNames)
     {
-        _processNames = (processNames ?? Enumerable.Empty<string>())
+        _processNames = BuildList(processNames);
+    }
+
+    public void Update(IEnumerable<string>? processNames)
+    {
+        _processNames = BuildList(processNames);
+    }
+
+    private static List<string> BuildList(IEnumerable<string>? names)
+        => (names ?? Enumerable.Empty<string>())
             .Where(p => !string.IsNullOrWhiteSpace(p))
             .Select(p => p.Trim())
             .ToList();
-    }
 
     public bool IsRunning()
     {
