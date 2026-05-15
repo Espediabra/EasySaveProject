@@ -63,7 +63,7 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         // blocks on WaitIfNonPriority, it would never reach its priority files
         // and the global count would never reach zero.
         var sorted = files
-            .OrderByDescending(f => priorityCoordinator.IsPriorityFile(f))
+            .OrderBy(f => priorityCoordinator.GetPriorityRank(f))
             .ToArray();
 
         // ── 3) Register this job's pending priority files globally ──────────
