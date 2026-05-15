@@ -12,15 +12,20 @@ public class PriorityCoordinator
     // Reset = at least one priority file pending (non-priority threads block).
     private readonly ManualResetEventSlim _noPriorityPending = new(initialState: true);
     private int _pendingCount = 0;
-    private readonly HashSet<string> _extensions;
+    private HashSet<string> _extensions;
 
     public PriorityCoordinator(IEnumerable<string> priorityExtensions)
     {
-        _extensions = new HashSet<string>(
-            priorityExtensions.Select(e => e.ToLowerInvariant()),
-            StringComparer.OrdinalIgnoreCase
-        );
+        _extensions = BuildSet(priorityExtensions);
     }
+
+    public void Update(IEnumerable<string> priorityExtensions)
+    {
+        _extensions = BuildSet(priorityExtensions);
+    }
+
+    private static HashSet<string> BuildSet(IEnumerable<string> extensions)
+        => new(extensions.Select(e => e.ToLowerInvariant()), StringComparer.OrdinalIgnoreCase);
 
     public bool IsEnabled => _extensions.Count > 0;
 
