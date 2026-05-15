@@ -3,6 +3,7 @@ using EasySaveProject.Core.Services;
 using EasySaveProject.Factories;
 using EasySaveProject.Infrastructure.Crypto;
 using EasySaveProject.Infrastructure.Monitoring;
+using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace EasySaveProject.Core.Services
@@ -20,6 +21,7 @@ namespace EasySaveProject.Core.Services
         private readonly ConfigService _configService;
 
         private readonly List<BackupJob> _jobs = new();
+        private readonly ConcurrentDictionary<string, JobController> _activeControllers = new();
 
         private readonly string _jobsPath = Path.Combine(
             AppContext.BaseDirectory, "Data", "Jobs", "jobs.json");
@@ -126,11 +128,28 @@ namespace EasySaveProject.Core.Services
             SaveJobs();
         }
 
+        // ── Per-job control ───────────────────────────────────────────────────
+
+        /// <summary>Returns the active controller for a job by name, or null if not running.</summary>
+        public JobController? GetControllerByName(string name)
+            => _activeControllers.TryGetValue(name, out var c) ? c : null;
+
+        public void PauseAll()         => _pauseService.Pause();
+        public void ResumeAll()        => _pauseService.Resume();
+        public void StopAll()          => _pauseService.Stop();
+        public void TogglePauseJob(string name) { if (_activeControllers.TryGetValue(name, out var c)) c.Toggle(); }
+        public void StopJob(string name)        { if (_activeControllers.TryGetValue(name, out var c)) c.Stop(); }
+
+        // ── Execution ─────────────────────────────────────────────────────────
+
         private void ExecuteJobCore(int index)
         {
             if (index < 0 || index >= _jobs.Count) return;
 
             var job = _jobs[index];
+            var controller = new JobController(job.Name);
+            _activeControllers[job.Name] = controller;
+
             var strategy = BackupStrategyFactory.Create(job.Type);
 
             try
@@ -143,6 +162,7 @@ namespace EasySaveProject.Core.Services
                     _cryptoService,
                     _watcher,
                     _pauseService,
+                    controller,
                     _priorityCoordinator,
                     _largeFileGuard
                 );
@@ -166,6 +186,10 @@ namespace EasySaveProject.Core.Services
                 });
 
                 Console.WriteLine($"Error for job '{job.Name}': {ex.Message}");
+            }
+            finally
+            {
+                _activeControllers.TryRemove(job.Name, out _);
             }
         }
 

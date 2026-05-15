@@ -79,7 +79,11 @@ public class App
         
         _viewModel = new MainViewModel(backupService);
 
-        var footer = new FooterComponent(_progressService, _pauseService);
+        var footer = new FooterComponent(
+            _progressService,
+            _pauseService,
+            name => backupService.GetControllerByName(name)
+        );
 
         _viewModel.OnExecutionStateChanged += running =>
         {

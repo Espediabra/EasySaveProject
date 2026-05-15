@@ -7,30 +7,40 @@ using EasySaveProject.Core.Services;
 namespace EasySaveProject.UI.Console.Components;
 
 /// <summary>
-/// Renders one progress bar per active backup job at the bottom of the terminal.
-/// Bars are stacked upward: the first job is at the last row, the second one row above, etc.
-/// Delegates all progress computation to ProgressService.
-/// Listens for Spacebar to toggle global pause via PauseService.
+/// Renders one progress bar per active backup job at the bottom of the terminal,
+/// plus a navigation hint row above them.
+///
+/// Navigation (while jobs are running):
+///   ↑ / ↓       — move cursor between bars (top = global mode, below = per-job)
+///   SPACE        — pause/resume the selected job (or all jobs in global mode)
+///   ESC          — stop the selected job (or all jobs in global mode)
 /// </summary>
 public class FooterComponent
 {
-    private readonly ProgressService _progressService;
-    private readonly PauseService    _pauseService;
+    private readonly ProgressService          _progressService;
+    private readonly PauseService             _pauseService;
+    private readonly Func<string, JobController?> _getController;
 
     private CancellationTokenSource? _cts;
-    private readonly object          _consoleLock    = new();
-    private int                      _lastBarCount   = 0;
+    private readonly object          _consoleLock  = new();
+    private int                      _lastRowCount = 0;
+    private int                      _selectedRow  = -1; // -1 = global, 0..n-1 = job bar
 
-    public FooterComponent(ProgressService progressService, PauseService pauseService)
+    public FooterComponent(
+        ProgressService progressService,
+        PauseService pauseService,
+        Func<string, JobController?> getController)
     {
         _progressService = progressService;
         _pauseService    = pauseService;
+        _getController   = getController;
     }
 
     public void Start()
     {
         if (_cts != null) return;
 
+        _selectedRow = -1;
         _cts = new CancellationTokenSource();
         Task.Run(() => RenderLoop(_cts.Token));
         Task.Run(() => KeyboardLoop(_cts.Token));
@@ -49,16 +59,18 @@ public class FooterComponent
             {
                 int width  = System.Console.WindowWidth;
                 int height = System.Console.WindowHeight;
-                int rows   = Math.Max(_lastBarCount, 1);
 
-                for (int i = 0; i < rows; i++)
+                for (int i = 0; i < _lastRowCount; i++)
                 {
                     int row = Math.Max(0, height - 1 - i);
                     System.Console.SetCursorPosition(0, row);
                     System.Console.Write(new string(' ', width));
                 }
-                System.Console.SetCursorPosition(0, Math.Max(0, height - rows));
-                _lastBarCount = 0;
+
+                if (_lastRowCount > 0)
+                    System.Console.SetCursorPosition(0, Math.Max(0, height - _lastRowCount));
+
+                _lastRowCount = 0;
             }
             catch { }
         }
@@ -90,10 +102,15 @@ public class FooterComponent
             {
                 int height = System.Console.WindowHeight;
                 int width  = Math.Max(10, System.Console.WindowWidth);
-                int count  = Math.Min(snaps.Count, Math.Max(1, height - 2));
+                int count  = Math.Min(snaps.Count, Math.Max(1, height - 3));
 
-                // Clear as many rows as we rendered last tick (handles job completions)
-                int rowsToClear = Math.Max(count, _lastBarCount);
+                // Clamp selection to valid range (-1 = global, 0..count-1 = bar)
+                _selectedRow = Math.Max(-1, Math.Min(_selectedRow, count - 1));
+
+                // Total rows = hint row + job bars
+                int totalRows = count + 1;
+                int rowsToClear = Math.Max(totalRows, _lastRowCount);
+
                 for (int i = 0; i < rowsToClear; i++)
                 {
                     int row = Math.Max(0, height - 1 - i);
@@ -101,29 +118,51 @@ public class FooterComponent
                     System.Console.Write(new string(' ', width));
                 }
 
-                // Render each active job bar (bottom = index 0, going upward)
+                // Hint row (above all bars): shows navigation instructions and current mode
+                int hintRow = Math.Max(0, height - 1 - count);
+                RenderHint(hintRow, width, count);
+
+                // Job bars (bottom = index 0, going upward)
                 for (int i = 0; i < count; i++)
                 {
-                    int row = Math.Max(0, height - 1 - i);
-                    RenderBar(snaps[i], row, width);
+                    int row      = Math.Max(0, height - 1 - i);
+                    bool selected = i == _selectedRow;
+                    RenderBar(snaps[i], row, width, selected);
                 }
 
-                _lastBarCount = count;
+                _lastRowCount = totalRows;
             }
             catch { }
         }
     }
 
-    private void RenderBar(ProgressSnapshot snap, int row, int width)
+    private void RenderHint(int row, int width, int count)
+    {
+        bool globalMode = _selectedRow < 0 || count == 0;
+        string marker = globalMode ? "▶ " : "  ";
+        string mode   = globalMode ? "ALL" : $"job {_selectedRow + 1}";
+        string hint   = $"{marker}↑↓ Navigate  SPACE Pause/Resume  ESC Stop  [{mode}]";
+
+        System.Console.SetCursorPosition(0, row);
+        System.Console.Write(hint.PadRight(width)[..Math.Min(hint.Length > width ? width : hint.PadRight(width).Length, width)]);
+    }
+
+    private void RenderBar(ProgressSnapshot snap, int row, int width, bool selected)
     {
         if (string.IsNullOrEmpty(snap.BackupName)) return;
 
-        string etaStr    = snap.Eta.HasValue
+        var ctrl = _getController(snap.BackupName);
+        bool jobPaused    = ctrl?.IsPaused == true;
+        bool globalPaused = _pauseService.IsPaused;
+
+        string pauseTag = (globalPaused || jobPaused) ? " [PAUSE]" : string.Empty;
+
+        string etaStr = snap.Eta.HasValue
             ? $"{(int)snap.Eta.Value.TotalHours:D2}:{snap.Eta.Value.Minutes:D2}:{snap.Eta.Value.Seconds:D2}"
             : "--:--:--";
-        string pauseTag  = _pauseService.IsPaused ? " [PAUSE]" : string.Empty;
 
-        string left  = $"[{snap.BackupName}] {snap.DoneFiles}/{snap.TotalFiles} | {snap.Fraction * 100:0.0}% | {HumanSize(snap.Transferred)}/{HumanSize(snap.Total)}";
+        string selector = selected ? "▶ " : "  ";
+        string left  = $"{selector}[{snap.BackupName}] {snap.DoneFiles}/{snap.TotalFiles} | {snap.Fraction * 100:0.0}%  {HumanSize(snap.Transferred)}/{HumanSize(snap.Total)}";
         string right = $"ETA: {etaStr}{pauseTag} | {TruncatePath(snap.CurrentFile, 25)}";
 
         int barWidth = Math.Max(5, width - left.Length - right.Length - 4);
@@ -138,7 +177,7 @@ public class FooterComponent
         string line = $"{left} {bar} {right}";
 
         System.Console.SetCursorPosition(0, row);
-        System.Console.Write(line.Substring(0, Math.Min(line.Length, width)).PadRight(width));
+        System.Console.Write(line[..Math.Min(line.Length, width)].PadRight(width));
     }
 
     // ── Keyboard loop ─────────────────────────────────────────────────────
@@ -151,9 +190,44 @@ public class FooterComponent
             {
                 if (System.Console.KeyAvailable)
                 {
-                    var key = System.Console.ReadKey(intercept: true);
-                    if (key.Key == ConsoleKey.Spacebar)
-                        _pauseService.Toggle();
+                    var key   = System.Console.ReadKey(intercept: true);
+                    var snaps = _progressService.CurrentAll;
+                    int count = snaps.Count;
+
+                    _selectedRow = Math.Max(-1, Math.Min(_selectedRow, count - 1));
+
+                    switch (key.Key)
+                    {
+                        case ConsoleKey.UpArrow:
+                            _selectedRow = Math.Max(-1, _selectedRow - 1);
+                            break;
+
+                        case ConsoleKey.DownArrow:
+                            _selectedRow = Math.Min(count - 1, _selectedRow + 1);
+                            break;
+
+                        case ConsoleKey.Spacebar:
+                            if (_selectedRow < 0 || _selectedRow >= count)
+                            {
+                                _pauseService.Toggle();
+                            }
+                            else
+                            {
+                                _getController(snaps[_selectedRow].BackupName)?.Toggle();
+                            }
+                            break;
+
+                        case ConsoleKey.Escape:
+                            if (_selectedRow < 0 || _selectedRow >= count)
+                            {
+                                _pauseService.Stop();
+                            }
+                            else
+                            {
+                                _getController(snaps[_selectedRow].BackupName)?.Stop();
+                            }
+                            break;
+                    }
                 }
             }
             catch { }
@@ -182,6 +256,6 @@ public class FooterComponent
         if (file.Length + 4 >= maxLen)
             return "..." + file[^Math.Min(file.Length, maxLen - 3)..];
         int left = maxLen - file.Length - 3;
-        return path.Substring(0, left) + "..." + file;
+        return path[..left] + "..." + file;
     }
 }
