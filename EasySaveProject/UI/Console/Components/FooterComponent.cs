@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EasySaveProject.Core.Services;
@@ -6,9 +7,10 @@ using EasySaveProject.Core.Services;
 namespace EasySaveProject.UI.Console.Components;
 
 /// <summary>
-/// Affiche la barre de progression en bas du terminal.
-/// Ne contient aucune logique de calcul — délègue à ProgressService.
-/// Écoute aussi la touche Espace pour pause/reprise via PauseService.
+/// Renders one progress bar per active backup job at the bottom of the terminal.
+/// Bars are stacked upward: the first job is at the last row, the second one row above, etc.
+/// Delegates all progress computation to ProgressService.
+/// Listens for Spacebar to toggle global pause via PauseService.
 /// </summary>
 public class FooterComponent
 {
@@ -16,7 +18,8 @@ public class FooterComponent
     private readonly PauseService    _pauseService;
 
     private CancellationTokenSource? _cts;
-    private readonly object          _consoleLock = new();
+    private readonly object          _consoleLock    = new();
+    private int                      _lastBarCount   = 0;
 
     public FooterComponent(ProgressService progressService, PauseService pauseService)
     {
@@ -29,11 +32,7 @@ public class FooterComponent
         if (_cts != null) return;
 
         _cts = new CancellationTokenSource();
-
-        // Thread d'affichage : rafraîchit le footer toutes les 200ms
         Task.Run(() => RenderLoop(_cts.Token));
-
-        // Thread d'écoute clavier : capte Espace pour pause/reprise
         Task.Run(() => KeyboardLoop(_cts.Token));
     }
 
@@ -48,16 +47,24 @@ public class FooterComponent
         {
             try
             {
-                int row = Math.Max(0, System.Console.WindowHeight - 1);
-                System.Console.SetCursorPosition(0, row);
-                System.Console.Write(new string(' ', System.Console.WindowWidth));
-                System.Console.SetCursorPosition(0, row);
+                int width  = System.Console.WindowWidth;
+                int height = System.Console.WindowHeight;
+                int rows   = Math.Max(_lastBarCount, 1);
+
+                for (int i = 0; i < rows; i++)
+                {
+                    int row = Math.Max(0, height - 1 - i);
+                    System.Console.SetCursorPosition(0, row);
+                    System.Console.Write(new string(' ', width));
+                }
+                System.Console.SetCursorPosition(0, Math.Max(0, height - rows));
+                _lastBarCount = 0;
             }
             catch { }
         }
     }
 
-    // ── Boucle d'affichage ────────────────────────────────────────────────
+    // ── Render loop ───────────────────────────────────────────────────────
 
     private async Task RenderLoop(CancellationToken ct)
     {
@@ -66,7 +73,7 @@ public class FooterComponent
             try
             {
                 _progressService.Tick();
-                Render(_progressService.Current);
+                RenderAll(_progressService.CurrentAll);
             }
             catch { }
 
@@ -75,46 +82,66 @@ public class FooterComponent
         }
     }
 
-    private void Render(ProgressSnapshot snap)
+    private void RenderAll(IReadOnlyList<ProgressSnapshot> snaps)
     {
-        if (string.IsNullOrEmpty(snap.BackupName)) return;
-
         lock (_consoleLock)
         {
             try
             {
-                int width    = Math.Max(10, System.Console.WindowWidth);
-                int row      = Math.Max(0, System.Console.WindowHeight - 1);
-                int barWidth = Math.Max(10, width - 60);
-                int filled   = (int)Math.Round(barWidth * snap.Fraction);
+                int height = System.Console.WindowHeight;
+                int width  = Math.Max(10, System.Console.WindowWidth);
+                int count  = Math.Min(snaps.Count, Math.Max(1, height - 2));
 
-                string bar = "["
-                    + new string('=', filled)
-                    + (filled < barWidth ? ">" : "=")
-                    + new string(' ', Math.Max(0, barWidth - filled - 1))
-                    + "]";
+                // Clear as many rows as we rendered last tick (handles job completions)
+                int rowsToClear = Math.Max(count, _lastBarCount);
+                for (int i = 0; i < rowsToClear; i++)
+                {
+                    int row = Math.Max(0, height - 1 - i);
+                    System.Console.SetCursorPosition(0, row);
+                    System.Console.Write(new string(' ', width));
+                }
 
-                string etaStr = snap.Eta.HasValue
-                    ? $"{(int)snap.Eta.Value.TotalHours:D2}:{snap.Eta.Value.Minutes:D2}:{snap.Eta.Value.Seconds:D2}"
-                    : "--:--:--";
+                // Render each active job bar (bottom = index 0, going upward)
+                for (int i = 0; i < count; i++)
+                {
+                    int row = Math.Max(0, height - 1 - i);
+                    RenderBar(snaps[i], row, width);
+                }
 
-                // Indicateur pause visible dans le footer
-                string pauseTag = _pauseService.IsPaused ? " [PAUSE]" : string.Empty;
-
-                string left  = $"Files: {snap.DoneFiles}/{snap.TotalFiles} | {snap.Fraction * 100:0.0}% | {HumanSize(snap.Transferred)}/{HumanSize(snap.Total)}";
-                string right = $"ETA: {etaStr}{pauseTag} | {TruncatePath(snap.CurrentFile, 30)}";
-                string line  = left.PadRight(2) + " "
-                    + bar.PadRight(barWidth + 2) + " "
-                    + right.PadLeft(Math.Max(0, width - (left.Length + bar.Length + 4)));
-
-                System.Console.SetCursorPosition(0, row);
-                System.Console.Write(line.Substring(0, Math.Min(line.Length, width)).PadRight(width));
+                _lastBarCount = count;
             }
             catch { }
         }
     }
 
-    // ── Boucle clavier ────────────────────────────────────────────────────
+    private void RenderBar(ProgressSnapshot snap, int row, int width)
+    {
+        if (string.IsNullOrEmpty(snap.BackupName)) return;
+
+        string etaStr    = snap.Eta.HasValue
+            ? $"{(int)snap.Eta.Value.TotalHours:D2}:{snap.Eta.Value.Minutes:D2}:{snap.Eta.Value.Seconds:D2}"
+            : "--:--:--";
+        string pauseTag  = _pauseService.IsPaused ? " [PAUSE]" : string.Empty;
+
+        string left  = $"[{snap.BackupName}] {snap.DoneFiles}/{snap.TotalFiles} | {snap.Fraction * 100:0.0}% | {HumanSize(snap.Transferred)}/{HumanSize(snap.Total)}";
+        string right = $"ETA: {etaStr}{pauseTag} | {TruncatePath(snap.CurrentFile, 25)}";
+
+        int barWidth = Math.Max(5, width - left.Length - right.Length - 4);
+        int filled   = (int)Math.Round(barWidth * snap.Fraction);
+
+        string bar = "["
+            + new string('=', filled)
+            + (filled < barWidth ? ">" : "=")
+            + new string(' ', Math.Max(0, barWidth - filled - 1))
+            + "]";
+
+        string line = $"{left} {bar} {right}";
+
+        System.Console.SetCursorPosition(0, row);
+        System.Console.Write(line.Substring(0, Math.Min(line.Length, width)).PadRight(width));
+    }
+
+    // ── Keyboard loop ─────────────────────────────────────────────────────
 
     private async Task KeyboardLoop(CancellationToken ct)
     {
@@ -122,17 +149,16 @@ public class FooterComponent
         {
             try
             {
-                // KeyAvailable évite de bloquer sur ReadKey quand il n'y a rien
                 if (System.Console.KeyAvailable)
                 {
-                    var key = System.Console.ReadKey(intercept: true); // intercept: ne pas afficher la touche
+                    var key = System.Console.ReadKey(intercept: true);
                     if (key.Key == ConsoleKey.Spacebar)
                         _pauseService.Toggle();
                 }
             }
             catch { }
 
-            try { await Task.Delay(50, ct); } // poll clavier plus réactif que le render
+            try { await Task.Delay(50, ct); }
             catch (TaskCanceledException) { break; }
         }
     }
