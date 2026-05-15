@@ -13,6 +13,22 @@ public class AppConfig
 
     [JsonConverter(typeof(StringOrListConverter))]
     public List<string> BusinessSoftware { get; set; } = new();
+
+    public LogMode LogMode { get; set; } = LogMode.Local;
+
+    public string LogServerHost { get; set; } = "localhost";
+
+    public int LogServerPort { get; set; } = 9000;
+
+    public string MachineId { get; set; } = Environment.MachineName;
+}
+
+// Mode d'écriture des logs
+public enum LogMode
+{
+    Local,
+    Remote,
+    Both
 }
 
 public class StringOrListConverter : JsonConverter<List<string>>

@@ -25,43 +25,35 @@ public class App
     private readonly LanguageForm _languageForm;
     private readonly RunCliFlow _runCliFlow;
 
-    // 🔹 Ajouts HEAD
     private readonly AppConfig _config;
 
     private static readonly string CryptoSoftExePath =
-    Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe");
+        Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe");
 
     public App()
     {
         _menu = new MenuComponent();
         _interactiveMenu = new InteractiveMenuComponent(_loc);
 
-        // 🔹 Charger config
         _config = _configService.Load();
 
-        // 🔹 Langue
         var lang = string.IsNullOrWhiteSpace(_config.Langage)
             ? "en"
             : _config.Langage;
 
         _loc.Load(lang);
 
-        // 🔹 Logging (avec format venant de HEAD)
-        LogService.Initialize(_loc, _config.LogFormat);
+        LogService.Initialize(_loc, _config.LogFormat, _config);
         _logService = LogService.Instance;
 
-        // 🔹 Services HEAD (crypto + monitoring)
         var cryptoService = new CryptoService(
             _config.CryptoExtensions,
             _config.CryptoKey,
             CryptoSoftExePath
         );
 
-        var watcher = new BusinessSoftwareWatcher(
-            _config.BusinessSoftware
-        );
+        var watcher = new BusinessSoftwareWatcher(_configService);
 
-        // 🔹 Service principal (fusion)
         var backupService = new BackupService(
             _fileService,
             _logService,
@@ -70,71 +62,40 @@ public class App
             watcher,
             _pauseService
         );
+
         var footer = new FooterComponent(_progressService, _pauseService);
 
         _viewModel = new MainViewModel(backupService, footer);
 
-        // Forms 
         var inputForm = new InputForm(_loc);
         var confirmDialog = new ConfirmDialog(_menu, _loc);
         var backupTypeForm = new BackupTypeForm(_menu, _loc);
 
         var createBackupForm = new CreateBackupForm(
-            _viewModel,
-            inputForm,
-            backupTypeForm,
-            confirmDialog,
-            _loc
-        );
+            _viewModel, inputForm, backupTypeForm, confirmDialog, _loc);
 
         _runCliFlow = new RunCliFlow(
-            _viewModel,
-            createBackupForm,
-            _menu,
-            _loc
-        );
+            _viewModel, createBackupForm, _menu, _loc);
 
-        // Views
         var backupMenuView = new BackupMenuView(
-            _viewModel,
-            _menu,
-            _interactiveMenu,
-            _loc,
-            createBackupForm,
-            confirmDialog,
-            backupTypeForm
-        );
+            _viewModel, _menu, _interactiveMenu, _loc,
+            createBackupForm, confirmDialog, backupTypeForm);
 
         _languageForm = new LanguageForm(_menu, _loc);
 
         _settingsView = new SettingsView(
-            _menu,
-            _loc,
-            _configService,
-            _languageForm
-        );
+            _menu, _loc, _configService, _languageForm);
 
         var logView = new LogView(_menu, _loc, _logService);
 
         _mainMenu = new MainMenuView(
-            _menu,
-            _loc,
-            backupMenuView,
-            logView,
-            _settingsView
-        );
+            _menu, _loc, backupMenuView, logView, _settingsView);
     }
 
     public void Run()
     {
-        var startup = new StartupFlow(
-            _configService,
-            _loc,
-            _languageForm
-        );
-
+        var startup = new StartupFlow(_configService, _loc, _languageForm);
         startup.Run();
-
         _mainMenu.Show();
     }
 

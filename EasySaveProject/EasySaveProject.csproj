@@ -1,8 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <ProjectReference Include="..\EasyLog\EasyLog.csproj" />
-  </ItemGroup>
   <ItemGroup>
   <None Include="..\CryptoSoft\CryptoSoft.exe">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -34,6 +30,12 @@
     <Nullable>enable</Nullable>
     <NoWarn>CS8618</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="EasyLog">
+      <HintPath>..\EasyLog\bin\Debug\net10.0\EasyLog.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="state.json">

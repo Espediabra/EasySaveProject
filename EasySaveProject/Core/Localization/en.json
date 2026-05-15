@@ -32,6 +32,17 @@
   "Settings.BusinessSoftware.Removed": "Business software removed.",
   "Settings.BusinessSoftware.AlreadyExists": "This business software is already in the list.",
 
+  "Settings.LogMode": "Log centralization",
+  "Settings.LogMode.Current": "Current mode",
+  "Settings.LogMode.Local": "Local only",
+  "Settings.LogMode.Remote": "Remote server (Docker) only",
+  "Settings.LogMode.Both": "Local + Remote server",
+  "Settings.LogMode.EditServer": "Configure server",
+  "Settings.LogMode.Host": "Server host",
+  "Settings.LogMode.Port": "Server port",
+  "Settings.LogMode.MachineId": "Machine ID",
+  "Settings.LogMode.Updated": "Log mode updated.",
+
   "Backup.Menu": "Backup Menu",
   "Backup.CreateNew": "Create new backup",
   "Backup.CreateA": "Create a backup job",

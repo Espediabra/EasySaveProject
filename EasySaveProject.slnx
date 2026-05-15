@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/EasyLog/">
+    <Project Path="EasyLog/EasyLog.csproj" />
+  </Folder>
   <Project Path="EasySaveProject.Tests/EasySaveProject.Tests.csproj" />
   <Project Path="EasySaveProject/EasySaveProject.csproj" />
 </Solution>

@@ -32,6 +32,17 @@
   "Settings.BusinessSoftware.Removed": "Logiciel métier supprimé.",
   "Settings.BusinessSoftware.AlreadyExists": "Ce logiciel métier est déjà dans la liste.",
 
+  "Settings.LogMode": "Centralisation des logs",
+  "Settings.LogMode.Current": "Mode actuel",
+  "Settings.LogMode.Local": "Local uniquement",
+  "Settings.LogMode.Remote": "Serveur distant (Docker) uniquement",
+  "Settings.LogMode.Both": "Local + Serveur distant",
+  "Settings.LogMode.EditServer": "Configurer le serveur",
+  "Settings.LogMode.Host": "Hôte du serveur",
+  "Settings.LogMode.Port": "Port du serveur",
+  "Settings.LogMode.MachineId": "Identifiant machine",
+  "Settings.LogMode.Updated": "Mode de log mis à jour.",
+
   "Backup.Menu": "Menu de sauvegarde",
   "Backup.CreateNew": "Créer une nouvelle sauvegarde",
   "Backup.CreateA": "Créer une tâche de sauvegarde",

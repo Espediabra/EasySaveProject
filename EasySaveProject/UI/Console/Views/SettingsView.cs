@@ -10,10 +10,10 @@ public class SettingsView
     private readonly LanguageForm _languageForm;
 
     public SettingsView(
-    MenuComponent menu,
-    LocalizationService loc,
-    ConfigService configService,
-    LanguageForm languageForm)
+        MenuComponent menu,
+        LocalizationService loc,
+        ConfigService configService,
+        LanguageForm languageForm)
     {
         _menu = menu;
         _loc = loc;
@@ -33,6 +33,7 @@ public class SettingsView
                 _loc.T("Settings.ChangeLanguage"),
                 _loc.T("Settings.ChangeLogFormat"),
                 _loc.T("Settings.BusinessSoftware"),
+                _loc.T("Settings.LogMode"),
                 _loc.T("Settings.Back")
             };
 
@@ -40,20 +41,11 @@ public class SettingsView
 
             switch (choice)
             {
-                case 0:
-                    ChangeLanguage();
-                    break;
-
-                case 1:
-                    ChangeLogFormat();
-                    break;
-
-                case 2:
-                    ManageBusinessSoftware();
-                    break;
-
-                case 3:
-                    return;
+                case 0: ChangeLanguage(); break;
+                case 1: ChangeLogFormat(); break;
+                case 2: ManageBusinessSoftware(); break;
+                case 3: ManageLogMode(); break;
+                case 4: return;
             }
         }
     }
@@ -61,12 +53,9 @@ public class SettingsView
     private void ChangeLanguage()
     {
         var config = _configService.Load();
-
         string newLang = _languageForm.AskLanguage();
-
         config.Langage = newLang;
         _configService.Save(config);
-
         _loc.Load(newLang);
 
         Console.Clear();
@@ -83,13 +72,97 @@ public class SettingsView
         int choice = _menu.Select(options);
 
         var config = _configService.Load();
-
         config.LogFormat = choice == 1 ? LogFormat.Xml : LogFormat.Json;
         _configService.Save(config);
 
-        LogService.Initialize(_loc, config.LogFormat);
+        LogService.Initialize(_loc, config.LogFormat, config);
 
         Console.WriteLine(_loc.T("Settings.LogFormatUpdated"));
+        Console.ReadKey();
+    }
+
+    private void ManageLogMode()
+    {
+        Console.Clear();
+        HeaderComponent.Render(_loc.T("Settings.LogMode"));
+
+        var config = _configService.Load();
+
+        Console.WriteLine($"{_loc.T("Settings.LogMode.Current")}: {config.LogMode}");
+        Console.WriteLine($"  Host: {config.LogServerHost}:{config.LogServerPort}");
+        Console.WriteLine($"  Machine ID: {config.MachineId}");
+        Console.WriteLine();
+
+        var options = new List<string>
+        {
+            _loc.T("Settings.LogMode.Local"),
+            _loc.T("Settings.LogMode.Remote"),
+            _loc.T("Settings.LogMode.Both"),
+            _loc.T("Settings.LogMode.EditServer"),
+            _loc.T("Settings.Back")
+        };
+
+        int choice = _menu.Select(options);
+
+        switch (choice)
+        {
+            case 0:
+                config.LogMode = LogMode.Local;
+                _configService.Save(config);
+                LogService.Initialize(_loc, config.LogFormat, config);
+                Console.WriteLine(_loc.T("Settings.LogMode.Updated"));
+                Console.ReadKey();
+                break;
+
+            case 1:
+                config.LogMode = LogMode.Remote;
+                _configService.Save(config);
+                LogService.Initialize(_loc, config.LogFormat, config);
+                Console.WriteLine(_loc.T("Settings.LogMode.Updated"));
+                Console.ReadKey();
+                break;
+
+            case 2:
+                config.LogMode = LogMode.Both;
+                _configService.Save(config);
+                LogService.Initialize(_loc, config.LogFormat, config);
+                Console.WriteLine(_loc.T("Settings.LogMode.Updated"));
+                Console.ReadKey();
+                break;
+
+            case 3:
+                EditServerConfig(config);
+                break;
+
+            case 4:
+                return;
+        }
+    }
+
+    private void EditServerConfig(AppConfig config)
+    {
+        Console.Clear();
+        HeaderComponent.Render(_loc.T("Settings.LogMode.EditServer"));
+
+        Console.Write($"{_loc.T("Settings.LogMode.Host")} [{config.LogServerHost}]: ");
+        var host = Console.ReadLine()?.Trim();
+        if (!string.IsNullOrWhiteSpace(host))
+            config.LogServerHost = host;
+
+        Console.Write($"{_loc.T("Settings.LogMode.Port")} [{config.LogServerPort}]: ");
+        var portStr = Console.ReadLine()?.Trim();
+        if (int.TryParse(portStr, out int port) && port > 0 && port < 65536)
+            config.LogServerPort = port;
+
+        Console.Write($"{_loc.T("Settings.LogMode.MachineId")} [{config.MachineId}]: ");
+        var machineId = Console.ReadLine()?.Trim();
+        if (!string.IsNullOrWhiteSpace(machineId))
+            config.MachineId = machineId;
+
+        _configService.Save(config);
+        LogService.Initialize(_loc, config.LogFormat, config);
+
+        Console.WriteLine(_loc.T("Settings.LogMode.Updated"));
         Console.ReadKey();
     }
 
@@ -125,16 +198,9 @@ public class SettingsView
 
             switch (choice)
             {
-                case 0:
-                    AddBusinessSoftware(config);
-                    break;
-
-                case 1:
-                    RemoveBusinessSoftware(config);
-                    break;
-
-                case 2:
-                    return;
+                case 0: AddBusinessSoftware(config); break;
+                case 1: RemoveBusinessSoftware(config); break;
+                case 2: return;
             }
         }
     }
@@ -146,8 +212,7 @@ public class SettingsView
         Console.Write(_loc.T("Settings.BusinessSoftware.AddPrompt"));
 
         string? input = Console.ReadLine();
-        if (string.IsNullOrWhiteSpace(input))
-            return;
+        if (string.IsNullOrWhiteSpace(input)) return;
 
         string name = input.Trim();
 
@@ -184,13 +249,10 @@ public class SettingsView
         options.Add(_loc.T("Settings.Back"));
 
         int choice = _menu.Select(options);
-
-        if (choice == options.Count - 1)
-            return;
+        if (choice == options.Count - 1) return;
 
         config.BusinessSoftware.RemoveAt(choice);
         _configService.Save(config);
-
         Console.WriteLine(_loc.T("Settings.BusinessSoftware.Removed"));
         Console.ReadKey();
     }
