@@ -135,9 +135,19 @@ namespace EasySaveProject.Core.Services
         public JobController? GetControllerByName(string name)
             => _activeControllers.TryGetValue(name, out var c) ? c : null;
 
-        public void PauseAll()         => _pauseService.Pause();
-        public void ResumeAll()        => _pauseService.Resume();
-        public void StopAll()          => _pauseService.Stop();
+        public void PauseAll()  => _pauseService.Pause();
+
+        public void ResumeAll()
+        {
+            _pauseService.Resume();
+            foreach (var c in _activeControllers.Values) c.Resume();
+        }
+
+        public void StopAll()
+        {
+            _pauseService.Stop();
+            foreach (var c in _activeControllers.Values) c.Stop();
+        }
         public void TogglePauseJob(string name) { if (_activeControllers.TryGetValue(name, out var c)) c.Toggle(); }
         public void StopJob(string name)        { if (_activeControllers.TryGetValue(name, out var c)) c.Stop(); }
 
