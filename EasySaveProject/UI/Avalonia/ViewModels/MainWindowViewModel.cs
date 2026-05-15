@@ -6,14 +6,25 @@ using CommunityToolkit.Mvvm.Input;
 using EasySaveProject.Models;
 using EasySaveProject.Core.Services;
 using EasySaveProject.Core.Localization;
+using EasySaveProject.Infrastructure.Crypto;
+using EasySaveProject.Infrastructure.Monitoring;
 
 namespace EasySaveProject.UI.Avalonia.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject
 {
     private readonly BackupService _backupService;
-    private readonly MainViewModel _coreViewModel;
     private readonly LogService _logService;
+
+    public bool IsRunning { get; private set; }
+
+    public event Action<bool>? OnExecutionStateChanged;
+
+    private void SetRunning(bool state)
+    {
+        IsRunning = state;
+        OnExecutionStateChanged?.Invoke(state);
+    }
 
     // ── Navigation ───────────────────────────────────────────────────────
     [ObservableProperty]
@@ -38,6 +49,7 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private string _formName = "";
     [ObservableProperty] private string _formSource = "";
     [ObservableProperty] private string _formTarget = "";
+    [ObservableProperty] private int _formTypeIndex = 0;
     [ObservableProperty] private string _formType = "Full";
     [ObservableProperty] private string _formError = "";
 
@@ -59,6 +71,8 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<LogEntryViewModel> _logEntries = new();
     [ObservableProperty] private string _selectedLogLevel = "All";
 
+    [ObservableProperty] private string _searchLogs = "";
+
     public bool HasFilteredLogs => FilteredLogs.Any();
     public bool HasNoFilteredLogs => !FilteredLogs.Any();
 
@@ -77,21 +91,50 @@ public partial class MainWindowViewModel : ObservableObject
 
         var configService = new ConfigService();
         var config = configService.Load();
-        try { loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage); }
+
+        try
+        {
+            loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
+        }
         catch { }
 
-        SelectedLanguage = config.Langage == "fr" ? "Français" : "English";
+        SelectedLanguage = config.Langage == "fr"
+            ? "Français"
+            : "English";
 
         LogService.Initialize(loc);
         _logService = LogService.Instance;
 
-        _backupService = new BackupService(fileService, _logService, stateService);
-        _coreViewModel = new MainViewModel(_backupService);
+        // ── Nouveaux services ─────────────────────────────
+        var pauseService = new PauseService();
+
+        var cryptoSoftExePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "CryptoSoft.exe"
+        );
+
+        var cryptoService = new CryptoService(
+            config.CryptoExtensions,
+            config.CryptoKey,
+            cryptoSoftExePath
+        );
+
+        var watcher = new BusinessSoftwareWatcher(
+            config.BusinessSoftware
+        );
+
+        // ── Backup service ───────────────────────────────
+        _backupService = new BackupService(
+            fileService,
+            _logService,
+            stateService,
+            cryptoService,
+            watcher,
+            pauseService
+        );
 
         Jobs.CollectionChanged += OnJobsCollectionChanged;
-
         LoadJobsFromService();
-        LoadTodayLogs();
     }
 
     private void OnJobsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -116,7 +159,7 @@ public partial class MainWindowViewModel : ObservableObject
     private void LoadJobsFromService()
     {
         Jobs.Clear();
-        foreach (var job in _coreViewModel.GetJobsRaw())
+        foreach (var job in _backupService.GetJobs())
         {
             Jobs.Add(BackupJobViewModel.FromJob(
                 job.Name,
@@ -154,6 +197,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         catch { }
 
+        OnPropertyChanged(nameof(FilteredLogs));
         OnPropertyChanged(nameof(HasFilteredLogs));
         OnPropertyChanged(nameof(HasNoFilteredLogs));
     }
@@ -197,7 +241,19 @@ public partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            await Task.Run(() => _coreViewModel.ExecuteBackup(index));
+            await Task.Run(() =>
+            {
+                SetRunning(true);
+
+                try
+                {
+                    _backupService.RunJob(index);
+                }
+                finally
+                {
+                    SetRunning(false);
+                }
+            });
             job.Status = "Completed";
             job.Progress = 100;
             ShowToastMessage($"Sauvegarde « {job.Name} » terminée ✓");
@@ -229,7 +285,20 @@ public partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            await Task.Run(() => _coreViewModel.ExecuteMultipleBackups(indices));
+            await Task.Run(() =>
+            {
+                SetRunning(true);
+
+                try
+                {
+                    foreach (var i in indices)
+                        _backupService.RunJob(i);
+                }
+                finally
+                {
+                    SetRunning(false);
+                }
+            });
             foreach (var job in selected)
             {
                 job.Status = "Completed";
@@ -254,7 +323,7 @@ public partial class MainWindowViewModel : ObservableObject
         int index = Jobs.IndexOf(job);
         if (index < 0) return;
 
-        _coreViewModel.DeleteJob(index);
+        _backupService.DeleteJob(index);
         Jobs.Remove(job);
 
         if (SelectedJob == job) CloseJobPanel();
@@ -273,6 +342,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         FormName = FormSource = FormTarget = FormError = "";
         FormType = "Full";
+        FormTypeIndex = 0;
         ShowJobPanel = false;
         SelectedJob = null;
         ShowRunNowPrompt = false;
@@ -294,8 +364,12 @@ public partial class MainWindowViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(FormTarget)) { FormError = "Le chemin cible est requis."; return; }
         if (Jobs.Count >= 5) { FormError = "Maximum 5 sauvegardes atteint."; return; }
 
-        var type = FormType == "Differential" ? BackupType.Differential : BackupType.Full;
-        _coreViewModel.CreateJob(FormName, FormSource, FormTarget, type);
+        var type = FormTypeIndex == 1 ? BackupType.Differential : BackupType.Full;
+
+        FormType = FormTypeIndex == 1 ? "Differential" : "Full";
+        _backupService.AddJob(
+            new BackupJob(FormName, FormSource, FormTarget, type)
+        );
 
         var vm = BackupJobViewModel.FromJob(FormName, FormSource, FormTarget, FormType);
         Jobs.Add(vm);
@@ -335,16 +409,31 @@ public partial class MainWindowViewModel : ObservableObject
         int index = Jobs.IndexOf(job);
         if (index < 0) return;
 
-        var type = job.Type == "Differential" ? BackupType.Differential : BackupType.Full;
-        _coreViewModel.ChangeJobType(index, type);
+        var type = job.PendingTypeIndex == 1 ? BackupType.Differential : BackupType.Full;
+        job.Type = job.PendingTypeIndex == 1 ? "Differential" : "Full";
+        _backupService.UpdateJobType(index, type);
         ShowToastMessage("Type de sauvegarde mis à jour.");
     }
 
     // ── Filtrage des logs ──────────────────────────────────────────────────
     public IEnumerable<LogEntryViewModel> FilteredLogs =>
-        SelectedLogLevel == "All"
-            ? LogEntries
-            : LogEntries.Where(l => l.Level == SelectedLogLevel);
+     LogEntries.Where(l =>
+         (SelectedLogLevel == "All" || l.Level == SelectedLogLevel)
+         &&
+         (
+             string.IsNullOrWhiteSpace(SearchLogs)
+             || l.JobName.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
+             || l.Message.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
+             || l.Level.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
+         )
+     );
+
+    partial void OnSearchLogsChanged(string value)
+    {
+        OnPropertyChanged(nameof(FilteredLogs));
+        OnPropertyChanged(nameof(HasFilteredLogs));
+        OnPropertyChanged(nameof(HasNoFilteredLogs));
+    }
 
     partial void OnSelectedLogLevelChanged(string value)
     {
@@ -384,5 +473,22 @@ public partial class MainWindowViewModel : ObservableObject
         ShowToast = true;
         await Task.Delay(2800);
         ShowToast = false;
+    }
+
+    public List<string> GetBackupNames()
+    {
+        return _backupService.GetJobs()
+            .Select(j => j.Name)
+            .ToList();
+    }
+
+    public BackupJob GetJob(int index)
+    {
+        return _backupService.GetJobs()[index];
+    }
+
+    public List<BackupJob> GetJobsRaw()
+    {
+        return _backupService.GetJobs().ToList();
     }
 }

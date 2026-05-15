@@ -56,10 +56,10 @@
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Classes="label" Text="Type" />
-                            <ComboBox SelectedItem="{Binding FormType}"
+                            <ComboBox SelectedIndex="{Binding FormTypeIndex}"
                                       HorizontalAlignment="Stretch">
-                                <ComboBoxItem>Full</ComboBoxItem>
-                                <ComboBoxItem>Differential</ComboBoxItem>
+                                <ComboBoxItem Content="Full" />
+                                <ComboBoxItem Content="Differential" />
                             </ComboBox>
                         </StackPanel>
                     </Grid>
@@ -308,10 +308,10 @@
                             <TextBlock Classes="label" Text="TYPE" />
                             <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
                                 <ComboBox Grid.Column="0"
-                                          SelectedItem="{Binding Type}"
+                                          SelectedIndex="{Binding PendingTypeIndex}"
                                           HorizontalAlignment="Stretch">
-                                    <ComboBoxItem>Full</ComboBoxItem>
-                                    <ComboBoxItem>Differential</ComboBoxItem>
+                                    <ComboBoxItem Content="Full" />
+                                    <ComboBoxItem Content="Differential" />
                                 </ComboBox>
                                 <Button Grid.Column="1"
                                         Classes="secondary"

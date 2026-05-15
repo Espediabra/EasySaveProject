@@ -30,4 +30,5 @@ public partial class LogEntryViewModel : ObservableObject
         "Warning" => "#FBF5E6",
         _ => "#E4F0E5"
     };
+    
 }
