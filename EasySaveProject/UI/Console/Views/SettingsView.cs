@@ -33,6 +33,8 @@ public class SettingsView
                 _loc.T("Settings.ChangeLanguage"),
                 _loc.T("Settings.ChangeLogFormat"),
                 _loc.T("Settings.BusinessSoftware"),
+                _loc.T("Settings.PriorityExtensions"),
+                _loc.T("Settings.LargeFileThreshold"),
                 _loc.T("Settings.Back")
             };
 
@@ -53,6 +55,14 @@ public class SettingsView
                     break;
 
                 case 3:
+                    ManagePriorityExtensions();
+                    break;
+
+                case 4:
+                    ManageLargeFileThreshold();
+                    break;
+
+                case 5:
                     return;
             }
         }
@@ -192,6 +202,136 @@ public class SettingsView
         _configService.Save(config);
 
         Console.WriteLine(_loc.T("Settings.BusinessSoftware.Removed"));
+        Console.ReadKey();
+    }
+
+    // ── Priority extensions ───────────────────────────────────────────────
+
+    private void ManagePriorityExtensions()
+    {
+        while (true)
+        {
+            Console.Clear();
+            HeaderComponent.Render(_loc.T("Settings.PriorityExtensions"));
+
+            var config = _configService.Load();
+
+            if (config.PriorityExtensions.Count == 0)
+                Console.WriteLine(_loc.T("Settings.PriorityExtensions.Empty"));
+            else
+            {
+                Console.WriteLine(_loc.T("Settings.PriorityExtensions.Current"));
+                for (int i = 0; i < config.PriorityExtensions.Count; i++)
+                    Console.WriteLine($"  {i + 1}. {config.PriorityExtensions[i]}");
+            }
+            Console.WriteLine();
+
+            var options = new List<string>
+            {
+                _loc.T("Settings.PriorityExtensions.Add"),
+                _loc.T("Settings.PriorityExtensions.Remove"),
+                _loc.T("Settings.Back")
+            };
+
+            int choice = _menu.Select(options);
+
+            switch (choice)
+            {
+                case 0: AddPriorityExtension(config);    break;
+                case 1: RemovePriorityExtension(config); break;
+                case 2: return;
+            }
+        }
+    }
+
+    private void AddPriorityExtension(AppConfig config)
+    {
+        Console.Clear();
+        HeaderComponent.Render(_loc.T("Settings.PriorityExtensions.Add"));
+        Console.Write(_loc.T("Settings.PriorityExtensions.AddPrompt"));
+
+        string? input = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(input))
+            return;
+
+        // Normalize: lowercase, ensure leading dot
+        string ext = input.Trim().ToLowerInvariant();
+        if (!ext.StartsWith('.'))
+            ext = "." + ext;
+
+        bool alreadyExists = config.PriorityExtensions
+            .Any(e => e.Equals(ext, StringComparison.OrdinalIgnoreCase));
+
+        if (!alreadyExists)
+        {
+            config.PriorityExtensions.Add(ext);
+            _configService.Save(config);
+            Console.WriteLine(_loc.T("Settings.PriorityExtensions.Added"));
+        }
+        else
+        {
+            Console.WriteLine(_loc.T("Settings.PriorityExtensions.AlreadyExists"));
+        }
+
+        Console.ReadKey();
+    }
+
+    private void RemovePriorityExtension(AppConfig config)
+    {
+        if (config.PriorityExtensions.Count == 0)
+        {
+            Console.WriteLine(_loc.T("Settings.PriorityExtensions.Empty"));
+            Console.ReadKey();
+            return;
+        }
+
+        Console.Clear();
+        HeaderComponent.Render(_loc.T("Settings.PriorityExtensions.Remove"));
+
+        var options = new List<string>(config.PriorityExtensions);
+        options.Add(_loc.T("Settings.Back"));
+
+        int choice = _menu.Select(options);
+
+        if (choice == options.Count - 1)
+            return;
+
+        config.PriorityExtensions.RemoveAt(choice);
+        _configService.Save(config);
+
+        Console.WriteLine(_loc.T("Settings.PriorityExtensions.Removed"));
+        Console.ReadKey();
+    }
+
+    // ── Large file threshold ──────────────────────────────────────────────
+
+    private void ManageLargeFileThreshold()
+    {
+        Console.Clear();
+        HeaderComponent.Render(_loc.T("Settings.LargeFileThreshold"));
+
+        var config = _configService.Load();
+
+        Console.WriteLine(string.Format(_loc.T("Settings.LargeFileThreshold.Current"), config.LargeFileThresholdKb));
+        Console.WriteLine();
+        Console.Write(_loc.T("Settings.LargeFileThreshold.Prompt"));
+
+        string? input = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(input))
+            return;
+
+        if (!long.TryParse(input.Trim(), out long value) || value < 0)
+        {
+            Console.WriteLine(_loc.T("Settings.LargeFileThreshold.Invalid"));
+            Console.ReadKey();
+            return;
+        }
+
+        config.LargeFileThresholdKb = value;
+        _configService.Save(config);
+
+        Console.WriteLine(_loc.T("Settings.LargeFileThreshold.Updated"));
         Console.ReadKey();
     }
 }

@@ -32,6 +32,22 @@
   "Settings.BusinessSoftware.Removed": "Business software removed.",
   "Settings.BusinessSoftware.AlreadyExists": "This business software is already in the list.",
 
+  "Settings.PriorityExtensions": "Manage priority extensions",
+  "Settings.PriorityExtensions.Empty": "No priority extensions configured.",
+  "Settings.PriorityExtensions.Current": "Current priority extensions:",
+  "Settings.PriorityExtensions.Add": "Add an extension",
+  "Settings.PriorityExtensions.Remove": "Remove an extension",
+  "Settings.PriorityExtensions.AddPrompt": "Extension (e.g. .zip): ",
+  "Settings.PriorityExtensions.Added": "Extension added.",
+  "Settings.PriorityExtensions.Removed": "Extension removed.",
+  "Settings.PriorityExtensions.AlreadyExists": "This extension is already in the list.",
+
+  "Settings.LargeFileThreshold": "Set large file transfer threshold",
+  "Settings.LargeFileThreshold.Current": "Current threshold: {0} KB  (0 = disabled)",
+  "Settings.LargeFileThreshold.Prompt": "New threshold in KB (0 to disable): ",
+  "Settings.LargeFileThreshold.Updated": "Threshold updated.",
+  "Settings.LargeFileThreshold.Invalid": "Invalid value. Please enter a whole number >= 0.",
+
   "Backup.Menu": "Backup Menu",
   "Backup.CreateNew": "Create new backup",
   "Backup.CreateA": "Create a backup job",

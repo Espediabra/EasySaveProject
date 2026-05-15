@@ -32,6 +32,22 @@
   "Settings.BusinessSoftware.Removed": "Logiciel métier supprimé.",
   "Settings.BusinessSoftware.AlreadyExists": "Ce logiciel métier est déjà dans la liste.",
 
+  "Settings.PriorityExtensions": "Gérer les extensions prioritaires",
+  "Settings.PriorityExtensions.Empty": "Aucune extension prioritaire configurée.",
+  "Settings.PriorityExtensions.Current": "Extensions prioritaires actuelles :",
+  "Settings.PriorityExtensions.Add": "Ajouter une extension",
+  "Settings.PriorityExtensions.Remove": "Supprimer une extension",
+  "Settings.PriorityExtensions.AddPrompt": "Extension (ex : .zip) : ",
+  "Settings.PriorityExtensions.Added": "Extension ajoutée.",
+  "Settings.PriorityExtensions.Removed": "Extension supprimée.",
+  "Settings.PriorityExtensions.AlreadyExists": "Cette extension est déjà dans la liste.",
+
+  "Settings.LargeFileThreshold": "Définir le seuil de transfert des gros fichiers",
+  "Settings.LargeFileThreshold.Current": "Seuil actuel : {0} Ko  (0 = désactivé)",
+  "Settings.LargeFileThreshold.Prompt": "Nouveau seuil en Ko (0 pour désactiver) : ",
+  "Settings.LargeFileThreshold.Updated": "Seuil mis à jour.",
+  "Settings.LargeFileThreshold.Invalid": "Valeur invalide. Veuillez saisir un entier >= 0.",
+
   "Backup.Menu": "Menu de sauvegarde",
   "Backup.CreateNew": "Créer une nouvelle sauvegarde",
   "Backup.CreateA": "Créer une tâche de sauvegarde",
