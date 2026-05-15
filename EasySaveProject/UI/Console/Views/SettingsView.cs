@@ -1,6 +1,7 @@
 using EasySaveProject.Core.Localization;
 using EasySaveProject.Core.Services;
-using EasyLog;
+using EasySaveProject.Models;
+
 
 public class SettingsView
 {
@@ -84,10 +85,18 @@ public class SettingsView
 
         var config = _configService.Load();
 
-        config.LogFormat = choice == 1 ? LogFormat.Xml : LogFormat.Json;
+        config.LogFormat = choice == 1
+            ? AppLogFormat.Xml
+            : AppLogFormat.Json;
+
         _configService.Save(config);
 
-        LogService.Initialize(_loc, config.LogFormat);
+        var easyLogFormat =
+            config.LogFormat == AppLogFormat.Xml
+                ? EasyLog.LogFormat.Xml
+                : EasyLog.LogFormat.Json;
+
+        LogService.Initialize(_loc, easyLogFormat);
 
         Console.WriteLine(_loc.T("Settings.LogFormatUpdated"));
         Console.ReadKey();

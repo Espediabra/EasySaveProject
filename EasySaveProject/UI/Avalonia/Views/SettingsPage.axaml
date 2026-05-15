@@ -4,66 +4,203 @@
              x:Class="EasySaveProject.UI.Avalonia.Views.SettingsPage"
              x:DataType="vm:MainWindowViewModel">
 
-	<DockPanel>
+    <DockPanel>
 
-		<!-- HEADER -->
-		<Border DockPanel.Dock="Top"
+        <!-- HEADER -->
+        <Border DockPanel.Dock="Top"
                 Padding="28,24,28,16"
                 BorderBrush="#E8E4D6"
                 BorderThickness="0,0,0,1">
-			<StackPanel>
-				<TextBlock Classes="heading" Text="Paramètres" />
-				<TextBlock Classes="subheading"
+            <StackPanel>
+                <TextBlock Classes="heading" Text="Paramètres" />
+                <TextBlock Classes="subheading"
                            Text="Configurez l'application selon vos préférences"
                            Margin="0,2,0,0" />
-			</StackPanel>
-		</Border>
+            </StackPanel>
+        </Border>
 
-		<!-- BODY -->
-		<ScrollViewer DockPanel.Dock="Top" Padding="28,24">
-			<StackPanel Spacing="0" MaxWidth="520">
+        <!-- SEARCH -->
+        <Border DockPanel.Dock="Top"
+                Padding="28,16,28,10"
+                BorderBrush="#E8E4D6"
+                BorderThickness="0,0,0,1">
 
-				<Border Background="#FEFCF7"
+            <TextBox Text="{Binding SearchSettings}"
+                     PlaceholderText="Rechercher un paramètre..."
+                     Height="38"
+                     FontSize="13"
+                     Background="#FEFCF7"
+                     BorderBrush="#E8E4D6"
+                     CornerRadius="8"/>
+        </Border>
+
+        <!-- SETTINGS LIST -->
+        <ScrollViewer DockPanel.Dock="Top"
+                      Margin="28,16,28,24">
+
+            <StackPanel Spacing="12">
+
+                <!-- LANGUE -->
+                <Border Classes="row"
+                        Background="#FEFCF7"
                         BorderBrush="#E8E4D6"
                         BorderThickness="1"
                         CornerRadius="10"
                         Padding="20,18"
-                        Margin="0,0,0,16">
-					<StackPanel Spacing="14">
+                        IsVisible="{Binding ShowLanguageSetting}">
 
-						<StackPanel Spacing="2">
-							<TextBlock Text="Langue de l'interface"
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Langue de l'interface"
                                        FontSize="14"
-                                       FontWeight="Medium"
-                                       Foreground="#2B2118" />
-							<TextBlock Text="Choisissez la langue affichée dans l'application."
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="Choisissez la langue affichée dans l'application."
                                        FontSize="12"
-                                       Foreground="#B3B6B7" />
-						</StackPanel>
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
 
-						<Separator />
+                        <Separator/>
 
-						<Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-							<ComboBox Grid.Column="0"
-                                      SelectedItem="{Binding SelectedLanguage}"
-                                      HorizontalAlignment="Left"
-                                      Width="200">
-								<ComboBoxItem>English</ComboBoxItem>
-								<ComboBoxItem>Français</ComboBoxItem>
-							</ComboBox>
-							<Button Grid.Column="1"
+                        <Grid ColumnDefinitions="*,Auto">
+
+                            <ComboBox Grid.Column="0"
+                                      Width="200"
+                                      SelectedIndex="{Binding LanguageIndex}">
+                                <ComboBoxItem Content="English"/>
+                                <ComboBoxItem Content="Français"/>
+                            </ComboBox>
+
+                            <Button Grid.Column="1"
                                     Classes="primary"
                                     Content="Enregistrer"
                                     Command="{Binding SaveLanguageCommand}"
-                                    IsVisible="{Binding ShowSaveLanguageButton}"
-                                    VerticalAlignment="Center" />
-						</Grid>
+                                    IsVisible="{Binding ShowSaveLanguageButton}"/>
 
-					</StackPanel>
-				</Border>
-			</StackPanel>
-		</ScrollViewer>
+                        </Grid>
 
-	</DockPanel>
+                    </StackPanel>
+
+                </Border>
+
+                <!-- LOG FORMAT -->
+                <Border Classes="row"
+                        Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18"
+                        IsVisible="{Binding ShowLogFormatSetting}">
+
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Format des journaux"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="Choisissez le format des fichiers de logs."
+                                       FontSize="12"
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+
+                            <ComboBox Grid.Column="0"
+                                      Width="200"
+                                      SelectedItem="{Binding SelectedLogFormat}"
+                                      ItemsSource="{Binding LogFormats}"/>
+
+                            <Button Grid.Column="1"
+                                    Classes="primary"
+                                    Content="Enregistrer"
+                                    Command="{Binding SaveLogFormatCommand}"/>
+
+                        </Grid>
+
+                    </StackPanel>
+
+                </Border>
+
+                <!-- BUSINESS SOFTWARE -->
+                <Border Classes="row"
+                        Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18"
+                        IsVisible="{Binding ShowBusinessSoftwareSetting}">
+
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Logiciels métier"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="Les sauvegardes se mettront en pause si ces logiciels sont ouverts."
+                                       FontSize="12"
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <!-- Ajout -->
+                        <Grid ColumnDefinitions="*,Auto"
+                              ColumnSpacing="10">
+
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding NewBusinessSoftware}"
+                                     PlaceholderText="Nom du processus..." />
+
+                            <Button Grid.Column="1"
+                                    Classes="primary"
+                                    Content="Ajouter"
+                                    Command="{Binding AddBusinessSoftwareCommand}" />
+
+                        </Grid>
+
+                        <!-- Liste -->
+                        <ItemsControl ItemsSource="{Binding BusinessSoftware}">
+
+                            <ItemsControl.ItemTemplate>
+
+                                <DataTemplate>
+
+                                    <Border BorderBrush="#E8E4D6"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="10,8"
+                                            Margin="0,4,0,0">
+
+                                        <Grid ColumnDefinitions="*,Auto">
+
+                                            <TextBlock Text="{Binding .}"
+                                                       VerticalAlignment="Center"/>
+
+                                            <Button Grid.Column="1"
+                                                    Content="Supprimer"
+                                                    Command="{Binding $parent[UserControl].DataContext.RemoveBusinessSoftwareCommand}"
+                                                    CommandParameter="{Binding .}"/>
+
+                                        </Grid>
+
+                                    </Border>
+
+                                </DataTemplate>
+
+                            </ItemsControl.ItemTemplate>
+
+                        </ItemsControl>
+
+                    </StackPanel>
+
+                </Border>
+
+            </StackPanel>
+
+        </ScrollViewer>
+
+    </DockPanel>
 
 </UserControl>

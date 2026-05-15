@@ -25,13 +25,12 @@
                                FontSize="13"
                                Foreground="#B3B6B7"
                                VerticalAlignment="Center" />
-                    <ComboBox SelectedValue="{Binding SelectedLogLevel}"
-                              SelectedIndex="0"
+                    <ComboBox SelectedItem="{Binding SelectedLogLevel}"
                               Width="120">
-                        <ComboBoxItem Content="All"/>
-                        <ComboBoxItem Content="Info"/>
-                        <ComboBoxItem Content="Warning"/>
-                        <ComboBoxItem Content="Error"/>
+                        <x:String>All</x:String>
+                        <x:String>Info</x:String>
+                        <x:String>Warning</x:String>
+                        <x:String>Error</x:String>
                     </ComboBox>
                 </StackPanel>
             </Grid>
@@ -61,7 +60,7 @@
             <StackPanel Grid.Row="0"
                         Spacing="2">
 
-                <Grid ColumnDefinitions="80,80,140,*,80,80"
+                <Grid ColumnDefinitions="100,85,155,*,80,80"
                       Margin="0,0,0,6">
 
                     <TextBlock Grid.Column="0"
@@ -149,13 +148,9 @@
 
                                     <TextBlock Text="{Binding Level}"
                                                FontSize="11"
-                                               FontWeight="SemiBold">
-
-                                        <TextBlock.Foreground>
-                                            <SolidColorBrush Color="{Binding LevelColor}" />
-                                        </TextBlock.Foreground>
-
-                                    </TextBlock>
+                                               FontWeight="SemiBold"
+                                               Foreground="#2B2118"
+                                               />
 
                                 </Border>
 
