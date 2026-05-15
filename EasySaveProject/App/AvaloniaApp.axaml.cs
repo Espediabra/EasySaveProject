@@ -8,10 +8,7 @@ namespace EasySaveProject.UI.Avalonia;
 
 public partial class AvaloniaApp : Application
 {
-    public override void Initialize()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
+    public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
     public override void OnFrameworkInitializationCompleted()
     {

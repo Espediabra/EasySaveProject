@@ -11,6 +11,7 @@ public partial class BackupJobViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TypeLabel))]
     private string _type = "Full";
+    [ObservableProperty] private int _pendingTypeIndex;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsRunning))]
@@ -50,4 +51,9 @@ public partial class BackupJobViewModel : ObservableObject
             TargetPath = target,
             Type = type
         };
+
+    partial void OnTypeChanged(string value)
+    {
+        PendingTypeIndex = value == "Differential" ? 1 : 0;
+    }
 }
