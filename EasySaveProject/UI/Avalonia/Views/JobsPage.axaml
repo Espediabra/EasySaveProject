@@ -10,54 +10,85 @@
         <!-- ─── Liste des jobs ───────────────────────────────────────────── -->
         <DockPanel Grid.Column="0">
 
-            <!-- En-tête -->
+            <!-- HEADER -->
             <Border DockPanel.Dock="Top"
                     Padding="28,24,28,16"
                     BorderBrush="#E8E4D6"
                     BorderThickness="0,0,0,1">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel>
-                        <TextBlock Classes="heading" Text="{Binding Loc[Jobs.Title]}" />
+                        <TextBlock Classes="heading"
+                                   Text="{Binding Loc[Jobs.Title]}" />
+
                         <TextBlock Classes="subheading"
                                    Text="{Binding Loc[Jobs.Subtitle]}"
                                    Margin="0,2,0,0" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                VerticalAlignment="Center">
+
                         <Button Classes="secondary"
                                 Content="{Binding Loc[Jobs.RunSelected]}"
                                 IsVisible="{Binding HasSelectedJobs}"
-                                Command="{Binding RunSelectedJobsCommand}"
-                                VerticalAlignment="Center" />
+                                Command="{Binding RunSelectedJobsCommand}" />
+
                         <Button Classes="primary"
                                 Content="{Binding Loc[Jobs.New]}"
-                                Command="{Binding OpenCreateFormCommand}"
-                                VerticalAlignment="Center" />
+                                Command="{Binding OpenCreateFormCommand}" />
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Formulaire de création inline -->
+            <!-- SEARCH -->
+            <Border DockPanel.Dock="Top"
+                    Padding="28,16,28,10"
+                    BorderBrush="#E8E4D6"
+                    BorderThickness="0,0,0,1">
+
+                <TextBox Text="{Binding SearchJobs}"
+                         PlaceholderText="{Binding Loc[Jobs.Search]}"
+                         Height="38"
+                         FontSize="13"
+                         Background="#FEFCF7"
+                         BorderBrush="#E8E4D6"
+                         CornerRadius="8"/>
+            </Border>
+
+            <!-- CREATE FORM -->
             <Border DockPanel.Dock="Top"
                     IsVisible="{Binding ShowCreateForm}"
                     Background="#F7F3E3"
                     BorderBrush="#E8E4D6"
                     BorderThickness="0,0,0,1"
                     Padding="28,20">
-                <StackPanel Spacing="14" MaxWidth="560" HorizontalAlignment="Left">
+
+                <StackPanel Spacing="14"
+                            MaxWidth="560"
+                            HorizontalAlignment="Left">
+
                     <TextBlock Text="{Binding Loc[Form.NewBackup]}"
                                FontSize="14"
                                FontWeight="Medium"
                                Foreground="#2B2118" />
 
                     <Grid ColumnDefinitions="*,16,180">
+
                         <StackPanel Grid.Column="0">
-                            <TextBlock Classes="label" Text="{Binding Loc[Form.Name]}" />
-                            <TextBox Text="{Binding FormName}" PlaceholderText="{Binding Loc[Form.NamePlaceholder]}" />
+                            <TextBlock Classes="label"
+                                       Text="{Binding Loc[Form.Name]}" />
+
+                            <TextBox Text="{Binding FormName}"
+                                     PlaceholderText="{Binding Loc[Form.NamePlaceholder]}" />
                         </StackPanel>
+
                         <StackPanel Grid.Column="2">
-                            <TextBlock Classes="label" Text="{Binding Loc[Form.Type]}" />
-                            <ComboBox SelectedIndex="{Binding FormTypeIndex}"
-                                      HorizontalAlignment="Stretch">
+                            <TextBlock Classes="label"
+                                       Text="{Binding Loc[Form.Type]}" />
+
+                            <ComboBox SelectedIndex="{Binding FormTypeIndex}">
                                 <ComboBoxItem Content="Full" />
                                 <ComboBoxItem Content="Differential" />
                             </ComboBox>
@@ -65,13 +96,19 @@
                     </Grid>
 
                     <StackPanel>
-                        <TextBlock Classes="label" Text="{Binding Loc[Form.Source]}" />
-                        <TextBox Text="{Binding FormSource}" PlaceholderText="C:/Users/…" />
+                        <TextBlock Classes="label"
+                                   Text="{Binding Loc[Form.Source]}" />
+
+                        <TextBox Text="{Binding FormSource}"
+                                 PlaceholderText="C:/Users/…" />
                     </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="label" Text="{Binding Loc[Form.Target]}" />
-                        <TextBox Text="{Binding FormTarget}" PlaceholderText="D:/Backups/…" />
+                        <TextBlock Classes="label"
+                                   Text="{Binding Loc[Form.Target]}" />
+
+                        <TextBox Text="{Binding FormTarget}"
+                                 PlaceholderText="D:/Backups/…" />
                     </StackPanel>
 
                     <TextBlock Text="{Binding FormError}"
@@ -79,10 +116,13 @@
                                Foreground="#6F1A07"
                                FontSize="12" />
 
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+
                         <Button Classes="primary"
                                 Content="{Binding Loc[Form.Create]}"
                                 Command="{Binding SubmitCreateCommand}" />
+
                         <Button Classes="secondary"
                                 Content="{Binding Loc[Form.Cancel]}"
                                 Command="{Binding CancelCreateCommand}" />
@@ -90,27 +130,37 @@
                 </StackPanel>
             </Border>
 
-            <!-- Prompt "Exécuter maintenant?" -->
+            <!-- RUN NOW -->
             <Border DockPanel.Dock="Top"
                     IsVisible="{Binding ShowRunNowPrompt}"
                     Background="#EDF7EE"
                     BorderBrush="#9BC99E"
                     BorderThickness="0,0,0,1"
                     Padding="28,16">
+
                 <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel VerticalAlignment="Center" Spacing="2">
+
+                    <StackPanel VerticalAlignment="Center"
+                                Spacing="2">
+
                         <TextBlock Text="{Binding RunNowJobTitle}"
                                    FontSize="13"
                                    FontWeight="Medium"
                                    Foreground="#2B4A2D" />
+
                         <TextBlock Text="{Binding Loc[RunNow.Question]}"
                                    FontSize="12"
                                    Foreground="#3D7A40" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="8">
+
                         <Button Classes="primary"
                                 Content="{Binding Loc[RunNow.Run]}"
                                 Command="{Binding RunNowCommand}" />
+
                         <Button Classes="secondary"
                                 Content="{Binding Loc[RunNow.Later]}"
                                 Command="{Binding DismissRunNowCommand}" />
@@ -118,146 +168,156 @@
                 </Grid>
             </Border>
 
-            <!-- État vide -->
-            <Border DockPanel.Dock="Top"
-                    IsVisible="{Binding Jobs.Count, Converter={x:Static views:ZeroToBoolConverter.Instance}}"
-                    Padding="28,48"
-                    HorizontalAlignment="Center">
-                <StackPanel HorizontalAlignment="Center" Spacing="8">
-                    <TextBlock Text="{Binding Loc[Jobs.Empty]}"
-                               FontSize="15"
-                               FontWeight="Medium"
-                               Foreground="#2B2118"
-                               HorizontalAlignment="Center" />
-                    <TextBlock Text="{Binding Loc[Jobs.Empty.Sub]}"
-                               Foreground="#B3B6B7"
-                               FontSize="13"
-                               HorizontalAlignment="Center" />
-                </StackPanel>
-            </Border>
+            <!-- CONTENT -->
+            <ScrollViewer Margin="28,16,28,24"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
 
-            <!-- Liste -->
-            <ScrollViewer DockPanel.Dock="Top" Padding="28,16,28,24">
-                <ItemsControl ItemsSource="{Binding Jobs}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="vm:BackupJobViewModel" x:CompileBindings="False">
-                            <Border Background="#FEFCF7"
-                                    BorderBrush="#E8E4D6"
-                                    BorderThickness="1"
-                                    CornerRadius="10"
-                                    Margin="0,0,0,10"
-                                    Padding="16,14"
-                                    Cursor="Hand">
+                <StackPanel Spacing="10">
 
-                                <Border.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="Exécuter"
-                                                  Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
-                                                  CommandParameter="{Binding}" />
-                                        <MenuItem Header="Supprimer"
-                                                  Command="{Binding $parent[UserControl].DataContext.DeleteJobCommand}"
-                                                  CommandParameter="{Binding}" />
-                                    </ContextMenu>
-                                </Border.ContextMenu>
+                    <!-- EMPTY -->
+                    <Border IsVisible="{Binding Jobs.Count, Converter={x:Static views:ZeroToBoolConverter.Instance}}"
+                            Padding="28,48">
 
-                                <Grid ColumnDefinitions="Auto,*,Auto">
+                        <StackPanel HorizontalAlignment="Center"
+                                    Spacing="8">
 
-                                    <!-- Case à cocher multi-sélection -->
-                                    <CheckBox Grid.Column="0"
-                                              IsChecked="{Binding IsSelected}"
-                                              VerticalAlignment="Top"
-                                              Margin="0,2,12,0" />
+                            <TextBlock Text="{Binding Loc[Jobs.Empty]}"
+                                       FontSize="15"
+                                       FontWeight="Medium"
+                                       Foreground="#2B2118"
+                                       HorizontalAlignment="Center" />
 
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <Grid ColumnDefinitions="Auto,8,Auto,*">
-                                            <TextBlock Grid.Column="0"
-                                                       Text="{Binding Name}"
-                                                       FontSize="14"
-                                                       FontWeight="Medium"
-                                                       Foreground="#2B2118" />
-                                            <!-- Badge type -->
-                                            <Border Grid.Column="2"
+                            <TextBlock Text="{Binding Loc[Jobs.Empty.Sub]}"
+                                       Foreground="#B3B6B7"
+                                       FontSize="13"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- LIST -->
+                    <ItemsControl ItemsSource="{Binding FilteredJobs}" VerticalAlignment="Top">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:BackupJobViewModel" x:CompileBindings="False">
+                                <Border Background="#FEFCF7"
+                                        BorderBrush="#E8E4D6"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        Margin="0,0,0,10"
+                                        Padding="16,14"
+                                        Cursor="Hand">
+
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Exécuter"
+                                                      Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
+                                                      CommandParameter="{Binding}" />
+                                            <MenuItem Header="Supprimer"
+                                                      Command="{Binding $parent[UserControl].DataContext.DeleteJobCommand}"
+                                                      CommandParameter="{Binding}" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+
+                                        <!-- Case à cocher multi-sélection -->
+                                        <CheckBox Grid.Column="0"
+                                                  IsChecked="{Binding IsSelected}"
+                                                  VerticalAlignment="Top"
+                                                  Margin="0,2,12,0" />
+
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <Grid ColumnDefinitions="Auto,8,Auto,*">
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Name}"
+                                                           FontSize="14"
+                                                           FontWeight="Medium"
+                                                           Foreground="#2B2118" />
+                                                <!-- Badge type -->
+                                                <Border Grid.Column="2"
+                                                        CornerRadius="4"
+                                                        Padding="6,2"
+                                                        Background="#F1E8D8">
+                                                    <TextBlock Text="{Binding TypeLabel}"
+                                                               FontSize="11"
+                                                               Foreground="#AF9164" />
+                                                </Border>
+                                            </Grid>
+
+                                            <TextBlock Text="{Binding SourcePath}"
+                                                       FontSize="12"
+                                                       Foreground="#B3B6B7"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Margin="0,2,0,0" />
+
+                                            <!-- Barre de progression -->
+                                            <StackPanel IsVisible="{Binding IsRunning}" Margin="0,6,0,0" Spacing="4">
+                                                <ProgressBar Value="{Binding Progress}"
+                                                             Maximum="100"
+                                                             Height="3"
+                                                             CornerRadius="2"
+                                                             Background="#E8E4D6"
+                                                             Foreground="#AF9164" />
+                                                <TextBlock Text="{Binding ProgressText}"
+                                                           FontSize="11"
+                                                           Foreground="#B3B6B7" />
+                                            </StackPanel>
+
+                                            <!-- Badge terminé -->
+                                            <Border IsVisible="{Binding IsCompleted}"
                                                     CornerRadius="4"
                                                     Padding="6,2"
-                                                    Background="#F1E8D8">
-                                                <TextBlock Text="{Binding TypeLabel}"
-                                                           FontSize="11"
-                                                           Foreground="#AF9164" />
+                                                    Background="#E4F0E5"
+                                                    HorizontalAlignment="Left"
+                                                    Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding DataContext.Loc[Jobs.Status.DoneLabel],
+                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                FontSize="11"
+                                                Foreground="#3D7A40" />
                                             </Border>
-                                        </Grid>
 
-                                        <TextBlock Text="{Binding SourcePath}"
-                                                   FontSize="12"
-                                                   Foreground="#B3B6B7"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   Margin="0,2,0,0" />
-
-                                        <!-- Barre de progression -->
-                                        <StackPanel IsVisible="{Binding IsRunning}" Margin="0,6,0,0" Spacing="4">
-                                            <ProgressBar Value="{Binding Progress}"
-                                                         Maximum="100"
-                                                         Height="3"
-                                                         CornerRadius="2"
-                                                         Background="#E8E4D6"
-                                                         Foreground="#AF9164" />
-                                            <TextBlock Text="{Binding ProgressText}"
-                                                       FontSize="11"
-                                                       Foreground="#B3B6B7" />
+                                            <!-- Badge erreur -->
+                                            <Border IsVisible="{Binding IsError}"
+                                                    CornerRadius="4"
+                                                    Padding="6,2"
+                                                    Background="#F5E0DC"
+                                                    HorizontalAlignment="Left"
+                                                    Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding DataContext.Loc[Jobs.Status.ErrorLabel],
+                                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                FontSize="11"
+                                                Foreground="#6F1A07" />
+                                            </Border>
                                         </StackPanel>
 
-                                        <!-- Badge terminé -->
-                                        <Border IsVisible="{Binding IsCompleted}"
-                                                CornerRadius="4"
-                                                Padding="6,2"
-                                                Background="#E4F0E5"
-                                                HorizontalAlignment="Left"
-                                                Margin="0,4,0,0">
-                                            <TextBlock Text="{Binding DataContext.Loc[Jobs.Status.DoneLabel],
-                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            FontSize="11"
-                                            Foreground="#3D7A40" />
-                                        </Border>
+                                        <!-- Boutons action -->
+                                        <StackPanel Grid.Column="2"
+                                                    Orientation="Horizontal"
+                                                    Spacing="6"
+                                                    VerticalAlignment="Center">
+                                            <Button Classes="primary"
+                                                    Content="{Binding DataContext.Loc[Jobs.Run], RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    FontSize="12"
+                                                    Padding="10,6"
+                                                    Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    IsEnabled="{Binding !IsRunning}" />
+                                            <Button Classes="icon"
+                                                    Command="{Binding $parent[UserControl].DataContext.SelectJobCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip.Tip="Détails">
+                                                <TextBlock Text="›"
+                                                           FontSize="18"
+                                                           Foreground="#B3B6B7" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-                                        <!-- Badge erreur -->
-                                        <Border IsVisible="{Binding IsError}"
-                                                CornerRadius="4"
-                                                Padding="6,2"
-                                                Background="#F5E0DC"
-                                                HorizontalAlignment="Left"
-                                                Margin="0,4,0,0">
-                                            <TextBlock Text="{Binding DataContext.Loc[Jobs.Status.ErrorLabel]},
-                                            elativeSource={RelativeSource AncestorType=UserControl}}"
-                                            FontSize="11"
-                                            Foreground="#6F1A07" />
-                                        </Border>
-                                    </StackPanel>
-
-                                    <!-- Boutons action -->
-                                    <StackPanel Grid.Column="2"
-                                                Orientation="Horizontal"
-                                                Spacing="6"
-                                                VerticalAlignment="Center">
-                                        <Button Classes="primary"
-                                                Content="{Binding DataContext.Loc[Jobs.Run], RelativeSource={RelativeSource AncestorType=UserControl}}}"
-                                                FontSize="12"
-                                                Padding="10,6"
-                                                Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
-                                                CommandParameter="{Binding}"
-                                                IsEnabled="{Binding !IsRunning}" />
-                                        <Button Classes="icon"
-                                                Command="{Binding $parent[UserControl].DataContext.SelectJobCommand}"
-                                                CommandParameter="{Binding}"
-                                                ToolTip.Tip="Détails">
-                                            <TextBlock Text="›"
-                                                       FontSize="18"
-                                                       Foreground="#B3B6B7" />
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                </StackPanel>
             </ScrollViewer>
 
         </DockPanel>
