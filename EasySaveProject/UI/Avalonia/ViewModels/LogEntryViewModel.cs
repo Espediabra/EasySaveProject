@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using EasySaveProject.Core.Localization;
 
 namespace EasySaveProject.UI.Avalonia.ViewModels;
 
@@ -7,9 +8,27 @@ public partial class LogEntryViewModel : ObservableObject
     public DateTime Timestamp { get; set; }
     public string Level { get; set; } = "Info";
     public string JobName { get; set; } = "";
-    public string Message { get; set; } = "";
+    public string MessageKey { get; set; } = "";
+    public string[] Args { get; set; } = [];
     public long FileSizeBytes { get; set; }
     public long TransferTimeMs { get; set; }
+    public string Message
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(MessageKey))
+                return "";
+
+            var translated = LocalizationManager.Instance[MessageKey];
+
+            if (string.IsNullOrWhiteSpace(translated) || translated == MessageKey)
+                return MessageKey;
+
+            return Args.Length == 0
+                ? translated
+                : string.Format(translated, Args);
+        }
+    }
 
     public string TimeFormatted => Timestamp.ToString("HH:mm:ss");
     public string DateFormatted => Timestamp.ToString("dd/MM/yyyy");
@@ -30,5 +49,5 @@ public partial class LogEntryViewModel : ObservableObject
         "Warning" => "#FBF5E6",
         _ => "#E4F0E5"
     };
-    
+
 }

@@ -8,7 +8,6 @@ using EasySaveProject.Core.Services;
 using EasySaveProject.Core.Localization;
 using EasySaveProject.Infrastructure.Crypto;
 using EasySaveProject.Infrastructure.Monitoring;
-using EasySaveProject.Core.Localization;
 
 namespace EasySaveProject.UI.Avalonia.ViewModels;
 
@@ -27,7 +26,7 @@ public partial class MainWindowViewModel : ObservableObject
         IsRunning = state;
         OnExecutionStateChanged?.Invoke(state);
     }
-    
+
 
     // ── Navigation ───────────────────────────────────────────────────────
     [ObservableProperty]
@@ -109,19 +108,12 @@ public partial class MainWindowViewModel : ObservableObject
     {
         var fileService = new FileService();
         var stateService = new StateService();
-        var loc = new LocalizationService();
 
         var configService = new ConfigService();
         var config = configService.Load();
         LanguageIndex = config.Langage == "fr" ? 1 : 0;
 
         CurrentPage = config.FirstRun ? "LanguageSelect" : "Jobs";
-
-        try
-        {
-            loc.Load(string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage);
-        }
-        catch { }
 
         SelectedLanguage = config.Langage == "fr" ? "Français" : "English";
         SelectedLogFormat = config.LogFormat == AppLogFormat.Xml ? "XML" : "JSON";
@@ -130,7 +122,10 @@ public partial class MainWindowViewModel : ObservableObject
             config.BusinessSoftware
         );
 
-        LogService.Initialize(loc);
+        var lang = string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage;
+        LocalizationManager.Instance.CurrentLanguage = lang;
+
+        LogService.Initialize(new LocalizationService());
         _logService = LogService.Instance;
 
         // ── Nouveaux services ─────────────────────────────
@@ -217,7 +212,7 @@ public partial class MainWindowViewModel : ObservableObject
                         _ => e.Level.ToString()
                     },
                     JobName = e.JobName,
-                    Message = e.Message,
+                    MessageKey = e.Message,
                     FileSizeBytes = e.FileSizeBytes,
                     TransferTimeMs = e.TransferTimeMs
                 });
@@ -410,6 +405,12 @@ public partial class MainWindowViewModel : ObservableObject
         ShowRunNowPrompt = true;
     }
 
+    public string JobsCountText =>
+    string.Format(
+        LocalizationManager.Instance["Nav.JobsCount"],
+        Jobs.Count
+    );
+
     // ── Prompt "Exécuter maintenant?" ─────────────────────────────────────
     [RelayCommand]
     async Task RunNow()
@@ -487,12 +488,14 @@ public partial class MainWindowViewModel : ObservableObject
         config.FirstRun = false;
         configService.Save(config);
 
+        LocalizationManager.Instance.CurrentLanguage = langCode;
+
         ShowSaveLanguageButton = false;
 
         if (CurrentPage == "LanguageSelect")
             CurrentPage = "Jobs";
         else
-            ShowToastMessage("Langue enregistrée. Redémarrez l'application.");
+            ShowToastMessage(Loc["Settings.Save"]);
     }
 
     // ── Toast ─────────────────────────────────────────────────────────────

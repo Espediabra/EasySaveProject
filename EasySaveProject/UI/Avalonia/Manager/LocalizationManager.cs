@@ -13,6 +13,11 @@ public class LocalizationManager : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private string _currentLanguage = "en";
+
+    private LocalizationManager()
+    {
+        _service.Load(_currentLanguage);
+    }
     public string CurrentLanguage
     {
         get => _currentLanguage;
@@ -24,7 +29,7 @@ public class LocalizationManager : INotifyPropertyChanged
                 _service.Load(value);
 
                 OnPropertyChanged(nameof(CurrentLanguage));
-                OnPropertyChanged("Item"); // IMPORTANT pour indexer
+                OnPropertyChanged("Item[]");
             }
         }
     }

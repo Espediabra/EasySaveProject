@@ -17,19 +17,19 @@
                     BorderThickness="0,0,0,1">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel>
-                        <TextBlock Classes="heading" Text="Sauvegardes" />
+                        <TextBlock Classes="heading" Text="{Binding Loc[Jobs.Title]}" />
                         <TextBlock Classes="subheading"
-                                   Text="Gérez et exécutez vos tâches de sauvegarde"
+                                   Text="{Binding Loc[Jobs.Subtitle]}"
                                    Margin="0,2,0,0" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Button Classes="secondary"
-                                Content="▶ Exécuter la sélection"
+                                Content="{Binding Loc[Jobs.RunSelected]}"
                                 IsVisible="{Binding HasSelectedJobs}"
                                 Command="{Binding RunSelectedJobsCommand}"
                                 VerticalAlignment="Center" />
                         <Button Classes="primary"
-                                Content="+ Nouvelle sauvegarde"
+                                Content="{Binding Loc[Jobs.New]}"
                                 Command="{Binding OpenCreateFormCommand}"
                                 VerticalAlignment="Center" />
                     </StackPanel>
@@ -44,18 +44,18 @@
                     BorderThickness="0,0,0,1"
                     Padding="28,20">
                 <StackPanel Spacing="14" MaxWidth="560" HorizontalAlignment="Left">
-                    <TextBlock Text="Nouvelle sauvegarde"
+                    <TextBlock Text="{Binding Loc[Form.NewBackup]}"
                                FontSize="14"
                                FontWeight="Medium"
                                Foreground="#2B2118" />
 
                     <Grid ColumnDefinitions="*,16,180">
                         <StackPanel Grid.Column="0">
-                            <TextBlock Classes="label" Text="Nom" />
-                            <TextBox Text="{Binding FormName}" PlaceholderText="Ex : Documents Pro" />
+                            <TextBlock Classes="label" Text="{Binding Loc[Form.Name]}" />
+                            <TextBox Text="{Binding FormName}" PlaceholderText="{Binding Loc[Form.NamePlaceholder]}" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <TextBlock Classes="label" Text="Type" />
+                            <TextBlock Classes="label" Text="{Binding Loc[Form.Type]}" />
                             <ComboBox SelectedIndex="{Binding FormTypeIndex}"
                                       HorizontalAlignment="Stretch">
                                 <ComboBoxItem Content="Full" />
@@ -65,12 +65,12 @@
                     </Grid>
 
                     <StackPanel>
-                        <TextBlock Classes="label" Text="Chemin source" />
+                        <TextBlock Classes="label" Text="{Binding Loc[Form.Source]}" />
                         <TextBox Text="{Binding FormSource}" PlaceholderText="C:/Users/…" />
                     </StackPanel>
 
                     <StackPanel>
-                        <TextBlock Classes="label" Text="Chemin destination" />
+                        <TextBlock Classes="label" Text="{Binding Loc[Form.Target]}" />
                         <TextBox Text="{Binding FormTarget}" PlaceholderText="D:/Backups/…" />
                     </StackPanel>
 
@@ -81,10 +81,10 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button Classes="primary"
-                                Content="Créer la sauvegarde"
+                                Content="{Binding Loc[Form.Create]}"
                                 Command="{Binding SubmitCreateCommand}" />
                         <Button Classes="secondary"
-                                Content="Annuler"
+                                Content="{Binding Loc[Form.Cancel]}"
                                 Command="{Binding CancelCreateCommand}" />
                     </StackPanel>
                 </StackPanel>
@@ -103,16 +103,16 @@
                                    FontSize="13"
                                    FontWeight="Medium"
                                    Foreground="#2B4A2D" />
-                        <TextBlock Text="Voulez-vous l'exécuter maintenant ?"
+                        <TextBlock Text="{Binding Loc[RunNow.Question]}"
                                    FontSize="12"
                                    Foreground="#3D7A40" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <Button Classes="primary"
-                                Content="▶ Exécuter"
+                                Content="{Binding Loc[RunNow.Run]}"
                                 Command="{Binding RunNowCommand}" />
                         <Button Classes="secondary"
-                                Content="Plus tard"
+                                Content="{Binding Loc[RunNow.Later]}"
                                 Command="{Binding DismissRunNowCommand}" />
                     </StackPanel>
                 </Grid>
@@ -124,12 +124,12 @@
                     Padding="28,48"
                     HorizontalAlignment="Center">
                 <StackPanel HorizontalAlignment="Center" Spacing="8">
-                    <TextBlock Text="Aucune sauvegarde"
+                    <TextBlock Text="{Binding Loc[Jobs.Empty]}"
                                FontSize="15"
                                FontWeight="Medium"
                                Foreground="#2B2118"
                                HorizontalAlignment="Center" />
-                    <TextBlock Text="Créez votre première tâche de sauvegarde pour commencer."
+                    <TextBlock Text="{Binding Loc[Jobs.Empty.Sub]}"
                                Foreground="#B3B6B7"
                                FontSize="13"
                                HorizontalAlignment="Center" />
@@ -212,9 +212,10 @@
                                                 Background="#E4F0E5"
                                                 HorizontalAlignment="Left"
                                                 Margin="0,4,0,0">
-                                            <TextBlock Text="✓ Terminé"
-                                                       FontSize="11"
-                                                       Foreground="#3D7A40" />
+                                            <TextBlock Text="{Binding DataContext.Loc[Jobs.Status.DoneLabel],
+                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            FontSize="11"
+                                            Foreground="#3D7A40" />
                                         </Border>
 
                                         <!-- Badge erreur -->
@@ -224,9 +225,10 @@
                                                 Background="#F5E0DC"
                                                 HorizontalAlignment="Left"
                                                 Margin="0,4,0,0">
-                                            <TextBlock Text="✕ Erreur"
-                                                       FontSize="11"
-                                                       Foreground="#6F1A07" />
+                                            <TextBlock Text="{Binding DataContext.Loc[Jobs.Status.ErrorLabel]},
+                                            elativeSource={RelativeSource AncestorType=UserControl}}"
+                                            FontSize="11"
+                                            Foreground="#6F1A07" />
                                         </Border>
                                     </StackPanel>
 
@@ -236,7 +238,7 @@
                                                 Spacing="6"
                                                 VerticalAlignment="Center">
                                         <Button Classes="primary"
-                                                Content="▶ Exécuter"
+                                                Content="{Binding DataContext.Loc[Jobs.Run], RelativeSource={RelativeSource AncestorType=UserControl}}}"
                                                 FontSize="12"
                                                 Padding="10,6"
                                                 Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
@@ -275,7 +277,7 @@
                         BorderThickness="0,0,0,1">
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Grid.Column="0"
-                                   Text="Détails"
+                                   Text="{Binding Loc[Jobs.Status.DoneLabel]}"
                                    FontSize="14"
                                    FontWeight="Medium"
                                    Foreground="#2B2118"
@@ -294,7 +296,7 @@
                                 DataContext="{Binding SelectedJob}">
 
                         <StackPanel>
-                            <TextBlock Classes="label" Text="NOM" />
+                            <TextBlock Classes="label" Text="{Binding DataContext.Loc[Jobs.Name_v2], RelativeSource={RelativeSource AncestorType=UserControl}}" />
                             <TextBlock Text="{Binding Name}"
                                        FontSize="14"
                                        FontWeight="Medium"
@@ -305,7 +307,7 @@
                         <Separator />
 
                         <StackPanel>
-                            <TextBlock Classes="label" Text="TYPE" />
+                            <TextBlock Classes="label" Text="{Binding DataContext.Loc[Jobs.Type_v2], RelativeSource={RelativeSource AncestorType=UserControl}}" />
                             <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
                                 <ComboBox Grid.Column="0"
                                           SelectedIndex="{Binding PendingTypeIndex}"
@@ -327,7 +329,7 @@
                         <Separator />
 
                         <StackPanel>
-                            <TextBlock Classes="label" Text="SOURCE" />
+                            <TextBlock Classes="label" Text="{Binding DataContext.Loc[Jobs.Source_v2], RelativeSource={RelativeSource AncestorType=UserControl}}" />
                             <TextBlock Text="{Binding SourcePath}"
                                        FontSize="12"
                                        Foreground="#2B2118"
@@ -337,7 +339,7 @@
                         <Separator />
 
                         <StackPanel>
-                            <TextBlock Classes="label" Text="DESTINATION" />
+                            <TextBlock Classes="label" Text="{Binding DataContext.Loc[Jobs.Target_v2], RelativeSource={RelativeSource AncestorType=UserControl}}" />
                             <TextBlock Text="{Binding TargetPath}"
                                        FontSize="12"
                                        Foreground="#2B2118"
@@ -347,7 +349,7 @@
                         <Separator />
 
                         <StackPanel>
-                            <TextBlock Classes="label" Text="STATUT" />
+                            <TextBlock Classes="label" Text="{Binding DataContext.Loc[Jobs.Status_v2], RelativeSource={RelativeSource AncestorType=UserControl}}" />
                             <TextBlock Text="{Binding StatusLabel}"
                                        FontSize="13"
                                        Foreground="#2B2118" />
@@ -357,14 +359,14 @@
 
                         <StackPanel Spacing="8">
                             <Button Classes="primary"
-                                    Content="▶ Exécuter maintenant"
+                                    Content="{Binding DataContext.Loc[Jobs.RunNow], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Center"
                                     Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
                                     CommandParameter="{Binding}"
                                     IsEnabled="{Binding !IsRunning}" />
                             <Button Classes="danger"
-                                    Content="Supprimer"
+                                    Content="{Binding DataContext.Loc[Jobs.Remove], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Center"
                                     Command="{Binding $parent[UserControl].DataContext.DeleteJobCommand}"
