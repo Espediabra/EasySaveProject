@@ -19,7 +19,15 @@ public class AppConfig
 
     // V3: max file size (KB) allowed to transfer simultaneously. 0 = disabled.
     public long LargeFileThresholdKb { get; set; } = 0;
+
+    // V3: log centralization mode (Local / Remote / Both)
+    public LogMode LogMode { get; set; } = LogMode.Local;
+    public string LogServerHost { get; set; } = "localhost";
+    public int LogServerPort { get; set; } = 9000;
+    public string MachineId { get; set; } = Environment.MachineName;
 }
+
+public enum LogMode { Local, Remote, Both }
 
 public class StringOrListConverter : JsonConverter<List<string>>
 {

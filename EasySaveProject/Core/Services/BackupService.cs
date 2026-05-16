@@ -88,7 +88,7 @@ namespace EasySaveProject.Core.Services
         private void RefreshConfig()
         {
             var config = _configService.Load();
-            _watcher.Update(config.BusinessSoftware);
+            // BusinessSoftwareWatcher reads config directly — no Update() needed
             _priorityCoordinator.Update(config.PriorityExtensions);
             _largeFileGuard.Update(config.LargeFileThresholdKb);
         }

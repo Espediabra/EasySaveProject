@@ -35,6 +35,7 @@ public class SettingsView
                 _loc.T("Settings.BusinessSoftware"),
                 _loc.T("Settings.PriorityExtensions"),
                 _loc.T("Settings.LargeFileThreshold"),
+                _loc.T("Settings.LogMode"),
                 _loc.T("Settings.Back")
             };
 
@@ -42,28 +43,13 @@ public class SettingsView
 
             switch (choice)
             {
-                case 0:
-                    ChangeLanguage();
-                    break;
-
-                case 1:
-                    ChangeLogFormat();
-                    break;
-
-                case 2:
-                    ManageBusinessSoftware();
-                    break;
-
-                case 3:
-                    ManagePriorityExtensions();
-                    break;
-
-                case 4:
-                    ManageLargeFileThreshold();
-                    break;
-
-                case 5:
-                    return;
+                case 0: ChangeLanguage(); break;
+                case 1: ChangeLogFormat(); break;
+                case 2: ManageBusinessSoftware(); break;
+                case 3: ManagePriorityExtensions(); break;
+                case 4: ManageLargeFileThreshold(); break;
+                case 5: ManageLogMode(); break;
+                case 6: return;
             }
         }
     }
@@ -97,7 +83,7 @@ public class SettingsView
         config.LogFormat = choice == 1 ? LogFormat.Xml : LogFormat.Json;
         _configService.Save(config);
 
-        LogService.Initialize(_loc, config.LogFormat);
+        LogService.Initialize(_loc, config.LogFormat, config);
 
         Console.WriteLine(_loc.T("Settings.LogFormatUpdated"));
         Console.ReadKey();
@@ -395,6 +381,93 @@ public class SettingsView
         _configService.Save(config);
 
         Console.WriteLine(_loc.T("Settings.LargeFileThreshold.Updated"));
+        Console.ReadKey();
+    }
+
+    // ── Log centralization ────────────────────────────────────────────────
+
+    private void ManageLogMode()
+    {
+        Console.Clear();
+        HeaderComponent.Render(_loc.T("Settings.LogMode"));
+
+        var config = _configService.Load();
+
+        Console.WriteLine($"{_loc.T("Settings.LogMode.Current")}: {config.LogMode}");
+        Console.WriteLine($"  Host: {config.LogServerHost}:{config.LogServerPort}");
+        Console.WriteLine($"  Machine ID: {config.MachineId}");
+        Console.WriteLine();
+
+        var options = new List<string>
+        {
+            _loc.T("Settings.LogMode.Local"),
+            _loc.T("Settings.LogMode.Remote"),
+            _loc.T("Settings.LogMode.Both"),
+            _loc.T("Settings.LogMode.EditServer"),
+            _loc.T("Settings.Back")
+        };
+
+        int choice = _menu.Select(options);
+
+        switch (choice)
+        {
+            case 0:
+                config.LogMode = LogMode.Local;
+                _configService.Save(config);
+                LogService.Initialize(_loc, config.LogFormat, config);
+                Console.WriteLine(_loc.T("Settings.LogMode.Updated"));
+                Console.ReadKey();
+                break;
+
+            case 1:
+                config.LogMode = LogMode.Remote;
+                _configService.Save(config);
+                LogService.Initialize(_loc, config.LogFormat, config);
+                Console.WriteLine(_loc.T("Settings.LogMode.Updated"));
+                Console.ReadKey();
+                break;
+
+            case 2:
+                config.LogMode = LogMode.Both;
+                _configService.Save(config);
+                LogService.Initialize(_loc, config.LogFormat, config);
+                Console.WriteLine(_loc.T("Settings.LogMode.Updated"));
+                Console.ReadKey();
+                break;
+
+            case 3:
+                EditServerConfig(config);
+                break;
+
+            case 4:
+                return;
+        }
+    }
+
+    private void EditServerConfig(AppConfig config)
+    {
+        Console.Clear();
+        HeaderComponent.Render(_loc.T("Settings.LogMode.EditServer"));
+
+        Console.Write($"{_loc.T("Settings.LogMode.Host")} [{config.LogServerHost}]: ");
+        var host = Console.ReadLine()?.Trim();
+        if (!string.IsNullOrWhiteSpace(host))
+            config.LogServerHost = host;
+
+        Console.Write($"{_loc.T("Settings.LogMode.Port")} [{config.LogServerPort}]: ");
+        var portStr = Console.ReadLine()?.Trim();
+        if (int.TryParse(portStr, out int port) && port > 0 && port < 65536)
+            config.LogServerPort = port;
+
+        Console.Write($"{_loc.T("Settings.LogMode.MachineId")} [{config.MachineId}]: ");
+        var machineId = Console.ReadLine()?.Trim();
+        if (!string.IsNullOrWhiteSpace(machineId))
+            config.MachineId = machineId;
+
+        _configService.Save(config);
+        LogService.Initialize(_loc, config.LogFormat, config);
+
+        Console.WriteLine(_loc.T("Settings.LogMode.Updated"));
         Console.ReadKey();
     }
 }
