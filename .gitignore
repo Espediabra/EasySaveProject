@@ -150,6 +150,9 @@ CLAUDE.md
 # Conversation files
 conversation_easysave*
 
+# logs-data folder
+logs-data/
+
 # TeamCity is a build add-in
 _TeamCity*
 
