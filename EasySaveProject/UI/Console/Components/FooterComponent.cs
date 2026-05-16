@@ -161,7 +161,9 @@ public class FooterComponent
         bool jobPaused    = ctrl?.IsPaused == true;
         bool globalPaused = _pauseService.IsPaused;
 
-        string pauseTag = (globalPaused || jobPaused) ? " [PAUSE]" : string.Empty;
+        string pauseTag = !string.IsNullOrEmpty(snap.BlockedBy)
+            ? $" [BLOCKED: {snap.BlockedBy}]"
+            : (globalPaused || jobPaused) ? " [PAUSE]" : string.Empty;
 
         string etaStr = snap.Eta.HasValue
             ? $"{(int)snap.Eta.Value.TotalHours:D2}:{snap.Eta.Value.Minutes:D2}:{snap.Eta.Value.Seconds:D2}"

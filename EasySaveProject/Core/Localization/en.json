@@ -12,6 +12,8 @@
   "Logs.SelectLevel": "Select level",
   "Logs.TodayHeader": "Today's Logs",
   "Logs.LevelHeader": "Logs - {0}",
+  "Logs.Directory": "Log directory",
+  "Logs.Empty": "No log entries found for today.",
 
   "Settings.ComingSoon": "Settings coming soon...",
   "Settings.Title": "Settings",

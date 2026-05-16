@@ -31,6 +31,7 @@ public static class BackupStateHub
                 RemainingSize     = state.RemainingSize,
                 CurrentSourceFile = state.CurrentSourceFile,
                 CurrentTargetFile = state.CurrentTargetFile,
+                BlockedBy         = state.BlockedBy,
             };
         }
     }

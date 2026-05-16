@@ -139,6 +139,11 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                         state.Timestamp = DateTime.Now;
                         stateService.Update(state);
 
+                        // Mid-copy business software check: blocks the copy thread at each
+                        // 1 MB chunk boundary until the offending process closes.
+                        if (watcher.IsRunning())
+                            watcher.WaitUntilFree(pauseService, logService, job, state, stateService);
+
                         pauseService.WaitIfPaused();
                         jobController.WaitIfPaused();
 

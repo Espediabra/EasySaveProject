@@ -39,14 +39,17 @@ public class LogService
 
     private readonly EasyLogWrapper _wrapper;
     private readonly ILogProvider _provider;
+    private readonly string _logDir;
+
+    public string GetLogDirectory() => _logDir;
 
     private LogService(LocalizationService loc, LogFormat? format, AppConfig? config)
     {
         _loc = loc;
 
-        string logDir = Path.GetFullPath(
+        _logDir = Path.GetFullPath(
             Path.Combine(AppContext.BaseDirectory, "Data", "Logs"));
-        Directory.CreateDirectory(logDir);
+        Directory.CreateDirectory(_logDir);
 
         if (format == null)
         {
@@ -55,8 +58,8 @@ public class LogService
         }
 
         ILogProvider localProvider = format == LogFormat.Xml
-            ? new XmlLogProvider(logDir)
-            : new JsonLogProvider(logDir);
+            ? new XmlLogProvider(_logDir)
+            : new JsonLogProvider(_logDir);
 
         _provider = BuildProvider(localProvider, config);
         _wrapper = new EasyLogWrapper(_provider);

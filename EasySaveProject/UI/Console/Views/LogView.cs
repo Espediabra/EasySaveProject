@@ -52,6 +52,8 @@ public class LogView
 
         Console.Clear();
         HeaderComponent.Render(_loc.T("Logs.TodayHeader"));
+        Console.WriteLine($"{_loc.T("Logs.Directory")}: {_vm.GetLogDirectory()}");
+        Console.WriteLine();
 
         PrintSimple(logs);
 
@@ -92,7 +94,13 @@ public class LogView
 
     private void PrintSimple(List<LogDto> entries)
     {
-        Console.WriteLine($"Time       Level      Job                Message");
+        if (entries.Count == 0)
+        {
+            Console.WriteLine(_loc.T("Logs.Empty"));
+            return;
+        }
+
+        Console.WriteLine($"{"Time",-10} {"Level",-10} {"Job",-18} {"Message"}");
         Console.WriteLine(new string('-', 80));
 
         foreach (var e in entries)

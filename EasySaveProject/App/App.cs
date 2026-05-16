@@ -91,7 +91,7 @@ public class App
             else footer.Stop();
         };
 
-        var logViewModel = new LogViewModel(_logService);
+        var logViewModel = new LogViewModel();
 
         var logView = new LogView(_menu, _loc, logViewModel);
 
