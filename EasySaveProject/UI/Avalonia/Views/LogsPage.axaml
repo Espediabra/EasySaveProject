@@ -14,14 +14,14 @@
                 BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel>
-                    <TextBlock Classes="heading" Text="Journaux" />
+                    <TextBlock Classes="heading" Text="{Binding Loc[Logs.Title]}" />
                     <TextBlock Classes="subheading"
-                               Text="Historique des opérations de sauvegarde"
+                               Text="{Binding Loc[Logs.Subtitle]}"
                                Margin="0,2,0,0" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <TextBlock Text="Filtrer :"
+                    <TextBlock Text="{Binding Loc[Logs.Filter]}"
                                FontSize="13"
                                Foreground="#B3B6B7"
                                VerticalAlignment="Center" />
@@ -43,7 +43,7 @@
                 BorderThickness="0,0,0,1">
 
             <TextBox Text="{Binding SearchLogs}"
-                     PlaceholderText="Rechercher un job, message ou niveau..."
+                     PlaceholderText="{Binding Loc[Logs.Search]}"
                      Height="38"
                      FontSize="13"
                      Background="#FEFCF7"

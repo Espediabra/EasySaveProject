@@ -12,9 +12,9 @@
                 BorderBrush="#E8E4D6"
                 BorderThickness="0,0,0,1">
             <StackPanel>
-                <TextBlock Classes="heading" Text="Paramètres" />
+                <TextBlock Classes="heading" Text="{Binding Loc[Settings.Title]}" />
                 <TextBlock Classes="subheading"
-                           Text="Configurez l'application selon vos préférences"
+                           Text="{Binding Loc[Settings.Subtitle]}"
                            Margin="0,2,0,0" />
             </StackPanel>
         </Border>
@@ -26,7 +26,7 @@
                 BorderThickness="0,0,0,1">
 
             <TextBox Text="{Binding SearchSettings}"
-                     PlaceholderText="Rechercher un paramètre..."
+                     PlaceholderText="{Binding Loc[Settings.Search]}"
                      Height="38"
                      FontSize="13"
                      Background="#FEFCF7"
@@ -52,10 +52,10 @@
                     <StackPanel Spacing="14">
 
                         <StackPanel Spacing="2">
-                            <TextBlock Text="Langue de l'interface"
+                            <TextBlock Text="{Binding Loc[Settings.Language]}"
                                        FontSize="14"
                                        FontWeight="Medium"/>
-                            <TextBlock Text="Choisissez la langue affichée dans l'application."
+                            <TextBlock Text="{Binding Loc[Settings.Language.Desc]}"
                                        FontSize="12"
                                        Foreground="#B3B6B7"/>
                         </StackPanel>
@@ -73,7 +73,7 @@
 
                             <Button Grid.Column="1"
                                     Classes="primary"
-                                    Content="Enregistrer"
+                                    Content="{Binding Loc[Settings.Save]}"
                                     Command="{Binding SaveLanguageCommand}"
                                     IsVisible="{Binding ShowSaveLanguageButton}"/>
 
@@ -95,10 +95,10 @@
                     <StackPanel Spacing="14">
 
                         <StackPanel Spacing="2">
-                            <TextBlock Text="Format des journaux"
+                            <TextBlock Text="{Binding Loc[Settings.LogFormat.Title]}"
                                        FontSize="14"
                                        FontWeight="Medium"/>
-                            <TextBlock Text="Choisissez le format des fichiers de logs."
+                            <TextBlock Text="{Binding Loc[Settings.LogFormat.Desc]}"
                                        FontSize="12"
                                        Foreground="#B3B6B7"/>
                         </StackPanel>
@@ -114,7 +114,7 @@
 
                             <Button Grid.Column="1"
                                     Classes="primary"
-                                    Content="Enregistrer"
+                                    Content="{Binding Loc[Settings.LogFormat.Save]}"
                                     Command="{Binding SaveLogFormatCommand}"/>
 
                         </Grid>
@@ -135,10 +135,10 @@
                     <StackPanel Spacing="14">
 
                         <StackPanel Spacing="2">
-                            <TextBlock Text="Logiciels métier"
+                            <TextBlock Text="{Binding Loc[Settings.BusinessSoftware.Title]}"
                                        FontSize="14"
                                        FontWeight="Medium"/>
-                            <TextBlock Text="Les sauvegardes se mettront en pause si ces logiciels sont ouverts."
+                            <TextBlock Text="{Binding Loc[Settings.BusinessSoftware.Desc]}"
                                        FontSize="12"
                                        Foreground="#B3B6B7"/>
                         </StackPanel>
@@ -151,11 +151,11 @@
 
                             <TextBox Grid.Column="0"
                                      Text="{Binding NewBusinessSoftware}"
-                                     PlaceholderText="Nom du processus..." />
+                                     PlaceholderText="{Binding Loc[Settings.BusinessSoftware.Placeholder]}" />
 
                             <Button Grid.Column="1"
                                     Classes="primary"
-                                    Content="Ajouter"
+                                    Content="{Binding Loc[Settings.BusinessSoftware.Add]}"
                                     Command="{Binding AddBusinessSoftwareCommand}" />
 
                         </Grid>
@@ -179,7 +179,7 @@
                                                        VerticalAlignment="Center"/>
 
                                             <Button Grid.Column="1"
-                                                    Content="Supprimer"
+                                                    Content="{Binding $parent[UserControl].DataContext.Loc[Settings.BusinessSoftware.Remove]}"
                                                     Command="{Binding $parent[UserControl].DataContext.RemoveBusinessSoftwareCommand}"
                                                     CommandParameter="{Binding .}"/>
 
