@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using EasySaveProject.Core.Localization;
 
 namespace EasySaveProject.UI.Avalonia.ViewModels;
 
@@ -31,13 +32,15 @@ public partial class BackupJobViewModel : ObservableObject
 
     public string StatusLabel => Status switch
     {
-        "Active" => "En cours…",
-        "Completed" => "Terminé",
-        "Error" => "Erreur",
-        _ => "Prêt"
+        "Active" => LocalizationManager.Instance["Jobs.Status.Running"],
+        "Completed" => LocalizationManager.Instance["Jobs.Status.Done"],
+        "Error" => LocalizationManager.Instance["Jobs.Status.Error"],
+        _ => LocalizationManager.Instance["Jobs.Status.Idle"]
     };
 
-    public string TypeLabel => Type == "Differential" ? "Différentielle" : "Complète";
+    public string TypeLabel => Type == "Differential"
+    ? LocalizationManager.Instance["Backup.TypeDifferential"]
+    : LocalizationManager.Instance["Backup.TypeFull"];
 
     public string ProgressText => TotalFiles > 0
         ? $"{TotalFiles - RemainingFiles}/{TotalFiles} fichiers"
