@@ -53,7 +53,8 @@ public class BusinessSoftwareWatcher
         );
 
         pauseService.Pause();
-        state.Status = "Paused";
+        state.Status   = "Paused";
+        state.BlockedBy = processList;
         state.Timestamp = DateTime.Now;
         stateService.Update(state);
 
@@ -68,7 +69,8 @@ public class BusinessSoftwareWatcher
         );
 
         pauseService.Resume();
-        state.Status = "Active";
+        state.Status   = "Active";
+        state.BlockedBy = string.Empty;
         state.Timestamp = DateTime.Now;
         stateService.Update(state);
     }

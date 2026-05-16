@@ -12,6 +12,8 @@
   "Logs.SelectLevel": "Sélectionner un niveau",
   "Logs.TodayHeader": "Journaux du jour",
   "Logs.LevelHeader": "Journaux - {0}",
+  "Logs.Directory": "Dossier des logs",
+  "Logs.Empty": "Aucune entrée de log pour aujourd'hui.",
 
   "Settings.ComingSoon": "Paramètres bientôt disponibles...",
   "Settings.Title": "Paramètres",
