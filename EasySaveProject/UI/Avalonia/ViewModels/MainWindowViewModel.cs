@@ -64,7 +64,11 @@ public partial class MainWindowViewModel : ObservableObject
 
     private int _pendingRunJobIndex = -1;
 
-    public string RunNowJobTitle => $"Sauvegarde « {RunNowJobName} » créée avec succès.";
+    public string RunNowJobTitle =>
+    string.Format(
+        LocalizationManager.Instance["RunNow.CreatedTitle"],
+        RunNowJobName
+    );
 
     // Multi-sélection
     public bool HasSelectedJobs => Jobs.Any(j => j.IsSelected);
@@ -171,6 +175,8 @@ public partial class MainWindowViewModel : ObservableObject
                 job.PropertyChanged -= OnJobPropertyChanged;
 
         OnPropertyChanged(nameof(HasSelectedJobs));
+
+        OnPropertyChanged(nameof(FilteredJobs));
     }
 
     private void OnJobPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -223,6 +229,11 @@ public partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(FilteredLogs));
         OnPropertyChanged(nameof(HasFilteredLogs));
         OnPropertyChanged(nameof(HasNoFilteredLogs));
+    }
+
+    partial void OnSearchJobsChanged(string value)
+    {
+        OnPropertyChanged(nameof(FilteredJobs));
     }
 
     // ── Navigation ────────────────────────────────────────────────────────
@@ -279,7 +290,12 @@ public partial class MainWindowViewModel : ObservableObject
             });
             job.Status = "Completed";
             job.Progress = 100;
-            ShowToastMessage($"Sauvegarde « {job.Name} » terminée ✓");
+            ShowToastMessage(
+                string.Format(
+                    LocalizationManager.Instance["Jobs.Toast.Completed"],
+                    job.Name
+                )
+            );
         }
         catch (Exception ex)
         {
@@ -357,11 +373,11 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     void OpenCreateForm()
     {
-        if (Jobs.Count >= 5)
-        {
-            ShowToastMessage("Maximum 5 sauvegardes atteint. Supprimez-en une avant d'en créer une nouvelle.");
-            return;
-        }
+        // if (Jobs.Count >= 5)
+        // {
+        //     ShowToastMessage("Maximum 5 sauvegardes atteint. Supprimez-en une avant d'en créer une nouvelle.");
+        //     return;
+        // }
 
         FormName = FormSource = FormTarget = FormError = "";
         FormType = "Full";
@@ -385,7 +401,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(FormName)) { FormError = "Le nom est requis."; return; }
         if (string.IsNullOrWhiteSpace(FormSource)) { FormError = "Le chemin source est requis."; return; }
         if (string.IsNullOrWhiteSpace(FormTarget)) { FormError = "Le chemin cible est requis."; return; }
-        if (Jobs.Count >= 5) { FormError = "Maximum 5 sauvegardes atteint."; return; }
+        // if (Jobs.Count >= 5) { FormError = "Maximum 5 sauvegardes atteint."; return; }
 
         var type = FormTypeIndex == 1 ? BackupType.Differential : BackupType.Full;
 
@@ -428,7 +444,12 @@ public partial class MainWindowViewModel : ObservableObject
     {
         ShowRunNowPrompt = false;
         _pendingRunJobIndex = -1;
-        ShowToastMessage($"Sauvegarde « {RunNowJobName} » créée.");
+        ShowToastMessage(
+            string.Format(
+                LocalizationManager.Instance["RunNow.CreatedToast"],
+                RunNowJobName
+            )
+        );
     }
 
     // ── Modifier le type d'un job ─────────────────────────────────────────
@@ -472,10 +493,14 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     partial void OnSelectedLanguageChanged(string value)
-        => ShowSaveLanguageButton = true;
+    {
+        if (CanChangeLanguage)
+            ShowSaveLanguageButton = true;
+    }
 
     // ── Langue ────────────────────────────────────────────────────────────
     [ObservableProperty] private bool _showSaveLanguageButton = true;
+    [ObservableProperty] private bool _canChangeLanguage = true;
     [ObservableProperty] private int _languageIndex = 0;
 
     [RelayCommand]
@@ -490,12 +515,12 @@ public partial class MainWindowViewModel : ObservableObject
 
         LocalizationManager.Instance.CurrentLanguage = langCode;
 
-        ShowSaveLanguageButton = false;
+        CanChangeLanguage = false;
 
         if (CurrentPage == "LanguageSelect")
             CurrentPage = "Jobs";
         else
-            ShowToastMessage(Loc["Settings.Save"]);
+            ShowToastMessage(Loc["Settings.LanguageSaved"]);
     }
 
     // ── Toast ─────────────────────────────────────────────────────────────
@@ -645,4 +670,14 @@ public partial class MainWindowViewModel : ObservableObject
         get => _showBusinessSoftwareSetting;
         set => SetProperty(ref _showBusinessSoftwareSetting, value);
     }
+
+    [ObservableProperty] private string _searchJobs = "";
+
+    public IEnumerable<BackupJobViewModel> FilteredJobs =>
+    Jobs.Where(j =>
+        string.IsNullOrWhiteSpace(SearchJobs)
+        || j.Name.Contains(SearchJobs, StringComparison.OrdinalIgnoreCase)
+        || j.SourcePath.Contains(SearchJobs, StringComparison.OrdinalIgnoreCase)
+        || j.TargetPath.Contains(SearchJobs, StringComparison.OrdinalIgnoreCase)
+    );
 }

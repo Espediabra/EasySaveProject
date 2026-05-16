@@ -67,8 +67,8 @@ namespace EasySaveProject.Core.Services
 
         public void AddJob(BackupJob job)
         {
-            if (_jobs.Count >= 5)
-                throw new InvalidOperationException("Maximum number of jobs reached");
+            // if (_jobs.Count >= 5)
+            //     throw new InvalidOperationException("Maximum number of jobs reached");
 
             _jobs.Add(job);
             SaveJobs();

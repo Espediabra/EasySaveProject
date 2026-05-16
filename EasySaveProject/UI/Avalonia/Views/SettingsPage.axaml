@@ -75,7 +75,7 @@
                                     Classes="primary"
                                     Content="{Binding Loc[Settings.Save]}"
                                     Command="{Binding SaveLanguageCommand}"
-                                    IsVisible="{Binding ShowSaveLanguageButton}"/>
+                                    IsEnabled="{Binding CanChangeLanguage}"/>
 
                         </Grid>
 
