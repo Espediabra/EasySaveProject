@@ -11,7 +11,6 @@ namespace EasySaveProject.Core.Services
     public class BackupService
     {
         private readonly FileService _fileService;
-        private readonly LogService _logService;
         private readonly StateService _stateService;
         private readonly CryptoService _cryptoService;
         private readonly BusinessSoftwareWatcher _watcher;
@@ -38,7 +37,6 @@ namespace EasySaveProject.Core.Services
             ConfigService configService)
         {
             _fileService = fileService;
-            _logService = logService;
             _stateService = stateService;
             _cryptoService = cryptoService;
             _watcher = watcher;
@@ -168,7 +166,7 @@ namespace EasySaveProject.Core.Services
                 strategy.Execute(
                     job,
                     _fileService,
-                    _logService,
+                    LogService.Instance,
                     _stateService,
                     _cryptoService,
                     _watcher,
@@ -180,7 +178,7 @@ namespace EasySaveProject.Core.Services
             }
             catch (Exception ex)
             {
-                _logService.LogError(job.Name, job.SourcePath, job.TargetPath, 0,
+                LogService.Instance.LogError(job.Name, job.SourcePath, job.TargetPath, 0,
                     $"Job failed: {ex.Message}");
 
                 _stateService.Update(new State
