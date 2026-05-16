@@ -107,7 +107,8 @@ public class ProgressService
                 TotalFiles:  totalFiles,
                 Eta:         eta,
                 CurrentFile: state.CurrentSourceFile,
-                Status:      state.Status
+                Status:      state.Status,
+                BlockedBy:   state.BlockedBy
             );
         }
     }
@@ -126,7 +127,8 @@ public record ProgressSnapshot(
     int       TotalFiles,
     TimeSpan? Eta,
     string    CurrentFile,
-    string    Status)
+    string    Status,
+    string    BlockedBy = "")
 {
     public static ProgressSnapshot Empty => new(
         BackupName:  string.Empty,
@@ -137,5 +139,6 @@ public record ProgressSnapshot(
         TotalFiles:  1,
         Eta:         null,
         CurrentFile: string.Empty,
-        Status:      string.Empty);
+        Status:      string.Empty,
+        BlockedBy:   string.Empty);
 }

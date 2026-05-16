@@ -22,6 +22,13 @@ class LogServer
 
     static async Task Main()
     {
+        // Force stdout/stderr to flush immediately — required for `docker logs` to work.
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
+        var stdout = new System.IO.StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true };
+        var stderr = new System.IO.StreamWriter(Console.OpenStandardError()) { AutoFlush = true };
+        Console.SetOut(stdout);
+        Console.SetError(stderr);
+
         Directory.CreateDirectory(LogDir);
 
         var listener = new TcpListener(IPAddress.Any, Port);
