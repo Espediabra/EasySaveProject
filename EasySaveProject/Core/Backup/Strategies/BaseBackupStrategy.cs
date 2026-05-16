@@ -65,6 +65,7 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         // and the global count would never reach zero.
         var sorted = files
             .OrderBy(f => priorityCoordinator.GetPriorityRank(f))
+            .ThenBy(f => new FileInfo(f).Length)
             .ToArray();
 
         // ── 3) Register this job's pending priority files globally ──────────
