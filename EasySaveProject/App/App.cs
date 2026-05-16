@@ -46,7 +46,7 @@ public class App
         _loc.Load(lang);
 
         // 🔹 Logging (avec format venant de HEAD)
-        LogService.Initialize(_loc, _config.LogFormat);
+        LogService.Initialize(_loc, _config.LogFormat, _config);
         _logService = LogService.Instance;
 
         // 🔹 Services HEAD (crypto + monitoring)
@@ -56,9 +56,7 @@ public class App
             CryptoSoftExePath
         );
 
-        var watcher = new BusinessSoftwareWatcher(
-            _config.BusinessSoftware
-        );
+        var watcher = new BusinessSoftwareWatcher(_configService);
 
         // V3: coordinators for parallel backup rules
         var priorityCoordinator = new PriorityCoordinator(_config.PriorityExtensions);
