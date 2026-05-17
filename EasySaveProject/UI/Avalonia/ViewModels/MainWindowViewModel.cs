@@ -80,7 +80,12 @@ public partial class MainWindowViewModel : ObservableObject
 
     // Page Logs
     [ObservableProperty] private ObservableCollection<LogEntryViewModel> _logEntries = new();
-    [ObservableProperty] private string _selectedLogLevel = "All";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FilteredLogs))]
+    [NotifyPropertyChangedFor(nameof(HasFilteredLogs))]
+    [NotifyPropertyChangedFor(nameof(HasNoFilteredLogs))]
+    private int _selectedLogLevelIndex = 0;
 
     [ObservableProperty] private string _searchLogs = "";
 
@@ -123,6 +128,21 @@ public partial class MainWindowViewModel : ObservableObject
     // Log centralization (V3) — index-based so ComboBox items can be translated
     [ObservableProperty]
     private int _logModeIndex = 0;
+
+    public List<string> LogModeOptions => new()
+    {
+        Loc["Settings.LogMode.Local"],
+        Loc["Settings.LogMode.Remote"],
+        Loc["Settings.LogMode.Both"]
+    };
+
+    public List<string> LogLevelOptions => new()
+    {
+        Loc["Log.Filter.All"],
+        Loc["Log.Level.Info"],
+        Loc["Log.Level.Warning"],
+        Loc["Log.Level.Error"]
+    };
 
     [ObservableProperty]
     private string _logServerHost = "localhost";
@@ -199,6 +219,14 @@ public partial class MainWindowViewModel : ObservableObject
         var watcher             = new BusinessSoftwareWatcher(configService);
         var priorityCoordinator = new PriorityCoordinator(config.PriorityExtensions);
         var largeFileGuard      = new LargeFileTransferGuard(config.LargeFileThresholdKb);
+
+        watcher.OnJobPaused += processes =>
+            Dispatcher.UIThread.Post(() =>
+                ShowToastMessage(string.Format(Loc["Jobs.Business.Paused"], processes)));
+
+        watcher.OnJobResumed += processes =>
+            Dispatcher.UIThread.Post(() =>
+                ShowToastMessage(string.Format(Loc["Jobs.Business.Resumed"], processes)));
 
         _backupService = new BackupService(
             fileService,
@@ -452,24 +480,47 @@ public partial class MainWindowViewModel : ObservableObject
         {
             _progressService.Tick();
 
+            var activeNames = _progressService.CurrentAll
+                .Select(s => s.BackupName)
+                .ToHashSet(StringComparer.Ordinal);
+
+            // Update jobs that have active progress snapshots
             foreach (var snap in _progressService.CurrentAll)
             {
                 var jobVm = Jobs.FirstOrDefault(j => j.Name == snap.BackupName);
                 if (jobVm == null) continue;
 
-                jobVm.Progress      = (int)(snap.Fraction * 100);
-                jobVm.TotalFiles    = snap.TotalFiles;
+                jobVm.Progress       = (int)(snap.Fraction * 100);
+                jobVm.TotalFiles     = snap.TotalFiles;
                 jobVm.RemainingFiles = snap.TotalFiles - snap.DoneFiles;
-                jobVm.CurrentFile   = Path.GetFileName(snap.CurrentFile);
+                jobVm.CurrentFile    = Path.GetFileName(snap.CurrentFile);
 
                 jobVm.EtaText = snap.Eta.HasValue
                     ? $"ETA {(int)snap.Eta.Value.TotalMinutes:D2}:{snap.Eta.Value.Seconds:D2}"
                     : "";
 
-                // Determine actual pause state (global or per-job controller)
                 var controller = _backupService.GetControllerByName(snap.BackupName);
                 bool isPaused  = _backupService.IsGloballyPaused || controller?.IsPaused == true;
                 jobVm.Status   = isPaused ? "Paused" : snap.Status;
+            }
+
+            // Detect jobs that were running but have stopped/completed individually
+            foreach (var jobVm in Jobs.Where(j => j.IsRunning))
+            {
+                if (activeNames.Contains(jobVm.Name)) continue;
+
+                var finalState = BackupStateHub.ReadAll()
+                    .FirstOrDefault(s => s.BackupName == jobVm.Name);
+                if (finalState == null) continue;
+
+                jobVm.Status = finalState.Status switch
+                {
+                    "Stopped"   => "Cancelled",
+                    "Completed" => "Completed",
+                    "Error"     => "Error",
+                    _           => "Cancelled"
+                };
+                if (jobVm.Status == "Completed") jobVm.Progress = 100;
             }
 
             OnPropertyChanged(nameof(IsGloballyPaused));
@@ -577,26 +628,34 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     // ── Filtrage des logs ──────────────────────────────────────────────────
-    public IEnumerable<LogEntryViewModel> FilteredLogs =>
-     LogEntries.Where(l =>
-         (SelectedLogLevel == "All" || l.Level == SelectedLogLevel)
-         &&
-         (
-             string.IsNullOrWhiteSpace(SearchLogs)
-             || l.JobName.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
-             || l.Message.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
-             || l.Level.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
-         )
-     );
-
-    partial void OnSearchLogsChanged(string value)
+    public IEnumerable<LogEntryViewModel> FilteredLogs
     {
-        OnPropertyChanged(nameof(FilteredLogs));
-        OnPropertyChanged(nameof(HasFilteredLogs));
-        OnPropertyChanged(nameof(HasNoFilteredLogs));
+        get
+        {
+            string levelFilter = SelectedLogLevelIndex switch
+            {
+                1 => "Info",
+                2 => "Warning",
+                3 => "Error",
+                _ => "All"
+            };
+
+            return LogEntries
+                .Where(l =>
+                    (levelFilter == "All" || l.Level == levelFilter)
+                    &&
+                    (
+                        string.IsNullOrWhiteSpace(SearchLogs)
+                        || l.JobName.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
+                        || l.Message.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
+                        || l.Level.Contains(SearchLogs, StringComparison.OrdinalIgnoreCase)
+                    )
+                )
+                .OrderByDescending(l => l.Timestamp);
+        }
     }
 
-    partial void OnSelectedLogLevelChanged(string value)
+    partial void OnSearchLogsChanged(string value)
     {
         OnPropertyChanged(nameof(FilteredLogs));
         OnPropertyChanged(nameof(HasFilteredLogs));
@@ -629,6 +688,10 @@ public partial class MainWindowViewModel : ObservableObject
         LocalizationManager.Instance.CurrentLanguage = langCode;
 
         CanChangeLanguage = false;
+
+        // Refresh computed lists that depend on translated strings
+        OnPropertyChanged(nameof(LogModeOptions));
+        OnPropertyChanged(nameof(LogLevelOptions));
 
         if (CurrentPage == "LanguageSelect")
             CurrentPage = "Jobs";

@@ -25,13 +25,9 @@
                                FontSize="13"
                                Foreground="#B3B6B7"
                                VerticalAlignment="Center" />
-                    <ComboBox SelectedItem="{Binding SelectedLogLevel}"
-                              Width="120">
-                        <x:String>All</x:String>
-                        <x:String>Info</x:String>
-                        <x:String>Warning</x:String>
-                        <x:String>Error</x:String>
-                    </ComboBox>
+                    <ComboBox SelectedIndex="{Binding SelectedLogLevelIndex}"
+                              ItemsSource="{Binding LogLevelOptions}"
+                              Width="120"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -65,27 +61,27 @@
 
                     <TextBlock Grid.Column="0"
                                Classes="muted"
-                               Text="HEURE" />
+                               Text="{Binding Loc[Logs.Header.Time]}" />
 
                     <TextBlock Grid.Column="1"
                                Classes="muted"
-                               Text="NIVEAU" />
+                               Text="{Binding Loc[Logs.Header.Level]}" />
 
                     <TextBlock Grid.Column="2"
                                Classes="muted"
-                               Text="JOB" />
+                               Text="{Binding Loc[Logs.Header.Job]}" />
 
                     <TextBlock Grid.Column="3"
                                Classes="muted"
-                               Text="MESSAGE" />
+                               Text="{Binding Loc[Logs.Header.Message]}" />
 
                     <TextBlock Grid.Column="4"
                                Classes="muted"
-                               Text="TAILLE" />
+                               Text="{Binding Loc[Logs.Header.FileSize]}" />
 
                     <TextBlock Grid.Column="5"
                                Classes="muted"
-                               Text="DURÉE" />
+                               Text="{Binding Loc[Logs.Header.TransferTime]}" />
 
                 </Grid>
 

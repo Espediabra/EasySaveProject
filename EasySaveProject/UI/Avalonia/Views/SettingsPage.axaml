@@ -293,7 +293,7 @@
                                            Minimum="0"
                                            Increment="1000"
                                            FormatString="0"
-                                           Watermark="0 = disabled"
+                                           PlaceholderText="0 = disabled"
                                            Width="200"/>
                             <Button Grid.Column="1"
                                     Classes="primary"
@@ -326,15 +326,12 @@
 
                         <Separator/>
 
-                        <!-- Mode selection — items use translated keys so no raw "Local/Remote/Both" -->
+                        <!-- Mode selection — ItemsSource avoids inline-item binding timing issues -->
                         <Grid ColumnDefinitions="*,Auto">
                             <ComboBox Grid.Column="0"
                                       Width="240"
-                                      SelectedIndex="{Binding LogModeIndex}">
-                                <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Settings.LogMode.Local]}"/>
-                                <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Settings.LogMode.Remote]}"/>
-                                <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Settings.LogMode.Both]}"/>
-                            </ComboBox>
+                                      SelectedIndex="{Binding LogModeIndex}"
+                                      ItemsSource="{Binding LogModeOptions}"/>
                             <Button Grid.Column="1"
                                     Classes="primary"
                                     Content="{Binding Loc[Settings.LogMode.Save]}"
@@ -349,7 +346,7 @@
                                                FontSize="12"
                                                Foreground="#B3B6B7"/>
                                     <TextBox Text="{Binding LogServerHost}"
-                                             Watermark="localhost"/>
+                                             PlaceholderText="localhost"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Spacing="4">
                                     <TextBlock Text="{Binding Loc[Settings.LogMode.Port]}"
