@@ -48,7 +48,7 @@ public class LegacyConsoleApp
             CryptoSoftExePath
         );
 
-        var watcher = new BusinessSoftwareWatcher(_config.BusinessSoftware);
+        var watcher = new BusinessSoftwareWatcher(_configService);
 
         var priorityCoordinator = new PriorityCoordinator(_config.PriorityExtensions);
         var largeFileGuard      = new LargeFileTransferGuard(_config.LargeFileThresholdKb);
@@ -67,7 +67,13 @@ public class LegacyConsoleApp
 
         _viewModel = new MainViewModel(backupService);
 
-        var footer = new FooterComponent(_progressService, _pauseService);
+        var footer = new FooterComponent(
+            _progressService,
+            _pauseService,
+            name => _viewModel.GetActiveController(name),
+            _viewModel.ResumeAll,
+            _viewModel.StopAll
+        );
 
         _viewModel.OnExecutionStateChanged += running =>
         {

@@ -5,10 +5,12 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasyLog;
+using EasySaveProject.Models;
 using EasySaveProject.Core.Services;
 using EasySaveProject.Core.Localization;
 using EasySaveProject.Infrastructure.Crypto;
 using EasySaveProject.Infrastructure.Monitoring;
+using EasySaveProject.Core;
 
 namespace EasySaveProject.UI.Avalonia.ViewModels;
 
@@ -165,7 +167,7 @@ public partial class MainWindowViewModel : ObservableObject
             Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe")
         );
 
-        var watcher              = new BusinessSoftwareWatcher(config.BusinessSoftware);
+        var watcher              = new BusinessSoftwareWatcher(configService);
         var priorityCoordinator  = new PriorityCoordinator(config.PriorityExtensions);
         var largeFileGuard       = new LargeFileTransferGuard(config.LargeFileThresholdKb);
 
@@ -381,12 +383,15 @@ public partial class MainWindowViewModel : ObservableObject
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
         timer.Tick += (_, _) =>
         {
-            foreach (var snap in BackupStateHub.Read())
+            foreach (var snap in BackupStateHub.ReadAll())
             {
                 var jobVm = Jobs.FirstOrDefault(j => j.Name == snap.BackupName);
                 if (jobVm == null) continue;
 
-                jobVm.Progress = (int)(snap.Fraction * 100);
+                double fraction = snap.TotalFiles > 0
+                    ? (double)(snap.TotalFiles - snap.RemainingFiles) / snap.TotalFiles
+                    : 0.0;
+                jobVm.Progress = (int)(fraction * 100);
                 if (snap.Status is "Active" or "Paused" or "Completed" or "Error" or "Cancelled")
                     jobVm.Status = snap.Status;
             }
