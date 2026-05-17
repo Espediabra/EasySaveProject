@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EasyLog;
@@ -293,40 +294,32 @@ public partial class MainWindowViewModel : ObservableObject
         job.Status = "Active";
         job.Progress = 0;
 
+        var timer = StartProgressTimer();
+        SetRunning(true);
+
         try
         {
-            await Task.Run(() =>
-            {
-                SetRunning(true);
+            await Task.Run(() => _backupService.RunJob(index));
 
-                try
-                {
-                    _backupService.RunJob(index);
-                }
-                finally
-                {
-                    SetRunning(false);
-                }
-            });
             job.Status = "Completed";
             job.Progress = 100;
-            ShowToastMessage(
-                string.Format(
-                    LocalizationManager.Instance["Jobs.Toast.Completed"],
-                    job.Name
-                )
-            );
+            ShowToastMessage(string.Format(LocalizationManager.Instance["Jobs.Toast.Completed"], job.Name));
         }
         catch (Exception ex)
         {
             job.Status = "Error";
             ShowToastMessage($"Erreur : {ex.Message}");
         }
+        finally
+        {
+            timer.Stop();
+            SetRunning(false);
+        }
 
         LoadTodayLogs();
     }
 
-    // ── Lancer les sauvegardes sélectionnées ─────────────────────────────
+    // ── Lancer les sauvegardes sélectionnées (parallèle) ──────────────────
     [RelayCommand]
     async Task RunSelectedJobs()
     {
@@ -342,37 +335,64 @@ public partial class MainWindowViewModel : ObservableObject
             job.Progress = 0;
         }
 
+        var timer = StartProgressTimer();
+        SetRunning(true);
+
         try
         {
-            await Task.Run(() =>
-            {
-                SetRunning(true);
+            await _backupService.RunJobsParallelAsync(indices);
 
-                try
-                {
-                    foreach (var i in indices)
-                        _backupService.RunJob(i);
-                }
-                finally
-                {
-                    SetRunning(false);
-                }
-            });
-            foreach (var job in selected)
-            {
-                job.Status = "Completed";
-                job.Progress = 100;
-            }
+            foreach (var job in selected) { job.Status = "Completed"; job.Progress = 100; }
             ShowToastMessage($"{selected.Count} sauvegarde(s) terminée(s) ✓");
         }
         catch (Exception ex)
         {
-            foreach (var job in selected)
-                job.Status = "Error";
+            foreach (var job in selected) job.Status = "Error";
             ShowToastMessage($"Erreur : {ex.Message}");
+        }
+        finally
+        {
+            timer.Stop();
+            SetRunning(false);
         }
 
         LoadTodayLogs();
+    }
+
+    // ── Pause / Stop ──────────────────────────────────────────────────────
+    [RelayCommand]
+    void PauseAll() => _backupService.PauseAll();
+
+    [RelayCommand]
+    void ResumeAll() => _backupService.ResumeAll();
+
+    [RelayCommand]
+    void StopAll() => _backupService.StopAll();
+
+    [RelayCommand]
+    void TogglePauseJob(BackupJobViewModel job) => _backupService.TogglePauseJob(job.Name);
+
+    [RelayCommand]
+    void StopJob(BackupJobViewModel job) => _backupService.StopJob(job.Name);
+
+    // ── Progress timer (UI thread — no Dispatcher.Invoke needed) ──────────
+    private DispatcherTimer StartProgressTimer()
+    {
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+        timer.Tick += (_, _) =>
+        {
+            foreach (var snap in BackupStateHub.Read())
+            {
+                var jobVm = Jobs.FirstOrDefault(j => j.Name == snap.BackupName);
+                if (jobVm == null) continue;
+
+                jobVm.Progress = (int)(snap.Fraction * 100);
+                if (snap.Status is "Active" or "Paused" or "Completed" or "Error" or "Cancelled")
+                    jobVm.Status = snap.Status;
+            }
+        };
+        timer.Start();
+        return timer;
     }
 
     // ── Supprimer un job ──────────────────────────────────────────────────
