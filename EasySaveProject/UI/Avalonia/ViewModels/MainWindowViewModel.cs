@@ -154,7 +154,7 @@ public partial class MainWindowViewModel : ObservableObject
         var lang = string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage;
         LocalizationManager.Instance.CurrentLanguage = lang;
 
-        LogService.Initialize(new LocalizationService(), config.LogFormat);
+        LogService.Initialize(new LocalizationService(), config.LogFormat, config);
         _logService = LogService.Instance;
 
         var pauseService = new PauseService();
@@ -600,9 +600,46 @@ public partial class MainWindowViewModel : ObservableObject
 
         configService.Save(config);
 
-        LogService.Initialize(new LocalizationService(), config.LogFormat);
+        LogService.Initialize(new LocalizationService(), config.LogFormat, config);
 
         ShowToastMessage("Format des logs enregistré.");
+    }
+
+    // ── Log Mode / Log Server settings ───────────────────────────────────
+    [RelayCommand]
+    void SaveLogMode()
+    {
+        var cs = new ConfigService();
+        var cfg = cs.Load();
+
+        cfg.LogMode = SelectedLogMode switch
+        {
+            "Remote" => LogMode.Remote,
+            "Both"   => LogMode.Both,
+            _        => LogMode.Local
+        };
+
+        cs.Save(cfg);
+
+        LogService.Initialize(new LocalizationService(), cfg.LogFormat, cfg);
+
+        ShowToastMessage("Mode de log enregistré.");
+    }
+
+    [RelayCommand]
+    void SaveLogServerSettings()
+    {
+        var cs = new ConfigService();
+        var cfg = cs.Load();
+
+        cfg.LogServerHost = LogServerHost;
+        cfg.LogServerPort = LogServerPort;
+
+        cs.Save(cfg);
+
+        LogService.Initialize(new LocalizationService(), cfg.LogFormat, cfg);
+
+        ShowToastMessage("Serveur de log enregistré.");
     }
 
     // ── Add Business Software ─────────────────────────────────────────────
