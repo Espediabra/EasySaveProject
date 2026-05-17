@@ -42,7 +42,6 @@
   <ItemGroup>
     <ProjectReference Include="..\EasyLog\EasyLog.csproj" />
   </ItemGroup>
-
   <!-- ───────────────────────────── -->
   <!-- Ressources -->
   <!-- ───────────────────────────── -->

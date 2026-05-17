@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EasyLog;
 using EasySaveProject.Infrastructure;
+using EasySaveProject.Infrastructure.Logging;
 using EasySaveProject.Core.Localization;
 
 namespace EasySaveProject.Core.Services;
@@ -14,11 +15,15 @@ public class LogService
     private static LogService? _instance;
     private static readonly object _instanceLock = new object();
 
-    public static void Initialize(LocalizationService loc, LogFormat? format = null)
+    // AppConfig optionnel — sans config on reste en mode Local (identique à V2)
+    public static void Initialize(
+        LocalizationService loc,
+        LogFormat? format = null,
+        AppConfig? config = null)
     {
         lock (_instanceLock)
         {
-            _instance = new LogService(loc, format);
+            _instance = new LogService(loc, format, config);
         }
     }
 
@@ -34,15 +39,17 @@ public class LogService
 
     private readonly EasyLogWrapper _wrapper;
     private readonly ILogProvider _provider;
+    private readonly string _logDir;
 
-    private LogService(LocalizationService loc, LogFormat? format)
+    public string GetLogDirectory() => _logDir;
+
+    private LogService(LocalizationService loc, LogFormat? format, AppConfig? config)
     {
         _loc = loc;
 
-        string logDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,
-        "Data", "Logs"));
-
-        Directory.CreateDirectory(logDir);
+        _logDir = Path.GetFullPath(
+            Path.Combine(AppContext.BaseDirectory, "Data", "Logs"));
+        Directory.CreateDirectory(_logDir);
 
         if (format == null)
         {
@@ -50,12 +57,31 @@ public class LogService
             format = env.ToLower() == "xml" ? LogFormat.Xml : LogFormat.Json;
         }
 
-        _provider = format == LogFormat.Xml
-            ? new XmlLogProvider(logDir)
-            : new JsonLogProvider(logDir);
+        ILogProvider localProvider = format == LogFormat.Xml
+            ? new XmlLogProvider(_logDir)
+            : new JsonLogProvider(_logDir);
 
-
+        _provider = BuildProvider(localProvider, config);
         _wrapper = new EasyLogWrapper(_provider);
+    }
+
+    private static ILogProvider BuildProvider(ILogProvider local, AppConfig? config)
+    {
+        if (config == null || config.LogMode == LogMode.Local)
+            return local;
+
+        var remote = new RemoteLogProvider(
+            config.LogServerHost,
+            config.LogServerPort,
+            config.MachineId
+        );
+
+        return config.LogMode switch
+        {
+            LogMode.Remote => remote,
+            LogMode.Both   => new CompositeLogProvider(local, remote),
+            _              => local
+        };
     }
 
     public void LogInfo(string jobName, string sourcePath, string targetPath,
