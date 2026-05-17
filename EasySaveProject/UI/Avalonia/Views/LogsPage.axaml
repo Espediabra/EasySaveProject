@@ -32,9 +32,65 @@
             </Grid>
         </Border>
 
+        <!-- Sélecteur de date -->
+        <Border DockPanel.Dock="Top"
+                Padding="28,14,28,14"
+                BorderBrush="#E8E4D6"
+                BorderThickness="0,0,0,1"
+                Background="#FEFCF7">
+
+            <Grid ColumnDefinitions="Auto,12,Auto,12,Auto,16,Auto,*,Auto">
+
+                <StackPanel Grid.Column="0" Spacing="3">
+                    <TextBlock Text="{Binding Loc[Logs.Date.Day]}"
+                               FontSize="11"
+                               Foreground="#B3B6B7"/>
+                    <NumericUpDown Value="{Binding LogsDay}"
+                                   Minimum="1" Maximum="31"
+                                   FormatString="0"
+                                   Width="68" Height="36"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Spacing="3">
+                    <TextBlock Text="{Binding Loc[Logs.Date.Month]}"
+                               FontSize="11"
+                               Foreground="#B3B6B7"/>
+                    <NumericUpDown Value="{Binding LogsMonth}"
+                                   Minimum="1" Maximum="12"
+                                   FormatString="0"
+                                   Width="68" Height="36"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4" Spacing="3">
+                    <TextBlock Text="{Binding Loc[Logs.Date.Year]}"
+                               FontSize="11"
+                               Foreground="#B3B6B7"/>
+                    <NumericUpDown Value="{Binding LogsYear}"
+                                   Minimum="2000" Maximum="2100"
+                                   FormatString="0"
+                                   Width="90" Height="36"/>
+                </StackPanel>
+
+                <Button Grid.Column="6"
+                        Classes="primary"
+                        Content="{Binding Loc[Logs.Date.Load]}"
+                        Command="{Binding LoadLogsByDateCommand}"
+                        VerticalAlignment="Bottom"
+                        Height="36"/>
+
+                <TextBlock Grid.Column="8"
+                           Text="{Binding LogsDateLabel}"
+                           FontSize="13"
+                           Foreground="#6B6256"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"/>
+
+            </Grid>
+        </Border>
+
         <!-- Barre de recherche -->
         <Border DockPanel.Dock="Top"
-                Padding="28,16,28,10"
+                Padding="28,12,28,10"
                 BorderBrush="#E8E4D6"
                 BorderThickness="0,0,0,1">
 
@@ -56,7 +112,7 @@
             <StackPanel Grid.Row="0"
                         Spacing="2">
 
-                <Grid ColumnDefinitions="100,85,155,*,80,80"
+                <Grid ColumnDefinitions="100,85,155,*,120,120"
                       Margin="0,0,0,6">
 
                     <TextBlock Grid.Column="0"
@@ -125,7 +181,7 @@
                                 BorderThickness="0,0,0,1"
                                 Padding="12,10">
 
-                            <Grid ColumnDefinitions="80,90,160,*,90,90">
+                            <Grid ColumnDefinitions="80,90,160,*,120,120">
 
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding TimeFormatted}"
@@ -166,13 +222,13 @@
                                 <TextBlock Grid.Column="4"
                                            Text="{Binding SizeFormatted}"
                                            FontSize="12"
-                                           HorizontalAlignment="Right"
+                                           HorizontalAlignment="Left"
                                            Foreground="#B3B6B7"/>
 
                                 <TextBlock Grid.Column="5"
                                            Text="{Binding TransferFormatted}"
                                            FontSize="12"
-                                           HorizontalAlignment="Right"
+                                           HorizontalAlignment="Left"
                                            Foreground="#B3B6B7"/>
 
                             </Grid>

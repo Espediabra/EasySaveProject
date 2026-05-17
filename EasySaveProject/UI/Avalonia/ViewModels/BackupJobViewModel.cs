@@ -29,8 +29,13 @@ public partial class BackupJobViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ProgressText))]
     private int _progress = 0;
 
-    [ObservableProperty] private int _totalFiles = 0;
-    [ObservableProperty] private int _remainingFiles = 0;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProgressText))]
+    private int _totalFiles = 0;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProgressText))]
+    private int _remainingFiles = 0;
     [ObservableProperty] private string _etaText = "";
     [ObservableProperty] private string _currentFile = "";
     [ObservableProperty] private bool _isSelected = false;

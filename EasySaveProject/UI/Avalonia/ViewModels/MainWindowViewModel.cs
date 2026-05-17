@@ -90,6 +90,14 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty] private string _searchLogs = "";
 
+    // Date picker for log browsing — default to today
+    [ObservableProperty] private int _logsDay   = DateTime.Today.Day;
+    [ObservableProperty] private int _logsMonth = DateTime.Today.Month;
+    [ObservableProperty] private int _logsYear  = DateTime.Today.Year;
+
+    [ObservableProperty] private string _logsDateLabel = "";
+    [ObservableProperty] private bool   _logsHasNoEntries = false;
+
     public bool HasFilteredLogs => FilteredLogs.Any();
     public bool HasNoFilteredLogs => !FilteredLogs.Any();
 
@@ -313,12 +321,33 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void LoadTodayLogs()
+    private void LoadTodayLogs() => LoadLogsForDate(DateTime.Today);
+
+    [RelayCommand]
+    void LoadLogsByDate()
     {
+        try
+        {
+            var date = new DateTime(LogsYear, LogsMonth, LogsDay);
+            LoadLogsForDate(date);
+        }
+        catch
+        {
+            // Invalid date combination — ignore
+        }
+    }
+
+    private void LoadLogsForDate(DateTime date)
+    {
+        // Sync picker fields when called programmatically (e.g. on first navigation)
+        LogsDay   = date.Day;
+        LogsMonth = date.Month;
+        LogsYear  = date.Year;
+
         LogEntries.Clear();
         try
         {
-            var entries = _logService.GetByDate(DateTime.Today);
+            var entries = _logService.GetByDate(date);
             foreach (var e in entries)
             {
                 LogEntries.Add(new LogEntryViewModel
@@ -339,6 +368,14 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }
         catch { }
+
+        string dateStr = date.ToString("d");
+        if (LogEntries.Count > 0)
+            LogsDateLabel = string.Format(Loc["Logs.Date.Showing"], dateStr);
+        else
+            LogsDateLabel = string.Format(Loc["Logs.Date.NoLogs"], dateStr);
+
+        LogsHasNoEntries = LogEntries.Count == 0;
 
         OnPropertyChanged(nameof(FilteredLogs));
         OnPropertyChanged(nameof(HasFilteredLogs));
@@ -522,9 +559,9 @@ public partial class MainWindowViewModel : ObservableObject
                 var jobVm = Jobs.FirstOrDefault(j => j.Name == snap.BackupName);
                 if (jobVm == null) continue;
 
-                jobVm.Progress       = (int)(snap.Fraction * 100);
                 jobVm.TotalFiles     = snap.TotalFiles;
-                jobVm.RemainingFiles = snap.TotalFiles - snap.DoneFiles;
+                jobVm.RemainingFiles = snap.TotalFiles - snap.DoneFiles; // fires ProgressText with fresh counts
+                jobVm.Progress       = (int)(snap.Fraction * 100);
                 jobVm.CurrentFile    = Path.GetFileName(snap.CurrentFile);
 
                 jobVm.EtaText = snap.Eta.HasValue
