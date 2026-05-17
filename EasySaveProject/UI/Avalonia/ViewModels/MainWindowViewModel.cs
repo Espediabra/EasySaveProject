@@ -656,6 +656,49 @@ public partial class MainWindowViewModel : ObservableObject
         ShowToastMessage("Logiciel supprimé.");
     }
 
+    // ── Priority Extensions ───────────────────────────────────────────────
+    [RelayCommand]
+    void AddPriorityExtension()
+    {
+        if (string.IsNullOrWhiteSpace(NewPriorityExtension)) return;
+
+        var ext = NewPriorityExtension.Trim();
+        if (!ext.StartsWith('.')) ext = "." + ext;
+
+        if (PriorityExtensions.Any(x => x.Equals(ext, StringComparison.OrdinalIgnoreCase)))
+        {
+            ShowToastMessage("Cette extension existe déjà.");
+            return;
+        }
+
+        PriorityExtensions.Add(ext);
+        var cs = new ConfigService(); var cfg = cs.Load();
+        cfg.PriorityExtensions = PriorityExtensions.ToList();
+        cs.Save(cfg);
+        NewPriorityExtension = "";
+        ShowToastMessage("Extension ajoutée.");
+    }
+
+    [RelayCommand]
+    void RemovePriorityExtension(string ext)
+    {
+        PriorityExtensions.Remove(ext);
+        var cs = new ConfigService(); var cfg = cs.Load();
+        cfg.PriorityExtensions = PriorityExtensions.ToList();
+        cs.Save(cfg);
+        ShowToastMessage("Extension supprimée.");
+    }
+
+    // ── Large File Threshold ──────────────────────────────────────────────
+    [RelayCommand]
+    void SaveLargeFileThreshold()
+    {
+        var cs = new ConfigService(); var cfg = cs.Load();
+        cfg.LargeFileThresholdKb = LargeFileThresholdKb;
+        cs.Save(cfg);
+        ShowToastMessage("Seuil enregistré.");
+    }
+
     // ── Research settings ─────────────────────────────────────────────────
     private string _searchSettings = "";
 

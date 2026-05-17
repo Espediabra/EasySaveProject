@@ -30,6 +30,23 @@
                                 Spacing="8"
                                 VerticalAlignment="Center">
 
+                        <!-- Global pause/resume/stop — only when at least one job is running -->
+                        <Button Classes="secondary"
+                                Content="⏸"
+                                IsVisible="{Binding IsRunning}"
+                                ToolTip.Tip="Pause all"
+                                Command="{Binding PauseAllCommand}" />
+                        <Button Classes="secondary"
+                                Content="▶"
+                                IsVisible="{Binding IsRunning}"
+                                ToolTip.Tip="Resume all"
+                                Command="{Binding ResumeAllCommand}" />
+                        <Button Classes="danger"
+                                Content="⏹"
+                                IsVisible="{Binding IsRunning}"
+                                ToolTip.Tip="Stop all"
+                                Command="{Binding StopAllCommand}" />
+
                         <Button Classes="secondary"
                                 Content="{Binding Loc[Jobs.RunSelected]}"
                                 IsVisible="{Binding HasSelectedJobs}"
@@ -302,6 +319,23 @@
                                                     Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
                                                     CommandParameter="{Binding}"
                                                     IsEnabled="{Binding !IsRunning}" />
+                                            <!-- Per-job pause/stop — visible only while running -->
+                                            <Button Classes="secondary"
+                                                    Content="⏸"
+                                                    FontSize="12"
+                                                    Padding="8,6"
+                                                    IsVisible="{Binding IsRunning}"
+                                                    ToolTip.Tip="Pause / Resume"
+                                                    Command="{Binding $parent[UserControl].DataContext.TogglePauseJobCommand}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Classes="danger"
+                                                    Content="⏹"
+                                                    FontSize="12"
+                                                    Padding="8,6"
+                                                    IsVisible="{Binding IsRunning}"
+                                                    ToolTip.Tip="Stop"
+                                                    Command="{Binding $parent[UserControl].DataContext.StopJobCommand}"
+                                                    CommandParameter="{Binding}" />
                                             <Button Classes="icon"
                                                     Command="{Binding $parent[UserControl].DataContext.SelectJobCommand}"
                                                     CommandParameter="{Binding}"

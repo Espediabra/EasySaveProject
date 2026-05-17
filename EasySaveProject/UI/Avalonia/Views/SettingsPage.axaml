@@ -197,6 +197,100 @@
 
                 </Border>
 
+                <!-- PRIORITY EXTENSIONS -->
+                <Border Classes="row"
+                        Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18"
+                        IsVisible="{Binding ShowPriorityExtensionsSetting}">
+
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Loc[Settings.PriorityExtensions.Title]}"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="{Binding Loc[Settings.PriorityExtensions.Desc]}"
+                                       FontSize="12"
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding NewPriorityExtension}"
+                                     PlaceholderText="{Binding Loc[Settings.PriorityExtensions.Placeholder]}" />
+                            <Button Grid.Column="1"
+                                    Classes="primary"
+                                    Content="{Binding Loc[Settings.PriorityExtensions.Add]}"
+                                    Command="{Binding AddPriorityExtensionCommand}" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding PriorityExtensions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#E8E4D6"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="10,8"
+                                            Margin="0,4,0,0">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Text="{Binding .}" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="1"
+                                                    Content="{Binding $parent[UserControl].DataContext.Loc[Settings.PriorityExtensions.Remove]}"
+                                                    Command="{Binding $parent[UserControl].DataContext.RemovePriorityExtensionCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- LARGE FILE THRESHOLD -->
+                <Border Classes="row"
+                        Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18"
+                        IsVisible="{Binding ShowLargeFileThresholdSetting}">
+
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Loc[Settings.LargeFileThreshold.Title]}"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="{Binding Loc[Settings.LargeFileThreshold.Desc]}"
+                                       FontSize="12"
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <NumericUpDown Grid.Column="0"
+                                           Value="{Binding LargeFileThresholdKb}"
+                                           Minimum="0"
+                                           Increment="1000"
+                                           FormatString="0"
+                                           Watermark="0 = disabled"
+                                           Width="200"/>
+                            <Button Grid.Column="1"
+                                    Classes="primary"
+                                    Content="{Binding Loc[Settings.LargeFileThreshold.Save]}"
+                                    Command="{Binding SaveLargeFileThresholdCommand}"/>
+                        </Grid>
+
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
 
         </ScrollViewer>
