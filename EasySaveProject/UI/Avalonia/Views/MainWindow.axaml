@@ -56,8 +56,8 @@
 
                         <ComboBox SelectedIndex="{Binding LanguageIndex}"
                                   HorizontalAlignment="Stretch">
-                            <ComboBoxItem Content="English}"/>
-                            <ComboBoxItem Content="French}"/>
+                            <ComboBoxItem Content="English"/>
+                            <ComboBoxItem Content="French"/>
                         </ComboBox>
 
                         <Button Classes="primary"
@@ -167,15 +167,23 @@
                     <!-- Compteur jobs en bas -->
                     <Border DockPanel.Dock="Bottom" Padding="20,16">
                         <StackPanel Spacing="6">
+
                             <TextBlock Text="{Binding JobsCountText}"
                                        FontSize="11"
                                        Foreground="#8A7D6E" />
+
+                            <TextBlock Text="{Binding BackupTier}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="#AF9164"/>
+
                             <ProgressBar Value="{Binding Jobs.Count}"
-                                         Maximum="5"
-                                         Height="3"
+                                         Maximum="{Binding CurrentTierMax}"
+                                         Height="4"
                                          CornerRadius="2"
                                          Background="#3D3228"
                                          Foreground="#AF9164" />
+
                         </StackPanel>
                     </Border>
 

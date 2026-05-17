@@ -89,8 +89,8 @@
                                        Text="{Binding Loc[Form.Type]}" />
 
                             <ComboBox SelectedIndex="{Binding FormTypeIndex}">
-                                <ComboBoxItem Content="Full" />
-                                <ComboBoxItem Content="Differential" />
+                                <ComboBoxItem Content="{Binding Loc[Backup.TypeFull]}" />
+                                <ComboBoxItem Content="{Binding Loc[Backup.TypeDifferential]}" />
                             </ComboBox>
                         </StackPanel>
                     </Grid>
@@ -372,8 +372,8 @@
                                 <ComboBox Grid.Column="0"
                                           SelectedIndex="{Binding PendingTypeIndex}"
                                           HorizontalAlignment="Stretch">
-                                    <ComboBoxItem Content="Full" />
-                                    <ComboBoxItem Content="Differential" />
+                                    <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Backup.TypeFull]}" />
+                                    <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Backup.TypeDifferential]}" />
                                 </ComboBox>
                                 <Button Grid.Column="1"
                                         Classes="secondary"

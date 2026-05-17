@@ -177,6 +177,10 @@ public partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(HasSelectedJobs));
 
         OnPropertyChanged(nameof(FilteredJobs));
+
+        OnPropertyChanged(nameof(CurrentTierMax));
+        OnPropertyChanged(nameof(BackupTier));
+        OnPropertyChanged(nameof(JobsCountText));
     }
 
     private void OnJobPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -680,4 +684,22 @@ public partial class MainWindowViewModel : ObservableObject
         || j.SourcePath.Contains(SearchJobs, StringComparison.OrdinalIgnoreCase)
         || j.TargetPath.Contains(SearchJobs, StringComparison.OrdinalIgnoreCase)
     );
+
+    public int CurrentTierMax =>
+    Jobs.Count switch
+    {
+        < 5 => 5,
+        < 20 => 20,
+        < 50 => 50,
+        _ => 100
+    };
+
+    public string BackupTier =>
+        Jobs.Count switch
+        {
+            < 5 => "Starter",
+            < 20 => "Advanced",
+            < 50 => "Power User",
+            _ => "Archive Master"
+        };
 }
