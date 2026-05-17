@@ -26,13 +26,14 @@ public class LargeFileTransferGuard
 
     /// <summary>
     /// Acquires the exclusive large-file slot if the file exceeds the threshold.
-    /// Blocks the calling thread until the slot is free.
+    /// Blocks the calling thread until the slot is free or cancellation is requested.
     /// Returns true if acquired (caller must call Release), false if not needed.
+    /// Throws OperationCanceledException if ct is cancelled while waiting.
     /// </summary>
-    public bool AcquireIfLarge(long fileSizeBytes)
+    public bool AcquireIfLarge(long fileSizeBytes, CancellationToken ct = default)
     {
         if (!IsEnabled || fileSizeBytes <= _thresholdBytes) return false;
-        _semaphore.Wait();
+        _semaphore.Wait(ct);
         return true;
     }
 

@@ -6,10 +6,11 @@ namespace EasySaveProject.Core.Services;
 /// </summary>
 public class JobController
 {
-    private readonly ManualResetEventSlim _resumeEvent = new(initialState: true);
-    private readonly object _lock = new();
-    private bool _isPaused;
-    private volatile bool _stopRequested;
+    private readonly ManualResetEventSlim    _resumeEvent = new(initialState: true);
+    private readonly object                  _lock        = new();
+    private          bool                    _isPaused;
+    private volatile bool                    _stopRequested;
+    private          CancellationTokenSource _stopCts     = new();
 
     public string JobName { get; }
 
@@ -17,6 +18,7 @@ public class JobController
 
     public bool IsPaused { get { lock (_lock) return _isPaused; } }
     public bool IsStopRequested => _stopRequested;
+    public CancellationToken StopToken => _stopCts.Token;
 
     public void Pause()
     {
@@ -44,6 +46,7 @@ public class JobController
             _stopRequested = true;
             _isPaused = false;
             _resumeEvent.Set();
+            _stopCts.Cancel();
         }
     }
 

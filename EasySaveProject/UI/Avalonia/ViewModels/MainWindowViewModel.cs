@@ -20,6 +20,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly BackupService _backupService;
     private readonly LogService _logService;
     private readonly ProgressService _progressService = new();
+    private readonly CryptoService _cryptoService;
 
     public bool IsRunning { get; private set; }
 
@@ -125,6 +126,16 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private long _largeFileThresholdKb = 0;
 
+    // CryptoSoft (V3)
+    [ObservableProperty]
+    private string _cryptoKey = "";
+
+    [ObservableProperty]
+    private ObservableCollection<string> _cryptoExtensions = new();
+
+    [ObservableProperty]
+    private string _newCryptoExtension = "";
+
     // Log centralization (V3) — index-based so ComboBox items can be translated
     [ObservableProperty]
     private int _logModeIndex = 0;
@@ -201,6 +212,8 @@ public partial class MainWindowViewModel : ObservableObject
         LogModeIndex = config.LogMode switch { LogMode.Remote => 1, LogMode.Both => 2, _ => 0 };
         LogServerHost = config.LogServerHost;
         LogServerPort = config.LogServerPort;
+        CryptoKey        = config.CryptoKey;
+        CryptoExtensions = new ObservableCollection<string>(config.CryptoExtensions);
 
         var lang = string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage;
         LocalizationManager.Instance.CurrentLanguage = lang;
@@ -210,7 +223,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         var pauseService = new PauseService();
 
-        var cryptoService = new CryptoService(
+        _cryptoService = new CryptoService(
             config.CryptoExtensions,
             config.CryptoKey,
             Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe")
@@ -232,7 +245,7 @@ public partial class MainWindowViewModel : ObservableObject
             fileService,
             _logService,
             stateService,
-            cryptoService,
+            _cryptoService,
             watcher,
             pauseService,
             priorityCoordinator,
@@ -689,6 +702,11 @@ public partial class MainWindowViewModel : ObservableObject
 
         CanChangeLanguage = false;
 
+        // Force all {Binding Loc[...]} expressions in every page to re-evaluate.
+        // Loc returns the same singleton but Avalonia re-subscribes to its INotifyPropertyChanged,
+        // which has already fired PropertyChanged("Item[]") above.
+        OnPropertyChanged(nameof(Loc));
+
         // Refresh computed lists that depend on translated strings
         OnPropertyChanged(nameof(LogModeOptions));
         OnPropertyChanged(nameof(LogLevelOptions));
@@ -886,6 +904,52 @@ public partial class MainWindowViewModel : ObservableObject
         ShowToastMessage(Loc["Settings.LargeFileThreshold.Updated"]);
     }
 
+    // ── CryptoSoft settings ───────────────────────────────────────────────
+    [RelayCommand]
+    void SaveCryptoSettings()
+    {
+        var cs = new ConfigService(); var cfg = cs.Load();
+        cfg.CryptoKey = CryptoKey;
+        cfg.CryptoExtensions = CryptoExtensions.ToList();
+        cs.Save(cfg);
+        _cryptoService.Update(cfg.CryptoExtensions, cfg.CryptoKey);
+        ShowToastMessage(Loc["Settings.CryptoSoft.Saved"]);
+    }
+
+    [RelayCommand]
+    void AddCryptoExtension()
+    {
+        if (string.IsNullOrWhiteSpace(NewCryptoExtension)) return;
+
+        var ext = NewCryptoExtension.Trim();
+        if (!ext.StartsWith('.')) ext = "." + ext;
+
+        if (CryptoExtensions.Any(x => x.Equals(ext, StringComparison.OrdinalIgnoreCase)))
+        {
+            ShowToastMessage(Loc["Settings.CryptoSoft.AlreadyExists"]);
+            return;
+        }
+
+        CryptoExtensions.Add(ext);
+        var cs = new ConfigService(); var cfg = cs.Load();
+        cfg.CryptoExtensions = CryptoExtensions.ToList();
+        cs.Save(cfg);
+        _cryptoService.Update(cfg.CryptoExtensions, CryptoKey);
+        NewCryptoExtension = "";
+        ShowToastMessage(Loc["Settings.CryptoSoft.ExtAdded"]);
+    }
+
+    [RelayCommand]
+    void RemoveCryptoExtension(string ext)
+    {
+        CryptoExtensions.Remove(ext);
+        var cs = new ConfigService(); var cfg = cs.Load();
+        cfg.CryptoExtensions = CryptoExtensions.ToList();
+        cs.Save(cfg);
+        _cryptoService.Update(cfg.CryptoExtensions, CryptoKey);
+        ShowToastMessage(Loc["Settings.CryptoSoft.ExtRemoved"]);
+    }
+
     // ── Research settings ─────────────────────────────────────────────────
     private string _searchSettings = "";
 
@@ -920,6 +984,9 @@ public partial class MainWindowViewModel : ObservableObject
 
         ShowLogModeSetting =
             string.IsNullOrEmpty(search) || "log mode docker remote serveur centralization".Contains(search);
+
+        ShowCryptoSoftSetting =
+            string.IsNullOrEmpty(search) || "crypto cryptosoft chiffrement encryption clé key extension".Contains(search);
     }
 
     private bool _showLanguageSetting = true;
@@ -962,6 +1029,13 @@ public partial class MainWindowViewModel : ObservableObject
     {
         get => _showLogModeSetting;
         set => SetProperty(ref _showLogModeSetting, value);
+    }
+
+    private bool _showCryptoSoftSetting = true;
+    public bool ShowCryptoSoftSetting
+    {
+        get => _showCryptoSoftSetting;
+        set => SetProperty(ref _showCryptoSoftSetting, value);
     }
 
     [ObservableProperty] private string _searchJobs = "";

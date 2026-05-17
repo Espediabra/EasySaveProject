@@ -78,6 +78,11 @@ public abstract class BaseBackupStrategy : IBackupStrategy
 
         bool stopped = false;
 
+        // Linked token that fires when either global stop or per-job stop is requested.
+        // This lets AcquireIfLarge(ct) wake immediately instead of waiting indefinitely.
+        using var linkedStopCts = CancellationTokenSource.CreateLinkedTokenSource(
+            pauseService.StopToken, jobController.StopToken);
+
         foreach (var sourceFile in sorted)
         {
             // ── 4) Stop check before each file ─────────────────────────────
@@ -113,8 +118,11 @@ public abstract class BaseBackupStrategy : IBackupStrategy
 
                 var fileSize = new FileInfo(sourceFile).Length;
 
-                // Serialize large files: at most one large file copied at a time.
-                largeAcquired = largeFileGuard.AcquireIfLarge(fileSize);
+                // Serialize large files: cancellable so Stop() unblocks immediately.
+                // OCE here means a stop was requested while waiting — handle cleanly.
+                try { largeAcquired = largeFileGuard.AcquireIfLarge(fileSize, linkedStopCts.Token); }
+                catch (OperationCanceledException) { stopped = true; }
+                if (stopped) continue; // finally block still runs → priority/semaphore cleanup
 
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -142,6 +150,9 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                         if (pauseService.IsStopRequested || jobController.IsStopRequested)
                             throw new OperationCanceledException();
                     });
+
+                    if (pauseService.IsStopRequested || jobController.IsStopRequested)
+                        throw new OperationCanceledException();
 
                     stopwatch.Stop();
 

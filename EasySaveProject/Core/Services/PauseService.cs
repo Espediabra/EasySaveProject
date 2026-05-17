@@ -9,13 +9,15 @@ namespace EasySaveProject.Core.Services;
 /// </summary>
 public class PauseService
 {
-    private readonly ManualResetEventSlim _resumeEvent = new(initialState: true);
-    private          bool                 _isPaused    = false;
-    private volatile bool                 _stopRequested;
-    private readonly object               _lock        = new();
+    private readonly ManualResetEventSlim    _resumeEvent = new(initialState: true);
+    private          bool                    _isPaused    = false;
+    private volatile bool                    _stopRequested;
+    private readonly object                  _lock        = new();
+    private          CancellationTokenSource _stopCts     = new();
 
     public bool IsPaused { get { lock (_lock) return _isPaused; } }
     public bool IsStopRequested => _stopRequested;
+    public CancellationToken StopToken => _stopCts.Token;
 
     /// <summary>
     /// Bascule entre pause et reprise.
@@ -76,6 +78,7 @@ public class PauseService
             _stopRequested = true;
             _isPaused = false;
             _resumeEvent.Set();
+            _stopCts.Cancel();
         }
     }
 
@@ -87,6 +90,8 @@ public class PauseService
             _isPaused = false;
             _stopRequested = false;
             _resumeEvent.Set();
+            _stopCts.Dispose();
+            _stopCts = new CancellationTokenSource();
         }
     }
 }

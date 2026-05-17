@@ -3,8 +3,9 @@
 public class CryptoService
 {
     private readonly CryptoSoftRunner _runner;
-    private readonly string _key;
-    private readonly HashSet<string> _extensions;
+    private readonly object _lock = new();
+    private string _key;
+    private HashSet<string> _extensions;
 
     public CryptoService(List<string> extensions, string key, string cryptoSoftExePath)
     {
@@ -16,17 +17,33 @@ public class CryptoService
         _runner = new CryptoSoftRunner(cryptoSoftExePath);
     }
 
+    public void Update(List<string> extensions, string key)
+    {
+        lock (_lock)
+        {
+            _key = key;
+            _extensions = new HashSet<string>(
+                extensions.Select(e => e.ToLowerInvariant().Trim()),
+                StringComparer.OrdinalIgnoreCase
+            );
+        }
+    }
+
     // Retourne 0 = pas de chiffrement, >0 = ms, <0 = erreur
     public int TryEncrypt(string filePath)
     {
         string ext = Path.GetExtension(filePath).ToLowerInvariant();
 
-        if (!_extensions.Contains(ext) || string.IsNullOrWhiteSpace(_key))
+        string key;
+        HashSet<string> extensions;
+        lock (_lock) { key = _key; extensions = _extensions; }
+
+        if (!extensions.Contains(ext) || string.IsNullOrWhiteSpace(key))
             return 0;
 
         try
         {
-            return _runner.Encrypt(filePath, _key);
+            return _runner.Encrypt(filePath, key);
         }
         catch (FileNotFoundException ex)
         {

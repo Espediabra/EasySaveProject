@@ -366,6 +366,84 @@
                     </StackPanel>
                 </Border>
 
+                <!-- CRYPTOSOFT -->
+                <Border Classes="row"
+                        Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18"
+                        IsVisible="{Binding ShowCryptoSoftSetting}">
+
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Loc[Settings.CryptoSoft.Title]}"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="{Binding Loc[Settings.CryptoSoft.Desc]}"
+                                       FontSize="12"
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <!-- Clé de chiffrement -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{Binding Loc[Settings.CryptoSoft.Key]}"
+                                       FontSize="12"
+                                       Foreground="#6B6256"/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding CryptoKey}"
+                                         PlaceholderText="{Binding Loc[Settings.CryptoSoft.KeyPlaceholder]}"/>
+                                <Button Grid.Column="1"
+                                        Classes="primary"
+                                        Content="{Binding Loc[Settings.CryptoSoft.Save]}"
+                                        Command="{Binding SaveCryptoSettingsCommand}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Extensions à chiffrer -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{Binding Loc[Settings.CryptoSoft.Extensions]}"
+                                       FontSize="12"
+                                       Foreground="#6B6256"/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding NewCryptoExtension}"
+                                         PlaceholderText="{Binding Loc[Settings.CryptoSoft.ExtPlaceholder]}"/>
+                                <Button Grid.Column="1"
+                                        Classes="primary"
+                                        Content="{Binding Loc[Settings.CryptoSoft.Add]}"
+                                        Command="{Binding AddCryptoExtensionCommand}"/>
+                            </Grid>
+
+                            <ItemsControl ItemsSource="{Binding CryptoExtensions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#E8E4D6"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="10,8"
+                                                Margin="0,4,0,0">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Text="{Binding .}"
+                                                           VerticalAlignment="Center"/>
+                                                <Button Grid.Column="1"
+                                                        Content="{Binding $parent[UserControl].DataContext.Loc[Settings.CryptoSoft.Remove]}"
+                                                        Command="{Binding $parent[UserControl].DataContext.RemoveCryptoExtensionCommand}"
+                                                        CommandParameter="{Binding .}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
 
         </ScrollViewer>
