@@ -104,60 +104,80 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _newBusinessSoftware = "";
 
+    // Priority extensions (V3)
+    [ObservableProperty]
+    private ObservableCollection<string> _priorityExtensions = new();
+
+    [ObservableProperty]
+    private string _newPriorityExtension = "";
+
+    // Large file threshold (V3)
+    [ObservableProperty]
+    private long _largeFileThresholdKb = 0;
+
+    // Log centralization (V3)
+    [ObservableProperty]
+    private string _selectedLogMode = "Local";
+
+    [ObservableProperty]
+    private string _logServerHost = "localhost";
+
+    [ObservableProperty]
+    private int _logServerPort = 9000;
+
+    public List<string> LogModes { get; } = ["Local", "Remote", "Both"];
+
     // ── Toast ─────────────────────────────────────────────────────────────
     [ObservableProperty] private string _toastMessage = "";
     [ObservableProperty] private bool _showToast = false;
 
     public MainWindowViewModel()
     {
-        var fileService = new FileService();
-        var stateService = new StateService();
-
+        var fileService   = new FileService();
+        var stateService  = new StateService();
         var configService = new ConfigService();
-        var config = configService.Load();
+        var config        = configService.Load();
+
         LanguageIndex = config.Langage == "fr" ? 1 : 0;
-
-        CurrentPage = config.FirstRun ? "LanguageSelect" : "Jobs";
-
-        SelectedLanguage = config.Langage == "fr" ? "Français" : "English";
+        CurrentPage   = config.FirstRun ? "LanguageSelect" : "Jobs";
+        SelectedLanguage  = config.Langage == "fr" ? "Français" : "English";
         SelectedLogFormat = config.LogFormat == LogFormat.Xml ? "XML" : "JSON";
 
-        BusinessSoftware = new ObservableCollection<string>(
-            config.BusinessSoftware
-        );
+        BusinessSoftware      = new ObservableCollection<string>(config.BusinessSoftware);
+        PriorityExtensions    = new ObservableCollection<string>(config.PriorityExtensions);
+        LargeFileThresholdKb  = config.LargeFileThresholdKb;
+        SelectedLogMode       = config.LogMode.ToString();
+        LogServerHost         = config.LogServerHost;
+        LogServerPort         = config.LogServerPort;
 
         var lang = string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage;
         LocalizationManager.Instance.CurrentLanguage = lang;
 
-        LogService.Initialize(new LocalizationService());
+        LogService.Initialize(new LocalizationService(), config.LogFormat);
         _logService = LogService.Instance;
 
-        // ── Nouveaux services ─────────────────────────────
         var pauseService = new PauseService();
-
-        var cryptoSoftExePath = Path.Combine(
-            AppContext.BaseDirectory,
-            "CryptoSoft.exe"
-        );
 
         var cryptoService = new CryptoService(
             config.CryptoExtensions,
             config.CryptoKey,
-            cryptoSoftExePath
+            Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe")
         );
 
-        var watcher = new BusinessSoftwareWatcher(
-            config.BusinessSoftware
-        );
+        var watcher              = new BusinessSoftwareWatcher(config.BusinessSoftware);
+        var priorityCoordinator  = new PriorityCoordinator(config.PriorityExtensions);
+        var largeFileGuard       = new LargeFileTransferGuard(config.LargeFileThresholdKb);
 
-        // ── Backup service ───────────────────────────────
         _backupService = new BackupService(
             fileService,
             _logService,
             stateService,
             cryptoService,
             watcher,
-            pauseService
+            pauseService,
+            priorityCoordinator,
+            largeFileGuard,
+            configService
         );
 
         Jobs.CollectionChanged += OnJobsCollectionChanged;
@@ -641,6 +661,15 @@ public partial class MainWindowViewModel : ObservableObject
 
         ShowBusinessSoftwareSetting =
             string.IsNullOrEmpty(search) || "logiciel business software".Contains(search);
+
+        ShowPriorityExtensionsSetting =
+            string.IsNullOrEmpty(search) || "priority extensions prioritaires".Contains(search);
+
+        ShowLargeFileThresholdSetting =
+            string.IsNullOrEmpty(search) || "large file threshold gros fichier seuil".Contains(search);
+
+        ShowLogModeSetting =
+            string.IsNullOrEmpty(search) || "log mode docker remote serveur centralization".Contains(search);
     }
 
     private bool _showLanguageSetting = true;
@@ -662,6 +691,27 @@ public partial class MainWindowViewModel : ObservableObject
     {
         get => _showBusinessSoftwareSetting;
         set => SetProperty(ref _showBusinessSoftwareSetting, value);
+    }
+
+    private bool _showPriorityExtensionsSetting = true;
+    public bool ShowPriorityExtensionsSetting
+    {
+        get => _showPriorityExtensionsSetting;
+        set => SetProperty(ref _showPriorityExtensionsSetting, value);
+    }
+
+    private bool _showLargeFileThresholdSetting = true;
+    public bool ShowLargeFileThresholdSetting
+    {
+        get => _showLargeFileThresholdSetting;
+        set => SetProperty(ref _showLargeFileThresholdSetting, value);
+    }
+
+    private bool _showLogModeSetting = true;
+    public bool ShowLogModeSetting
+    {
+        get => _showLogModeSetting;
+        set => SetProperty(ref _showLogModeSetting, value);
     }
 
     [ObservableProperty] private string _searchJobs = "";
