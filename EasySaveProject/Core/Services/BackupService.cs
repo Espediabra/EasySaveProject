@@ -76,9 +76,6 @@ namespace EasySaveProject.Core.Services
 
         public void AddJob(BackupJob job)
         {
-            if (_jobs.Count >= 5)
-                throw new InvalidOperationException("Maximum number of jobs reached");
-
             _jobs.Add(job);
             SaveJobs();
         }
@@ -92,31 +89,46 @@ namespace EasySaveProject.Core.Services
         }
 
         /// <summary>
-        /// Runs a single job synchronously. Resets pause state and clears the hub afterward.
+        /// Runs a single job synchronously.
+        /// Returns the final status string ("Completed", "Cancelled", "Error").
         /// </summary>
-        public void RunJob(int index)
+        public string RunJob(int index)
         {
             RefreshConfig();
             ExecuteJobCore(index);
             _pauseService.Reset();
+            var finalState = BackupStateHub.ReadAll()
+                .FirstOrDefault(s => index >= 0 && index < _jobs.Count && s.BackupName == _jobs[index].Name);
+            string status = finalState?.Status ?? "Completed";
             BackupStateHub.Clear();
+            return status == "Stopped" ? "Cancelled" : status;
         }
 
         /// <summary>
-        /// Runs multiple jobs in parallel. All jobs share the global PauseService,
-        /// PriorityCoordinator and LargeFileTransferGuard. Resets shared state once
-        /// all jobs complete (success or error).
+        /// Runs multiple jobs in parallel.
+        /// Returns a dictionary of job name → final status string.
         /// </summary>
-        public async Task RunJobsParallelAsync(List<int> indices)
+        public async Task<Dictionary<string, string>> RunJobsParallelAsync(List<int> indices)
         {
             var valid = indices.Where(i => i >= 0 && i < _jobs.Count).ToList();
-            if (valid.Count == 0) return;
+            if (valid.Count == 0) return new();
 
             RefreshConfig();
             await Task.WhenAll(valid.Select(i => Task.Run(() => ExecuteJobCore(i))));
 
             _pauseService.Reset();
+
+            var results = new Dictionary<string, string>();
+            foreach (var i in valid)
+            {
+                var name = _jobs[i].Name;
+                var state = BackupStateHub.ReadAll().FirstOrDefault(s => s.BackupName == name);
+                string status = state?.Status ?? "Completed";
+                results[name] = status == "Stopped" ? "Cancelled" : status;
+            }
+
             BackupStateHub.Clear();
+            return results;
         }
 
         public void DeleteJob(int index)
@@ -132,6 +144,8 @@ namespace EasySaveProject.Core.Services
         /// <summary>Returns the active controller for a job by name, or null if not running.</summary>
         public JobController? GetControllerByName(string name)
             => _activeControllers.TryGetValue(name, out var c) ? c : null;
+
+        public bool IsGloballyPaused => _pauseService.IsPaused;
 
         public void PauseAll()  => _pauseService.Pause();
 

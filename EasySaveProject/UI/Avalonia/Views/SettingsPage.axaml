@@ -236,10 +236,23 @@
                                             BorderThickness="1"
                                             CornerRadius="8"
                                             Padding="10,8"
-                                            Margin="0,4,0,0">
-                                        <Grid ColumnDefinitions="*,Auto">
-                                            <TextBlock Text="{Binding .}" VerticalAlignment="Center"/>
-                                            <Button Grid.Column="1"
+                                            Margin="0,4,0,0"
+                                            Background="White"
+                                            PointerEntered="PriorityExt_PointerEntered"
+                                            PointerReleased="PriorityExt_PointerReleased">
+                                        <Grid ColumnDefinitions="24,*,Auto">
+                                            <!-- Drag handle -->
+                                            <TextBlock Grid.Column="0"
+                                                       Text="⣿"
+                                                       FontSize="14"
+                                                       Foreground="#C5BDB4"
+                                                       VerticalAlignment="Center"
+                                                       Cursor="SizeNS"
+                                                       PointerPressed="PriorityExt_DragHandlePressed"/>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding .}"
+                                                       VerticalAlignment="Center"/>
+                                            <Button Grid.Column="2"
                                                     Content="{Binding $parent[UserControl].DataContext.Loc[Settings.PriorityExtensions.Remove]}"
                                                     Command="{Binding $parent[UserControl].DataContext.RemovePriorityExtensionCommand}"
                                                     CommandParameter="{Binding .}"/>
@@ -313,12 +326,15 @@
 
                         <Separator/>
 
-                        <!-- Mode selection -->
+                        <!-- Mode selection — items use translated keys so no raw "Local/Remote/Both" -->
                         <Grid ColumnDefinitions="*,Auto">
                             <ComboBox Grid.Column="0"
                                       Width="240"
-                                      SelectedItem="{Binding SelectedLogMode}"
-                                      ItemsSource="{Binding LogModes}"/>
+                                      SelectedIndex="{Binding LogModeIndex}">
+                                <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Settings.LogMode.Local]}"/>
+                                <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Settings.LogMode.Remote]}"/>
+                                <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Settings.LogMode.Both]}"/>
+                            </ComboBox>
                             <Button Grid.Column="1"
                                     Classes="primary"
                                     Content="{Binding Loc[Settings.LogMode.Save]}"
