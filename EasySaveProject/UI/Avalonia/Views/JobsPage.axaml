@@ -422,8 +422,8 @@
                                 <ComboBox Grid.Column="0"
                                           SelectedIndex="{Binding PendingTypeIndex}"
                                           HorizontalAlignment="Stretch">
-                                    <ComboBoxItem Content="{Binding DataContext.Loc[Backup.TypeFull], RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                    <ComboBoxItem Content="{Binding DataContext.Loc[Backup.TypeDifferential], RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                    <ComboBoxItem Content="{Binding TypeFullLabel}" />
+                                    <ComboBoxItem Content="{Binding TypeDifferentialLabel}" />
                                 </ComboBox>
                                 <Button Grid.Column="1"
                                         Classes="secondary"

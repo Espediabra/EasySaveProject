@@ -59,9 +59,9 @@ public partial class BackupJobViewModel : ObservableObject
         _           => LocalizationManager.Instance["Jobs.Status.Idle"]
     };
 
-    public string TypeLabel => Type == "Differential"
-        ? LocalizationManager.Instance["Backup.TypeDifferential"]
-        : LocalizationManager.Instance["Backup.TypeFull"];
+    public string TypeLabel          => LocalizationManager.Instance[Type == "Differential" ? "Backup.TypeDifferential" : "Backup.TypeFull"];
+    public string TypeFullLabel      => LocalizationManager.Instance["Backup.TypeFull"];
+    public string TypeDifferentialLabel => LocalizationManager.Instance["Backup.TypeDifferential"];
 
     public string PercentText => $"{Progress}%";
 
