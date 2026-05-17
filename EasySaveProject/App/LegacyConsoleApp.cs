@@ -5,7 +5,6 @@ using EasySaveProject.Infrastructure.Monitoring;
 using EasyLog;
 using EasySaveProject.Helpers;
 using EasySaveProject.UI.Console.Components;
-using EasySaveProject.Models;
 
 public class LegacyConsoleApp
 {
@@ -25,52 +24,45 @@ public class LegacyConsoleApp
     private readonly LanguageForm _languageForm;
     private readonly RunCliFlow _runCliFlow;
 
-    // 🔹 Ajouts HEAD
     private readonly AppConfig _config;
 
     private static readonly string CryptoSoftExePath =
-    Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe");
+        Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe");
 
     public LegacyConsoleApp()
     {
         _menu = new MenuComponent();
         _interactiveMenu = new InteractiveMenuComponent(_loc);
 
-        // 🔹 Charger config
         _config = _configService.Load();
 
-        // 🔹 Langue
-        var lang = string.IsNullOrWhiteSpace(_config.Langage)
-            ? "en"
-            : _config.Langage;
-
+        var lang = string.IsNullOrWhiteSpace(_config.Langage) ? "en" : _config.Langage;
         _loc.Load(lang);
 
-        // 🔹 Logging (avec format venant de HEAD)
-        var easyLogFormat = _config.LogFormat == AppLogFormat.Xml ? EasyLog.LogFormat.Xml : EasyLog.LogFormat.Json;
-
-        LogService.Initialize(_loc, easyLogFormat);
+        LogService.Initialize(_loc, _config.LogFormat);
         _logService = LogService.Instance;
 
-        // 🔹 Services HEAD (crypto + monitoring)
         var cryptoService = new CryptoService(
             _config.CryptoExtensions,
             _config.CryptoKey,
             CryptoSoftExePath
         );
 
-        var watcher = new BusinessSoftwareWatcher(
-            _config.BusinessSoftware
-        );
+        var watcher = new BusinessSoftwareWatcher(_config.BusinessSoftware);
 
-        // 🔹 Service principal (fusion)
+        var priorityCoordinator = new PriorityCoordinator(_config.PriorityExtensions);
+        var largeFileGuard      = new LargeFileTransferGuard(_config.LargeFileThresholdKb);
+
         var backupService = new BackupService(
             _fileService,
             _logService,
             _stateService,
             cryptoService,
             watcher,
-            _pauseService
+            _pauseService,
+            priorityCoordinator,
+            largeFileGuard,
+            _configService
         );
 
         _viewModel = new MainViewModel(backupService);
@@ -83,15 +75,13 @@ public class LegacyConsoleApp
             else footer.Stop();
         };
 
-        var logViewModel = new LogViewModel(_logService);
+        var logViewModel = new LogViewModel();
 
         var logView = new LogView(_menu, _loc, logViewModel);
 
-
-        // Forms 
-        var inputForm = new InputForm(_loc);
-        var confirmDialog = new ConfirmDialog(_menu, _loc);
-        var backupTypeForm = new BackupTypeForm(_menu, _loc);
+        var inputForm       = new InputForm(_loc);
+        var confirmDialog   = new ConfirmDialog(_menu, _loc);
+        var backupTypeForm  = new BackupTypeForm(_menu, _loc);
 
         var createBackupForm = new CreateBackupForm(
             _viewModel,
@@ -108,7 +98,6 @@ public class LegacyConsoleApp
             _loc
         );
 
-        // Views
         var backupMenuView = new BackupMenuView(
             _viewModel,
             _menu,
@@ -139,14 +128,8 @@ public class LegacyConsoleApp
 
     public void Run()
     {
-        var startup = new StartupFlow(
-            _configService,
-            _loc,
-            _languageForm
-        );
-
+        var startup = new StartupFlow(_configService, _loc, _languageForm);
         startup.Run();
-
         _mainMenu.Show();
     }
 

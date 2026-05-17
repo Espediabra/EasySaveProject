@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using EasySaveProject.Models;
+using EasyLog;
 using EasySaveProject.Core.Services;
 using EasySaveProject.Core.Localization;
 using EasySaveProject.Infrastructure.Crypto;
@@ -120,7 +120,7 @@ public partial class MainWindowViewModel : ObservableObject
         CurrentPage = config.FirstRun ? "LanguageSelect" : "Jobs";
 
         SelectedLanguage = config.Langage == "fr" ? "Français" : "English";
-        SelectedLogFormat = config.LogFormat == AppLogFormat.Xml ? "XML" : "JSON";
+        SelectedLogFormat = config.LogFormat == LogFormat.Xml ? "XML" : "JSON";
 
         BusinessSoftware = new ObservableCollection<string>(
             config.BusinessSoftware
@@ -556,18 +556,11 @@ public partial class MainWindowViewModel : ObservableObject
         var configService = new ConfigService();
         var config = configService.Load();
 
-        config.LogFormat = SelectedLogFormat == "XML"
-            ? AppLogFormat.Xml
-            : AppLogFormat.Json;
+        config.LogFormat = SelectedLogFormat == "XML" ? LogFormat.Xml : LogFormat.Json;
 
         configService.Save(config);
 
-        var easyLogFormat = config.LogFormat == AppLogFormat.Xml ? EasyLog.LogFormat.Xml : EasyLog.LogFormat.Json;
-
-        LogService.Initialize(
-            new LocalizationService(),
-            easyLogFormat
-        );
+        LogService.Initialize(new LocalizationService(), config.LogFormat);
 
         ShowToastMessage("Format des logs enregistré.");
     }
