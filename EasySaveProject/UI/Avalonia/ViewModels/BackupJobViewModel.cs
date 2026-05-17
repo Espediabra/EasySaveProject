@@ -24,7 +24,11 @@ public partial class BackupJobViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(PauseButtonContent))]
     private string _status = "Idle";
 
-    [ObservableProperty] private int _progress = 0;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PercentText))]
+    [NotifyPropertyChangedFor(nameof(ProgressText))]
+    private int _progress = 0;
+
     [ObservableProperty] private int _totalFiles = 0;
     [ObservableProperty] private int _remainingFiles = 0;
     [ObservableProperty] private string _etaText = "";
@@ -53,6 +57,8 @@ public partial class BackupJobViewModel : ObservableObject
     public string TypeLabel => Type == "Differential"
         ? LocalizationManager.Instance["Backup.TypeDifferential"]
         : LocalizationManager.Instance["Backup.TypeFull"];
+
+    public string PercentText => $"{Progress}%";
 
     public string ProgressText => TotalFiles > 0
         ? $"{TotalFiles - RemainingFiles}/{TotalFiles} {LocalizationManager.Instance["Jobs.Progress.Files"]}"

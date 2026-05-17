@@ -20,34 +20,25 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         PriorityCoordinator priorityCoordinator,
         LargeFileTransferGuard largeFileGuard)
     {
-        // ── 1) Pre-start check ──────────────────────────────────────────────
+        // ── 1) Pre-start check: wait if business software is running ────────
+        // Changed from "cancel immediately" to "wait until free" so that
+        // parallel jobs launched while software is open will resume automatically.
         if (watcher.IsRunning())
         {
-            string blockers = string.Join(", ", watcher.GetRunningProcesses());
-
-            Console.WriteLine();
-            Console.WriteLine($"[!] Backup '{job.Name}' cancelled: business software running ({blockers})");
-            Console.WriteLine();
-
-            logService.LogWarning(
-                job.Name, job.SourcePath, job.TargetPath, 0, 0,
-                $"Backup cancelled: business software already running ({blockers})"
-            );
-
-            stateService.Update(new State
+            var waitState = new State
             {
-                BackupName = job.Name,
-                Timestamp = DateTime.Now,
-                Status = "Cancelled",
-                TotalFiles = 0,
-                RemainingFiles = 0,
-                TotalSize = 0,
-                RemainingSize = 0,
+                BackupName        = job.Name,
+                Timestamp         = DateTime.Now,
+                Status            = "Paused",
+                TotalFiles        = 0,
+                RemainingFiles    = 0,
+                TotalSize         = 0,
+                RemainingSize     = 0,
                 CurrentSourceFile = string.Empty,
                 CurrentTargetFile = string.Empty
-            });
-
-            return;
+            };
+            stateService.Update(waitState);
+            watcher.WaitUntilFree(pauseService, logService, job, waitState, stateService);
         }
 
         if (!Directory.Exists(job.SourcePath))

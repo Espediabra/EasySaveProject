@@ -8,6 +8,17 @@ public class BusinessSoftwareWatcher
 {
     private readonly ConfigService _configService;
 
+    // 0 = not notified, 1 = paused notification already sent.
+    // Interlocked ensures only ONE toast fires even when multiple parallel jobs
+    // all hit WaitUntilFree at the same time.
+    private int _pausedNotificationSent = 0;
+
+    /// <summary>Fired once (thread-safe) when backups first pause due to business software.</summary>
+    public event Action<string>? OnJobPaused;
+
+    /// <summary>Fired once (thread-safe) when the blocking software closes and backups resume.</summary>
+    public event Action<string>? OnJobResumed;
+
     public BusinessSoftwareWatcher(ConfigService configService)
     {
         _configService = configService;
@@ -52,6 +63,10 @@ public class BusinessSoftwareWatcher
             $"Backup paused: business software detected ({processList})"
         );
 
+        // Fire the pause event only once across all parallel jobs
+        if (System.Threading.Interlocked.CompareExchange(ref _pausedNotificationSent, 1, 0) == 0)
+            OnJobPaused?.Invoke(processList);
+
         pauseService.Pause();
         state.Status   = "Paused";
         state.BlockedBy = processList;
@@ -59,9 +74,7 @@ public class BusinessSoftwareWatcher
         stateService.Update(state);
 
         while (IsRunning())
-        {
             Thread.Sleep(1000);
-        }
 
         logService.LogInfo(
             job.Name, job.SourcePath, job.TargetPath, 0, 0,
@@ -73,6 +86,10 @@ public class BusinessSoftwareWatcher
         state.BlockedBy = string.Empty;
         state.Timestamp = DateTime.Now;
         stateService.Update(state);
+
+        // Fire the resume event only once
+        if (System.Threading.Interlocked.CompareExchange(ref _pausedNotificationSent, 0, 1) == 1)
+            OnJobResumed?.Invoke(processList);
     }
 
     private List<string> GetCurrentList()
