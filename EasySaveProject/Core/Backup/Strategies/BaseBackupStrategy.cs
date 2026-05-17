@@ -15,15 +15,16 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         StateService stateService,
         CryptoService cryptoService,
         BusinessSoftwareWatcher watcher,
-        PauseService pauseService)
+        PauseService pauseService,
+        JobController jobController,
+        PriorityCoordinator priorityCoordinator,
+        LargeFileTransferGuard largeFileGuard)
     {
-        // ── 1) Vérification AVANT démarrage ─────────────────────────────
-        // Si un logiciel métier est déjà ouvert → la sauvegarde ne démarre pas.
+        // ── 1) Pre-start check ──────────────────────────────────────────────
         if (watcher.IsRunning())
         {
             string blockers = string.Join(", ", watcher.GetRunningProcesses());
 
-            // Message console visible par l'utilisateur (en plus du log)
             Console.WriteLine();
             Console.WriteLine($"[!] Backup '{job.Name}' cancelled: business software running ({blockers})");
             Console.WriteLine();
@@ -33,7 +34,6 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                 $"Backup cancelled: business software already running ({blockers})"
             );
 
-            // État explicite "Cancelled" pour que le hub/footer s'arrête proprement
             stateService.Update(new State
             {
                 BackupName = job.Name,
@@ -59,101 +59,176 @@ public abstract class BaseBackupStrategy : IBackupStrategy
         var files = SelectFiles(job);
         long totalSize = files.Sum(f => new FileInfo(f).Length);
 
+        // ── 2) Sort: priority files first within this job ───────────────────
+        // Required to avoid self-deadlock: if a job's own non-priority file
+        // blocks on WaitIfNonPriority, it would never reach its priority files
+        // and the global count would never reach zero.
+        var sorted = files
+            .OrderBy(f => priorityCoordinator.GetPriorityRank(f))
+            // .ThenBy(f => new FileInfo(f).Length)
+            .ToArray();
+
+        // ── 3) Register this job's pending priority files globally ──────────
+        int priorityCount = sorted.Count(f => priorityCoordinator.IsPriorityFile(f));
+        priorityCoordinator.RegisterPendingPriorityFiles(priorityCount);
+        int priorityRemaining = priorityCount;
+
         var state = new State
         {
             BackupName = job.Name,
             Status = "Active",
-            TotalFiles = files.Length,
-            RemainingFiles = files.Length,
+            TotalFiles = sorted.Length,
+            RemainingFiles = sorted.Length,
             TotalSize = totalSize,
             RemainingSize = totalSize
         };
 
         stateService.Update(state);
 
-        foreach (var sourceFile in files)
+        bool stopped = false;
+
+        foreach (var sourceFile in sorted)
         {
-            // ── 2) Vérification ENTRE chaque fichier ─────────────────────
-            // Le fichier précédent est terminé (mode séquentiel).
-            // Si un logiciel métier est détecté → pause + attente + reprise.
-            watcher.WaitUntilFree(pauseService, logService, job, state, stateService);
+            // ── 4) Stop check before each file ─────────────────────────────
+            if (pauseService.IsStopRequested || jobController.IsStopRequested)
+            {
+                stopped = true;
+                break;
+            }
 
-            // ⏸ Gestion pause manuelle (touche Espace)
-            pauseService.WaitIfPaused();
-
-            var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
-            var targetFile = Path.Combine(job.TargetPath, relativePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
-
-            var fileSize = new FileInfo(sourceFile).Length;
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-            state.Timestamp = DateTime.Now;
-            state.CurrentSourceFile = sourceFile;
-            state.CurrentTargetFile = targetFile;
-            stateService.Update(state);
+            bool isPriority = priorityCoordinator.IsPriorityFile(sourceFile);
+            bool largeAcquired = false;
 
             try
             {
-                fileService.CopyFileWithProgress(sourceFile, targetFile, bytesJustCopied =>
+                // ── 5) Synchronization gates (order matters) ────────────────
+                watcher.WaitUntilFree(pauseService, logService, job, state, stateService);
+                pauseService.WaitIfPaused();
+                jobController.WaitIfPaused();
+
+                // Re-check stop after waking from any pause
+                if (pauseService.IsStopRequested || jobController.IsStopRequested)
                 {
-                    state.RemainingSize -= bytesJustCopied;
-                    state.Timestamp = DateTime.Now;
-                    stateService.Update(state);
-                });
+                    stopped = true;
+                    break;
+                }
 
-                stopwatch.Stop();
+                // Block non-priority file if any priority file is still pending globally.
+                priorityCoordinator.WaitIfNonPriority(sourceFile);
 
-                int cryptoTimeMs = cryptoService.TryEncrypt(targetFile);
+                var relativePath = Path.GetRelativePath(job.SourcePath, sourceFile);
+                var targetFile = Path.Combine(job.TargetPath, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
 
-                state.RemainingFiles--;
-                state.RemainingSize = Math.Max(0, state.RemainingSize);
+                var fileSize = new FileInfo(sourceFile).Length;
+
+                // Serialize large files: at most one large file copied at a time.
+                largeAcquired = largeFileGuard.AcquireIfLarge(fileSize);
+
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+                state.Timestamp = DateTime.Now;
+                state.CurrentSourceFile = sourceFile;
+                state.CurrentTargetFile = targetFile;
                 stateService.Update(state);
 
-                if (cryptoTimeMs < 0)
+                try
                 {
+                    fileService.CopyFileWithProgress(sourceFile, targetFile, bytesJustCopied =>
+                    {
+                        state.RemainingSize -= bytesJustCopied;
+                        state.Timestamp = DateTime.Now;
+                        stateService.Update(state);
+
+                        // Mid-copy business software check: blocks the copy thread at each
+                        // 1 MB chunk boundary until the offending process closes.
+                        if (watcher.IsRunning())
+                            watcher.WaitUntilFree(pauseService, logService, job, state, stateService);
+
+                        pauseService.WaitIfPaused();
+                        jobController.WaitIfPaused();
+
+                        if (pauseService.IsStopRequested || jobController.IsStopRequested)
+                            throw new OperationCanceledException();
+                    });
+
+                    stopwatch.Stop();
+
+                    int cryptoTimeMs = cryptoService.TryEncrypt(targetFile);
+
+                    state.RemainingFiles--;
+                    state.RemainingSize = Math.Max(0, state.RemainingSize);
+                    stateService.Update(state);
+
+                    if (cryptoTimeMs < 0)
+                    {
+                        logService.LogError(
+                            job.Name, sourceFile, targetFile,
+                            fileSize,
+                            $"Encryption error (code {cryptoTimeMs})"
+                        );
+                    }
+                    else
+                    {
+                        string message = cryptoTimeMs > 0
+                            ? $"File copied and encrypted in {cryptoTimeMs} ms"
+                            : "File copied successfully";
+
+                        logService.LogInfo(
+                            job.Name, sourceFile, targetFile,
+                            fileSize,
+                            stopwatch.ElapsedMilliseconds,
+                            message
+                        );
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    stopwatch.Stop();
+                    stopped = true;
+                }
+                catch (Exception ex)
+                {
+                    stopwatch.Stop();
+
+                    state.RemainingFiles--;
+                    state.RemainingSize = Math.Max(0, state.RemainingSize - fileSize);
+                    stateService.Update(state);
+
                     logService.LogError(
                         job.Name, sourceFile, targetFile,
-                        fileSize,
-                        $"Encryption error (code {cryptoTimeMs})"
-                    );
-                }
-                else
-                {
-                    string message = cryptoTimeMs > 0
-                        ? $"File copied and encrypted in {cryptoTimeMs} ms"
-                        : "File copied successfully";
-
-                    logService.LogInfo(
-                        job.Name, sourceFile, targetFile,
-                        fileSize,
-                        stopwatch.ElapsedMilliseconds,
-                        message
+                        0,
+                        $"Error during file copy: {ex.Message}"
                     );
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                stopwatch.Stop();
-
-                state.RemainingFiles--;
-                state.RemainingSize = Math.Max(0, state.RemainingSize - fileSize);
-                stateService.Update(state);
-
-                logService.LogError(
-                    job.Name, sourceFile, targetFile,
-                    0,
-                    $"Error during file copy: {ex.Message}"
-                );
+                // Always release regardless of success or error, to prevent deadlocks.
+                largeFileGuard.Release(largeAcquired);
+                if (isPriority)
+                {
+                    priorityCoordinator.OnPriorityFileCompleted();
+                    priorityRemaining--;
+                }
             }
+
+            if (stopped) break;
         }
 
-        pauseService.Reset();
+        // ── 6) Drain remaining priority files if stopped early ──────────────
+        // Prevents other parallel jobs from blocking forever on WaitIfNonPriority.
+        if (stopped && priorityRemaining > 0)
+        {
+            for (int i = 0; i < priorityRemaining; i++)
+                priorityCoordinator.OnPriorityFileCompleted();
+        }
 
-        state.Status = "Completed";
+        state.Status = stopped ? "Stopped" : "Completed";
         stateService.Update(state);
 
-        BackupStateHub.Clear();
+        // pauseService.Reset() and BackupStateHub.Clear() are now the
+        // responsibility of BackupService, which controls job lifecycle.
     }
 
     protected abstract string[] SelectFiles(BackupJob job);

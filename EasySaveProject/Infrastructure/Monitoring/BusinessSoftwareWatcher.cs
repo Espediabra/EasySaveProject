@@ -1,4 +1,4 @@
-﻿using EasySaveProject.Core.Services;
+using EasySaveProject.Core.Services;
 using EasySaveProject.Infrastructure.Process;
 using EasySaveProject.Models;
 
@@ -6,19 +6,16 @@ namespace EasySaveProject.Infrastructure.Monitoring;
 
 public class BusinessSoftwareWatcher
 {
-    private readonly List<string> _processNames;
+    private readonly ConfigService _configService;
 
-    public BusinessSoftwareWatcher(IEnumerable<string>? processNames)
+    public BusinessSoftwareWatcher(ConfigService configService)
     {
-        _processNames = (processNames ?? Enumerable.Empty<string>())
-            .Where(p => !string.IsNullOrWhiteSpace(p))
-            .Select(p => p.Trim())
-            .ToList();
+        _configService = configService;
     }
 
     public bool IsRunning()
     {
-        foreach (var name in _processNames)
+        foreach (var name in GetCurrentList())
         {
             if (ProcessHelper.IsProcessRunning(name))
                 return true;
@@ -29,7 +26,7 @@ public class BusinessSoftwareWatcher
     public List<string> GetRunningProcesses()
     {
         var running = new List<string>();
-        foreach (var name in _processNames)
+        foreach (var name in GetCurrentList())
         {
             if (ProcessHelper.IsProcessRunning(name))
                 running.Add(name);
@@ -56,7 +53,8 @@ public class BusinessSoftwareWatcher
         );
 
         pauseService.Pause();
-        state.Status = "Paused";
+        state.Status   = "Paused";
+        state.BlockedBy = processList;
         state.Timestamp = DateTime.Now;
         stateService.Update(state);
 
@@ -71,8 +69,16 @@ public class BusinessSoftwareWatcher
         );
 
         pauseService.Resume();
-        state.Status = "Active";
+        state.Status   = "Active";
+        state.BlockedBy = string.Empty;
         state.Timestamp = DateTime.Now;
         stateService.Update(state);
+    }
+
+    private List<string> GetCurrentList()
+    {
+        return _configService.Load().BusinessSoftware
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .ToList();
     }
 }

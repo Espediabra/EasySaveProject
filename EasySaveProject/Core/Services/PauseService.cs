@@ -11,12 +11,11 @@ public class PauseService
 {
     private readonly ManualResetEventSlim _resumeEvent = new(initialState: true);
     private          bool                 _isPaused    = false;
+    private volatile bool                 _stopRequested;
     private readonly object               _lock        = new();
 
-    public bool IsPaused
-    {
-        get { lock (_lock) return _isPaused; }
-    }
+    public bool IsPaused { get { lock (_lock) return _isPaused; } }
+    public bool IsStopRequested => _stopRequested;
 
     /// <summary>
     /// Bascule entre pause et reprise.
@@ -67,13 +66,26 @@ public class PauseService
     }
 
     /// <summary>
-    /// Remet le service en état initial (fin de job).
+    /// Stops all jobs: unblocks any WaitIfPaused and sets the stop flag.
+    /// The strategy checks IsStopRequested after waking.
     /// </summary>
+    public void Stop()
+    {
+        lock (_lock)
+        {
+            _stopRequested = true;
+            _isPaused = false;
+            _resumeEvent.Set();
+        }
+    }
+
+    /// <summary>Resets to initial state (called after all jobs in a run complete).</summary>
     public void Reset()
     {
         lock (_lock)
         {
             _isPaused = false;
+            _stopRequested = false;
             _resumeEvent.Set();
         }
     }

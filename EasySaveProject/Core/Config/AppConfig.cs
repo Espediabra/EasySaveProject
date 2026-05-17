@@ -1,18 +1,33 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using EasySaveProject.Models;
+using EasyLog;
 
 public class AppConfig
 {
     public string Langage { get; set; } = "en";
     public bool FirstRun { get; set; } = true;
-    public AppLogFormat LogFormat { get; set; } = AppLogFormat.Json;
+    public LogFormat LogFormat { get; set; } = LogFormat.Json;
+
     public string CryptoKey { get; set; } = string.Empty;
     public List<string> CryptoExtensions { get; set; } = new();
 
     [JsonConverter(typeof(StringOrListConverter))]
     public List<string> BusinessSoftware { get; set; } = new();
+
+    // V3: extensions processed before all other files across parallel jobs (e.g. [".zip", ".iso"])
+    public List<string> PriorityExtensions { get; set; } = new();
+
+    // V3: max file size (KB) allowed to transfer simultaneously. 0 = disabled.
+    public long LargeFileThresholdKb { get; set; } = 0;
+
+    // V3: log centralization mode (Local / Remote / Both)
+    public LogMode LogMode { get; set; } = LogMode.Local;
+    public string LogServerHost { get; set; } = "localhost";
+    public int LogServerPort { get; set; } = 9000;
+    public string MachineId { get; set; } = Environment.MachineName;
 }
+
+public enum LogMode { Local, Remote, Both }
 
 public class StringOrListConverter : JsonConverter<List<string>>
 {
