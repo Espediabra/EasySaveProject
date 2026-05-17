@@ -30,21 +30,16 @@
                                 Spacing="8"
                                 VerticalAlignment="Center">
 
-                        <!-- Global pause/resume/stop — only when at least one job is running -->
+                        <!-- Global pause/resume toggle + stop — only when running -->
                         <Button Classes="secondary"
-                                Content="⏸"
+                                Content="{Binding GlobalPauseContent}"
                                 IsVisible="{Binding IsRunning}"
-                                ToolTip.Tip="Pause all"
-                                Command="{Binding PauseAllCommand}" />
-                        <Button Classes="secondary"
-                                Content="▶"
-                                IsVisible="{Binding IsRunning}"
-                                ToolTip.Tip="Resume all"
-                                Command="{Binding ResumeAllCommand}" />
+                                ToolTip.Tip="{Binding Loc[Jobs.GlobalPause]}"
+                                Command="{Binding ToggleGlobalPauseCommand}" />
                         <Button Classes="danger"
                                 Content="⏹"
                                 IsVisible="{Binding IsRunning}"
-                                ToolTip.Tip="Stop all"
+                                ToolTip.Tip="{Binding Loc[Jobs.StopAll]}"
                                 Command="{Binding StopAllCommand}" />
 
                         <Button Classes="secondary"
@@ -106,8 +101,8 @@
                                        Text="{Binding Loc[Form.Type]}" />
 
                             <ComboBox SelectedIndex="{Binding FormTypeIndex}">
-                                <ComboBoxItem Content="Full" />
-                                <ComboBoxItem Content="Differential" />
+                                <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Backup.TypeFull]}" />
+                                <ComboBoxItem Content="{Binding $parent[UserControl].DataContext.Loc[Backup.TypeDifferential]}" />
                             </ComboBox>
                         </StackPanel>
                     </Grid>
@@ -226,10 +221,10 @@
 
                                     <Border.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Exécuter"
+                                            <MenuItem Header="{Binding DataContext.Loc[Jobs.Run], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                       Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
                                                       CommandParameter="{Binding}" />
-                                            <MenuItem Header="Supprimer"
+                                            <MenuItem Header="{Binding DataContext.Loc[Jobs.Delete], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                       Command="{Binding $parent[UserControl].DataContext.DeleteJobCommand}"
                                                       CommandParameter="{Binding}" />
                                         </ContextMenu>
@@ -267,17 +262,29 @@
                                                        TextTrimming="CharacterEllipsis"
                                                        Margin="0,2,0,0" />
 
-                                            <!-- Barre de progression -->
-                                            <StackPanel IsVisible="{Binding IsRunning}" Margin="0,6,0,0" Spacing="4">
+                                            <!-- Barre de progression + infos ETA -->
+                                            <StackPanel IsVisible="{Binding IsRunning}" Margin="0,6,0,0" Spacing="3">
                                                 <ProgressBar Value="{Binding Progress}"
                                                              Maximum="100"
-                                                             Height="3"
+                                                             Height="4"
                                                              CornerRadius="2"
                                                              Background="#E8E4D6"
                                                              Foreground="#AF9164" />
-                                                <TextBlock Text="{Binding ProgressText}"
-                                                           FontSize="11"
-                                                           Foreground="#B3B6B7" />
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding ProgressText}"
+                                                               FontSize="11"
+                                                               Foreground="#B3B6B7" />
+                                                    <TextBlock Grid.Column="1"
+                                                               Text="{Binding EtaText}"
+                                                               FontSize="11"
+                                                               Foreground="#AF9164" />
+                                                </Grid>
+                                                <TextBlock Text="{Binding CurrentFile}"
+                                                           FontSize="10"
+                                                           Foreground="#C5BDB4"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           IsVisible="{Binding CurrentFile, Converter={x:Static views:NotEmptyConverter.Instance}}" />
                                             </StackPanel>
 
                                             <!-- Badge terminé -->
@@ -319,27 +326,28 @@
                                                     Command="{Binding $parent[UserControl].DataContext.RunJobCommand}"
                                                     CommandParameter="{Binding}"
                                                     IsEnabled="{Binding !IsRunning}" />
-                                            <!-- Per-job pause/stop — visible only while running -->
+                                            <!-- Per-job pause/resume toggle -->
                                             <Button Classes="secondary"
-                                                    Content="⏸"
+                                                    Content="{Binding PauseButtonContent}"
                                                     FontSize="12"
                                                     Padding="8,6"
                                                     IsVisible="{Binding IsRunning}"
-                                                    ToolTip.Tip="Pause / Resume"
+                                                    ToolTip.Tip="{Binding DataContext.Loc[Jobs.PauseResume], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     Command="{Binding $parent[UserControl].DataContext.TogglePauseJobCommand}"
                                                     CommandParameter="{Binding}" />
+                                            <!-- Per-job stop -->
                                             <Button Classes="danger"
                                                     Content="⏹"
                                                     FontSize="12"
                                                     Padding="8,6"
                                                     IsVisible="{Binding IsRunning}"
-                                                    ToolTip.Tip="Stop"
+                                                    ToolTip.Tip="{Binding DataContext.Loc[Jobs.Stop], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     Command="{Binding $parent[UserControl].DataContext.StopJobCommand}"
                                                     CommandParameter="{Binding}" />
                                             <Button Classes="icon"
                                                     Command="{Binding $parent[UserControl].DataContext.SelectJobCommand}"
                                                     CommandParameter="{Binding}"
-                                                    ToolTip.Tip="Détails">
+                                                    ToolTip.Tip="{Binding DataContext.Loc[Jobs.Details], RelativeSource={RelativeSource AncestorType=UserControl}}">
                                                 <TextBlock Text="›"
                                                            FontSize="18"
                                                            Foreground="#B3B6B7" />
@@ -371,7 +379,7 @@
                         BorderThickness="0,0,0,1">
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Grid.Column="0"
-                                   Text="{Binding Loc[Jobs.Status.DoneLabel]}"
+                                   Text="{Binding Loc[Jobs.Details]}"
                                    FontSize="14"
                                    FontWeight="Medium"
                                    Foreground="#2B2118"
@@ -406,15 +414,15 @@
                                 <ComboBox Grid.Column="0"
                                           SelectedIndex="{Binding PendingTypeIndex}"
                                           HorizontalAlignment="Stretch">
-                                    <ComboBoxItem Content="Full" />
-                                    <ComboBoxItem Content="Differential" />
+                                    <ComboBoxItem Content="{Binding DataContext.Loc[Backup.TypeFull], RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                    <ComboBoxItem Content="{Binding DataContext.Loc[Backup.TypeDifferential], RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                 </ComboBox>
                                 <Button Grid.Column="1"
                                         Classes="secondary"
                                         Content="✓"
                                         Margin="8,0,0,0"
                                         Padding="10,6"
-                                        ToolTip.Tip="Enregistrer le type"
+                                        ToolTip.Tip="{Binding DataContext.Loc[Jobs.SaveType], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         Command="{Binding $parent[UserControl].DataContext.SaveJobTypeCommand}"
                                         CommandParameter="{Binding}" />
                             </Grid>

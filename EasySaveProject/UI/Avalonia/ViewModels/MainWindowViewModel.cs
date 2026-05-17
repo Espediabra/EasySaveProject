@@ -19,6 +19,7 @@ public partial class MainWindowViewModel : ObservableObject
     public LocalizationManager Loc => LocalizationManager.Instance;
     private readonly BackupService _backupService;
     private readonly LogService _logService;
+    private readonly ProgressService _progressService = new();
 
     public bool IsRunning { get; private set; }
 
@@ -27,6 +28,7 @@ public partial class MainWindowViewModel : ObservableObject
     private void SetRunning(bool state)
     {
         IsRunning = state;
+        OnPropertyChanged(nameof(IsRunning));
         OnExecutionStateChanged?.Invoke(state);
     }
 
@@ -97,7 +99,7 @@ public partial class MainWindowViewModel : ObservableObject
     public List<string> LogFormats { get; } =
     [
         "JSON",
-    "XML"
+        "XML"
     ];
 
     // Business software
@@ -118,9 +120,9 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private long _largeFileThresholdKb = 0;
 
-    // Log centralization (V3)
+    // Log centralization (V3) — index-based so ComboBox items can be translated
     [ObservableProperty]
-    private string _selectedLogMode = "Local";
+    private int _logModeIndex = 0;
 
     [ObservableProperty]
     private string _logServerHost = "localhost";
@@ -128,11 +130,38 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private int _logServerPort = 9000;
 
-    public List<string> LogModes { get; } = ["Local", "Remote", "Both"];
-
     // ── Toast ─────────────────────────────────────────────────────────────
     [ObservableProperty] private string _toastMessage = "";
     [ObservableProperty] private bool _showToast = false;
+
+    // ── Global pause ──────────────────────────────────────────────────────
+    public bool IsGloballyPaused => _backupService.IsGloballyPaused;
+    public string GlobalPauseContent => IsGloballyPaused ? "▶" : "⏸";
+
+    // ── Sidebar job tier ──────────────────────────────────────────────────
+    public int CurrentTierMax =>
+        Jobs.Count switch
+        {
+            < 10  => 10,
+            < 20  => 20,
+            < 50  => 50,
+            _     => 100
+        };
+
+    public string BackupTier =>
+        Jobs.Count switch
+        {
+            < 10  => "Starter",
+            < 20  => "Advanced",
+            < 50  => "Power User",
+            _     => "Archive Master"
+        };
+
+    public string JobsCountText =>
+        string.Format(
+            LocalizationManager.Instance["Nav.JobsCount"],
+            Jobs.Count
+        );
 
     public MainWindowViewModel()
     {
@@ -146,12 +175,12 @@ public partial class MainWindowViewModel : ObservableObject
         SelectedLanguage  = config.Langage == "fr" ? "Français" : "English";
         SelectedLogFormat = config.LogFormat == LogFormat.Xml ? "XML" : "JSON";
 
-        BusinessSoftware      = new ObservableCollection<string>(config.BusinessSoftware);
-        PriorityExtensions    = new ObservableCollection<string>(config.PriorityExtensions);
-        LargeFileThresholdKb  = config.LargeFileThresholdKb;
-        SelectedLogMode       = config.LogMode.ToString();
-        LogServerHost         = config.LogServerHost;
-        LogServerPort         = config.LogServerPort;
+        BusinessSoftware     = new ObservableCollection<string>(config.BusinessSoftware);
+        PriorityExtensions   = new ObservableCollection<string>(config.PriorityExtensions);
+        LargeFileThresholdKb = config.LargeFileThresholdKb;
+        LogModeIndex = config.LogMode switch { LogMode.Remote => 1, LogMode.Both => 2, _ => 0 };
+        LogServerHost = config.LogServerHost;
+        LogServerPort = config.LogServerPort;
 
         var lang = string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage;
         LocalizationManager.Instance.CurrentLanguage = lang;
@@ -167,9 +196,9 @@ public partial class MainWindowViewModel : ObservableObject
             Path.Combine(AppContext.BaseDirectory, "CryptoSoft.exe")
         );
 
-        var watcher              = new BusinessSoftwareWatcher(configService);
-        var priorityCoordinator  = new PriorityCoordinator(config.PriorityExtensions);
-        var largeFileGuard       = new LargeFileTransferGuard(config.LargeFileThresholdKb);
+        var watcher             = new BusinessSoftwareWatcher(configService);
+        var priorityCoordinator = new PriorityCoordinator(config.PriorityExtensions);
+        var largeFileGuard      = new LargeFileTransferGuard(config.LargeFileThresholdKb);
 
         _backupService = new BackupService(
             fileService,
@@ -198,8 +227,10 @@ public partial class MainWindowViewModel : ObservableObject
                 job.PropertyChanged -= OnJobPropertyChanged;
 
         OnPropertyChanged(nameof(HasSelectedJobs));
-
         OnPropertyChanged(nameof(FilteredJobs));
+        OnPropertyChanged(nameof(CurrentTierMax));
+        OnPropertyChanged(nameof(BackupTier));
+        OnPropertyChanged(nameof(JobsCountText));
     }
 
     private void OnJobPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -295,22 +326,28 @@ public partial class MainWindowViewModel : ObservableObject
 
         job.Status = "Active";
         job.Progress = 0;
+        job.EtaText = "";
+        job.CurrentFile = "";
 
         var timer = StartProgressTimer();
         SetRunning(true);
 
+        string finalStatus = "Completed";
         try
         {
-            await Task.Run(() => _backupService.RunJob(index));
+            await Task.Run(() => { finalStatus = _backupService.RunJob(index); });
 
-            job.Status = "Completed";
-            job.Progress = 100;
-            ShowToastMessage(string.Format(LocalizationManager.Instance["Jobs.Toast.Completed"], job.Name));
+            job.Status = finalStatus;
+            if (finalStatus == "Completed")
+            {
+                job.Progress = 100;
+                ShowToastMessage(string.Format(LocalizationManager.Instance["Jobs.Toast.Completed"], job.Name));
+            }
         }
         catch (Exception ex)
         {
             job.Status = "Error";
-            ShowToastMessage($"Erreur : {ex.Message}");
+            ShowToastMessage(string.Format(Loc["Jobs.Toast.Error"], ex.Message));
         }
         finally
         {
@@ -335,6 +372,8 @@ public partial class MainWindowViewModel : ObservableObject
             job.IsSelected = false;
             job.Status = "Active";
             job.Progress = 0;
+            job.EtaText = "";
+            job.CurrentFile = "";
         }
 
         var timer = StartProgressTimer();
@@ -342,15 +381,21 @@ public partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            await _backupService.RunJobsParallelAsync(indices);
+            var results = await _backupService.RunJobsParallelAsync(indices);
 
-            foreach (var job in selected) { job.Status = "Completed"; job.Progress = 100; }
-            ShowToastMessage($"{selected.Count} sauvegarde(s) terminée(s) ✓");
+            foreach (var job in selected)
+            {
+                job.Status = results.TryGetValue(job.Name, out var s) ? s : "Completed";
+                if (job.Status == "Completed") job.Progress = 100;
+            }
+
+            int completed = results.Values.Count(s => s == "Completed");
+            ShowToastMessage(string.Format(Loc["Jobs.Toast.MultiCompleted"], completed, selected.Count));
         }
         catch (Exception ex)
         {
             foreach (var job in selected) job.Status = "Error";
-            ShowToastMessage($"Erreur : {ex.Message}");
+            ShowToastMessage(string.Format(Loc["Jobs.Toast.Error"], ex.Message));
         }
         finally
         {
@@ -363,19 +408,41 @@ public partial class MainWindowViewModel : ObservableObject
 
     // ── Pause / Stop ──────────────────────────────────────────────────────
     [RelayCommand]
+    void ToggleGlobalPause()
+    {
+        if (_backupService.IsGloballyPaused)
+            _backupService.ResumeAll();
+        else
+            _backupService.PauseAll();
+
+        OnPropertyChanged(nameof(IsGloballyPaused));
+        OnPropertyChanged(nameof(GlobalPauseContent));
+    }
+
+    [RelayCommand]
     void PauseAll() => _backupService.PauseAll();
 
     [RelayCommand]
     void ResumeAll() => _backupService.ResumeAll();
 
     [RelayCommand]
-    void StopAll() => _backupService.StopAll();
+    void StopAll()
+    {
+        _backupService.StopAll();
+        foreach (var job in Jobs.Where(j => j.IsRunning))
+            job.Status = "Cancelled";
+        OnPropertyChanged(nameof(IsGloballyPaused));
+        OnPropertyChanged(nameof(GlobalPauseContent));
+    }
 
     [RelayCommand]
     void TogglePauseJob(BackupJobViewModel job) => _backupService.TogglePauseJob(job.Name);
 
     [RelayCommand]
-    void StopJob(BackupJobViewModel job) => _backupService.StopJob(job.Name);
+    void StopJob(BackupJobViewModel job)
+    {
+        _backupService.StopJob(job.Name);
+    }
 
     // ── Progress timer (UI thread — no Dispatcher.Invoke needed) ──────────
     private DispatcherTimer StartProgressTimer()
@@ -383,18 +450,30 @@ public partial class MainWindowViewModel : ObservableObject
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
         timer.Tick += (_, _) =>
         {
-            foreach (var snap in BackupStateHub.ReadAll())
+            _progressService.Tick();
+
+            foreach (var snap in _progressService.CurrentAll)
             {
                 var jobVm = Jobs.FirstOrDefault(j => j.Name == snap.BackupName);
                 if (jobVm == null) continue;
 
-                double fraction = snap.TotalFiles > 0
-                    ? (double)(snap.TotalFiles - snap.RemainingFiles) / snap.TotalFiles
-                    : 0.0;
-                jobVm.Progress = (int)(fraction * 100);
-                if (snap.Status is "Active" or "Paused" or "Completed" or "Error" or "Cancelled")
-                    jobVm.Status = snap.Status;
+                jobVm.Progress      = (int)(snap.Fraction * 100);
+                jobVm.TotalFiles    = snap.TotalFiles;
+                jobVm.RemainingFiles = snap.TotalFiles - snap.DoneFiles;
+                jobVm.CurrentFile   = Path.GetFileName(snap.CurrentFile);
+
+                jobVm.EtaText = snap.Eta.HasValue
+                    ? $"ETA {(int)snap.Eta.Value.TotalMinutes:D2}:{snap.Eta.Value.Seconds:D2}"
+                    : "";
+
+                // Determine actual pause state (global or per-job controller)
+                var controller = _backupService.GetControllerByName(snap.BackupName);
+                bool isPaused  = _backupService.IsGloballyPaused || controller?.IsPaused == true;
+                jobVm.Status   = isPaused ? "Paused" : snap.Status;
             }
+
+            OnPropertyChanged(nameof(IsGloballyPaused));
+            OnPropertyChanged(nameof(GlobalPauseContent));
         };
         timer.Start();
         return timer;
@@ -411,19 +490,13 @@ public partial class MainWindowViewModel : ObservableObject
         Jobs.Remove(job);
 
         if (SelectedJob == job) CloseJobPanel();
-        ShowToastMessage("Sauvegarde supprimée.");
+        ShowToastMessage(Loc["Jobs.Toast.Deleted"]);
     }
 
     // ── Formulaire de création ────────────────────────────────────────────
     [RelayCommand]
     void OpenCreateForm()
     {
-        // if (Jobs.Count >= 5)
-        // {
-        //     ShowToastMessage("Maximum 5 sauvegardes atteint. Supprimez-en une avant d'en créer une nouvelle.");
-        //     return;
-        // }
-
         FormName = FormSource = FormTarget = FormError = "";
         FormType = "Full";
         FormTypeIndex = 0;
@@ -443,10 +516,9 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     void SubmitCreate()
     {
-        if (string.IsNullOrWhiteSpace(FormName)) { FormError = "Le nom est requis."; return; }
-        if (string.IsNullOrWhiteSpace(FormSource)) { FormError = "Le chemin source est requis."; return; }
-        if (string.IsNullOrWhiteSpace(FormTarget)) { FormError = "Le chemin cible est requis."; return; }
-        // if (Jobs.Count >= 5) { FormError = "Maximum 5 sauvegardes atteint."; return; }
+        if (string.IsNullOrWhiteSpace(FormName))   { FormError = Loc["Form.EmptyError"]; return; }
+        if (string.IsNullOrWhiteSpace(FormSource)) { FormError = Loc["Form.EmptyError"]; return; }
+        if (string.IsNullOrWhiteSpace(FormTarget)) { FormError = Loc["Form.EmptyError"]; return; }
 
         var type = FormTypeIndex == 1 ? BackupType.Differential : BackupType.Full;
 
@@ -465,12 +537,6 @@ public partial class MainWindowViewModel : ObservableObject
         FormError = "";
         ShowRunNowPrompt = true;
     }
-
-    public string JobsCountText =>
-    string.Format(
-        LocalizationManager.Instance["Nav.JobsCount"],
-        Jobs.Count
-    );
 
     // ── Prompt "Exécuter maintenant?" ─────────────────────────────────────
     [RelayCommand]
@@ -507,7 +573,7 @@ public partial class MainWindowViewModel : ObservableObject
         var type = job.PendingTypeIndex == 1 ? BackupType.Differential : BackupType.Full;
         job.Type = job.PendingTypeIndex == 1 ? "Differential" : "Full";
         _backupService.UpdateJobType(index, type);
-        ShowToastMessage("Type de sauvegarde mis à jour.");
+        ShowToastMessage(Loc["Jobs.Toast.TypeUpdated"]);
     }
 
     // ── Filtrage des logs ──────────────────────────────────────────────────
@@ -547,6 +613,8 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private bool _showSaveLanguageButton = true;
     [ObservableProperty] private bool _canChangeLanguage = true;
     [ObservableProperty] private int _languageIndex = 0;
+
+    partial void OnLanguageIndexChanged(int value) => CanChangeLanguage = true;
 
     [RelayCommand]
     void SaveLanguage()
@@ -607,7 +675,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         LogService.Initialize(new LocalizationService(), config.LogFormat, config);
 
-        ShowToastMessage("Format des logs enregistré.");
+        ShowToastMessage(Loc["Settings.LogFormat.Saved"]);
     }
 
     // ── Log Mode / Log Server settings ───────────────────────────────────
@@ -617,18 +685,18 @@ public partial class MainWindowViewModel : ObservableObject
         var cs = new ConfigService();
         var cfg = cs.Load();
 
-        cfg.LogMode = SelectedLogMode switch
+        cfg.LogMode = LogModeIndex switch
         {
-            "Remote" => LogMode.Remote,
-            "Both"   => LogMode.Both,
-            _        => LogMode.Local
+            1 => LogMode.Remote,
+            2 => LogMode.Both,
+            _ => LogMode.Local
         };
 
         cs.Save(cfg);
 
         LogService.Initialize(new LocalizationService(), cfg.LogFormat, cfg);
 
-        ShowToastMessage("Mode de log enregistré.");
+        ShowToastMessage(Loc["Settings.LogMode.Saved"]);
     }
 
     [RelayCommand]
@@ -644,7 +712,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         LogService.Initialize(new LocalizationService(), cfg.LogFormat, cfg);
 
-        ShowToastMessage("Serveur de log enregistré.");
+        ShowToastMessage(Loc["Settings.LogMode.ServerSaved"]);
     }
 
     // ── Add Business Software ─────────────────────────────────────────────
@@ -661,7 +729,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         if (exists)
         {
-            ShowToastMessage("Ce logiciel existe déjà.");
+            ShowToastMessage(Loc["Settings.BusinessSoftware.AlreadyExists"]);
             return;
         }
 
@@ -676,7 +744,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         NewBusinessSoftware = "";
 
-        ShowToastMessage("Logiciel ajouté.");
+        ShowToastMessage(Loc["Settings.BusinessSoftware.Added"]);
     }
 
     // ── Delete Business Software ──────────────────────────────────────────
@@ -695,7 +763,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         configService.Save(config);
 
-        ShowToastMessage("Logiciel supprimé.");
+        ShowToastMessage(Loc["Settings.BusinessSoftware.Removed"]);
     }
 
     // ── Priority Extensions ───────────────────────────────────────────────
@@ -709,7 +777,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         if (PriorityExtensions.Any(x => x.Equals(ext, StringComparison.OrdinalIgnoreCase)))
         {
-            ShowToastMessage("Cette extension existe déjà.");
+            ShowToastMessage(Loc["Settings.PriorityExtensions.AlreadyExists"]);
             return;
         }
 
@@ -718,7 +786,7 @@ public partial class MainWindowViewModel : ObservableObject
         cfg.PriorityExtensions = PriorityExtensions.ToList();
         cs.Save(cfg);
         NewPriorityExtension = "";
-        ShowToastMessage("Extension ajoutée.");
+        ShowToastMessage(Loc["Settings.PriorityExtensions.Added"]);
     }
 
     [RelayCommand]
@@ -728,7 +796,21 @@ public partial class MainWindowViewModel : ObservableObject
         var cs = new ConfigService(); var cfg = cs.Load();
         cfg.PriorityExtensions = PriorityExtensions.ToList();
         cs.Save(cfg);
-        ShowToastMessage("Extension supprimée.");
+        ShowToastMessage(Loc["Settings.PriorityExtensions.Removed"]);
+    }
+
+    public void MovePriorityExtension(string fromExt, string toExt)
+    {
+        int fromIndex = PriorityExtensions.IndexOf(fromExt);
+        int toIndex   = PriorityExtensions.IndexOf(toExt);
+        if (fromIndex < 0 || toIndex < 0 || fromIndex == toIndex) return;
+
+        PriorityExtensions.RemoveAt(fromIndex);
+        PriorityExtensions.Insert(toIndex, fromExt);
+
+        var cs = new ConfigService(); var cfg = cs.Load();
+        cfg.PriorityExtensions = PriorityExtensions.ToList();
+        cs.Save(cfg);
     }
 
     // ── Large File Threshold ──────────────────────────────────────────────
@@ -738,7 +820,7 @@ public partial class MainWindowViewModel : ObservableObject
         var cs = new ConfigService(); var cfg = cs.Load();
         cfg.LargeFileThresholdKb = LargeFileThresholdKb;
         cs.Save(cfg);
-        ShowToastMessage("Seuil enregistré.");
+        ShowToastMessage(Loc["Settings.LargeFileThreshold.Updated"]);
     }
 
     // ── Research settings ─────────────────────────────────────────────────
