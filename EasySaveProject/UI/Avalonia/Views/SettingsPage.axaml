@@ -247,7 +247,7 @@
                                                        FontSize="14"
                                                        Foreground="#C5BDB4"
                                                        VerticalAlignment="Center"
-                                                       Cursor="SizeNorthSouth"
+													   Cursor="SizeNorthSouth"
                                                        PointerPressed="PriorityExt_DragHandlePressed"/>
                                             <TextBlock Grid.Column="1"
                                                        Text="{Binding .}"
