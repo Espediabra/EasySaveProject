@@ -40,12 +40,14 @@ public partial class MainWindowViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsJobsPageVisible))]
     [NotifyPropertyChangedFor(nameof(IsLogsPageVisible))]
     [NotifyPropertyChangedFor(nameof(IsSettingsPageVisible))]
+    [NotifyPropertyChangedFor(nameof(IsDecryptPageVisible))]
     private string _currentPage = "Jobs";
 
     public bool IsLanguageSelectPageVisible => CurrentPage == "LanguageSelect";
-    public bool IsJobsPageVisible => CurrentPage == "Jobs";
-    public bool IsLogsPageVisible => CurrentPage == "Logs";
-    public bool IsSettingsPageVisible => CurrentPage == "Settings";
+    public bool IsJobsPageVisible           => CurrentPage == "Jobs";
+    public bool IsLogsPageVisible           => CurrentPage == "Logs";
+    public bool IsSettingsPageVisible       => CurrentPage == "Settings";
+    public bool IsDecryptPageVisible        => CurrentPage == "Decrypt";
 
     // Page Jobs
     [ObservableProperty] private ObservableCollection<BackupJobViewModel> _jobs = new();
@@ -1125,4 +1127,126 @@ public partial class MainWindowViewModel : ObservableObject
         || j.SourcePath.Contains(SearchJobs, StringComparison.OrdinalIgnoreCase)
         || j.TargetPath.Contains(SearchJobs, StringComparison.OrdinalIgnoreCase)
     );
+
+    // ── Decrypt page ──────────────────────────────────────────────────────────
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DecryptTargetFolder))]
+    [NotifyPropertyChangedFor(nameof(DecryptKeyInfo))]
+    private int _decryptSelectedJobIndex = -1;
+
+    [ObservableProperty] private ObservableCollection<string> _decryptExtensions = new();
+    [ObservableProperty] private string _newDecryptExtension = "";
+    [ObservableProperty] private string _decryptStatusText = "";
+    [ObservableProperty] private int    _decryptProgress = 0;
+    [ObservableProperty] private bool   _decryptIsRunning = false;
+
+    public string DecryptTargetFolder => DecryptSelectedJobIndex >= 0 && DecryptSelectedJobIndex < Jobs.Count
+        ? Jobs[DecryptSelectedJobIndex].TargetPath
+        : Loc["Decrypt.TargetFolder.None"];
+
+    public string DecryptKeyInfo => string.IsNullOrWhiteSpace(CryptoKey)
+        ? Loc["Decrypt.Key.Missing"]
+        : Loc["Decrypt.Key.Info"];
+
+    partial void OnDecryptSelectedJobIndexChanged(int value)
+    {
+        // Pre-populate with current CryptoExtensions when first job is selected
+        if (DecryptExtensions.Count == 0)
+        {
+            foreach (var ext in CryptoExtensions)
+                DecryptExtensions.Add(ext);
+        }
+    }
+
+    [RelayCommand]
+    void AddDecryptExtension()
+    {
+        var ext = NewDecryptExtension.Trim().ToLowerInvariant();
+        if (string.IsNullOrEmpty(ext)) return;
+        if (!ext.StartsWith('.')) ext = "." + ext;
+        if (!DecryptExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase))
+        {
+            DecryptExtensions.Add(ext);
+            NewDecryptExtension = "";
+        }
+    }
+
+    [RelayCommand]
+    void RemoveDecryptExtension(string ext) => DecryptExtensions.Remove(ext);
+
+    [RelayCommand]
+    async Task RunDecrypt()
+    {
+        if (DecryptSelectedJobIndex < 0 || DecryptSelectedJobIndex >= Jobs.Count)
+        {
+            DecryptStatusText = Loc["Decrypt.NoJob"];
+            return;
+        }
+        if (DecryptExtensions.Count == 0)
+        {
+            DecryptStatusText = Loc["Decrypt.NoExtensions"];
+            return;
+        }
+        var key = CryptoKey?.Trim() ?? "";
+        if (string.IsNullOrEmpty(key))
+        {
+            DecryptStatusText = Loc["Decrypt.Key.Missing"];
+            return;
+        }
+
+        var targetFolder = Jobs[DecryptSelectedJobIndex].TargetPath;
+        var extensions   = DecryptExtensions.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        DecryptIsRunning  = true;
+        DecryptProgress   = 0;
+        DecryptStatusText = Loc["Decrypt.Running"];
+
+        await Task.Run(() =>
+        {
+            var runner = new CryptoSoftRunner(string.Empty);
+
+            string[] files;
+            try
+            {
+                files = Directory.GetFiles(targetFolder, "*", SearchOption.AllDirectories)
+                    .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                    .ToArray();
+            }
+            catch (Exception ex)
+            {
+                DispatcherQueue(() =>
+                {
+                    DecryptStatusText = string.Format(Loc["Decrypt.Error"], ex.Message);
+                    DecryptIsRunning  = false;
+                });
+                return;
+            }
+
+            int total = files.Length;
+            int done  = 0;
+
+            foreach (var file in files)
+            {
+                try { runner.Encrypt(file, key); } catch { }
+                done++;
+                int snap = done;
+                DispatcherQueue(() =>
+                {
+                    DecryptProgress   = total > 0 ? (int)(snap * 100.0 / total) : 100;
+                    DecryptStatusText = string.Format(Loc["Decrypt.Progress"], snap, total);
+                });
+            }
+
+            DispatcherQueue(() =>
+            {
+                DecryptIsRunning  = false;
+                DecryptProgress   = 100;
+                DecryptStatusText = string.Format(Loc["Decrypt.Done"], done);
+            });
+        });
+    }
+
+    private static void DispatcherQueue(Action a) =>
+        Dispatcher.UIThread.Post(a, DispatcherPriority.Normal);
 }

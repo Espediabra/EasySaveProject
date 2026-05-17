@@ -162,6 +162,27 @@
                             </StackPanel>
                         </Button>
 
+                        <!-- Déchiffrement -->
+                        <Button HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Padding="12,10"
+                                CornerRadius="8"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Command="{Binding NavigateToCommand}"
+                                CommandParameter="Decrypt">
+                            <Button.Background>
+                                <MultiBinding Converter="{x:Static views:NavBgConverter.Instance}">
+                                    <Binding Path="CurrentPage" />
+                                    <Binding Source="Decrypt" />
+                                </MultiBinding>
+                            </Button.Background>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="🔓" FontSize="14" Foreground="#AF9164" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Loc[Nav.Decrypt]}" FontSize="13" Foreground="#F7F3E3" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
                     </StackPanel>
 
                     <!-- Compteur jobs en bas -->
@@ -200,6 +221,8 @@
                                     DataContext="{Binding}" />
                     <views:SettingsPage IsVisible="{Binding IsSettingsPageVisible}"
                                         DataContext="{Binding}" />
+                    <views:DecryptPage IsVisible="{Binding IsDecryptPageVisible}"
+                                       DataContext="{Binding}" />
                 </Panel>
 
                 <!-- Toast -->

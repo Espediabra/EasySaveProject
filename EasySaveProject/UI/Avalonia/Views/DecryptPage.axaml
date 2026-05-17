@@ -1,0 +1,188 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EasySaveProject.UI.Avalonia.ViewModels"
+             xmlns:views="clr-namespace:EasySaveProject.UI.Avalonia.Views"
+             x:Class="EasySaveProject.UI.Avalonia.Views.DecryptPage"
+             x:DataType="vm:MainWindowViewModel">
+
+    <DockPanel>
+
+        <!-- HEADER -->
+        <Border DockPanel.Dock="Top"
+                Padding="28,24,28,16"
+                BorderBrush="#E8E4D6"
+                BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock Classes="heading" Text="{Binding Loc[Decrypt.Title]}" />
+                <TextBlock Classes="subheading"
+                           Text="{Binding Loc[Decrypt.Subtitle]}"
+                           Margin="0,2,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- CONTENT -->
+        <ScrollViewer DockPanel.Dock="Top" Margin="28,20,28,24">
+            <StackPanel Spacing="14">
+
+                <!-- SELECT JOB -->
+                <Border Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18">
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Loc[Decrypt.SelectJob]}"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="{Binding Loc[Decrypt.SelectJob.Desc]}"
+                                       FontSize="12"
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <ComboBox ItemsSource="{Binding Jobs}"
+                                  SelectedIndex="{Binding DecryptSelectedJobIndex}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:BackupJobViewModel">
+                                    <TextBlock Text="{Binding Name}" FontSize="13"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <!-- Target folder (shown once a job is selected) -->
+                        <StackPanel Spacing="2"
+                                    IsVisible="{Binding DecryptSelectedJobIndex,
+                                                Converter={x:Static views:IntGeZeroConverter.Instance}}">
+                            <TextBlock Text="{Binding Loc[Decrypt.TargetFolder]}"
+                                       FontSize="11"
+                                       Foreground="#B3B6B7"/>
+                            <TextBlock Text="{Binding DecryptTargetFolder}"
+                                       FontSize="12"
+                                       Foreground="#6B6256"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- EXTENSIONS TO DECRYPT -->
+                <Border Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18">
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Loc[Decrypt.Extensions]}"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="{Binding Loc[Decrypt.Extensions.Desc]}"
+                                       FontSize="12"
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding NewDecryptExtension}"
+                                     PlaceholderText="{Binding Loc[Decrypt.Extensions.Placeholder]}"/>
+                            <Button Grid.Column="1"
+                                    Classes="primary"
+                                    Content="{Binding Loc[Decrypt.Extensions.Add]}"
+                                    Command="{Binding AddDecryptExtensionCommand}"/>
+                        </Grid>
+
+                        <!-- Empty hint -->
+                        <TextBlock Text="{Binding Loc[Decrypt.Extensions.Empty]}"
+                                   FontSize="12"
+                                   Foreground="#B3B6B7"
+                                   IsVisible="{Binding DecryptExtensions.Count,
+                                               Converter={x:Static views:ZeroToBoolConverter.Instance}}"/>
+
+                        <ItemsControl ItemsSource="{Binding DecryptExtensions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#E8E4D6"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="10,8"
+                                            Margin="0,4,0,0">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Text="{Binding .}"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="13"/>
+                                            <Button Grid.Column="1"
+                                                    Content="{Binding $parent[UserControl].DataContext.Loc[Decrypt.Extensions.Remove]}"
+                                                    Command="{Binding $parent[UserControl].DataContext.RemoveDecryptExtensionCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ACTION + PROGRESS -->
+                <Border Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18">
+                    <StackPanel Spacing="14">
+
+                        <!-- Key info banner -->
+                        <Border Background="#F7F3E3"
+                                CornerRadius="6"
+                                Padding="12,8">
+                            <TextBlock Text="{Binding DecryptKeyInfo}"
+                                       FontSize="12"
+                                       Foreground="#6B6256"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- Decrypt button -->
+                        <Button Classes="primary"
+                                Content="{Binding Loc[Decrypt.Run]}"
+                                Command="{Binding RunDecryptCommand}"
+                                IsEnabled="{Binding !DecryptIsRunning}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                FontSize="14"
+                                Height="44"/>
+
+                        <!-- Progress bar -->
+                        <StackPanel Spacing="6"
+                                    IsVisible="{Binding DecryptIsRunning}">
+                            <ProgressBar Value="{Binding DecryptProgress}"
+                                         Maximum="100"
+                                         Height="6"
+                                         CornerRadius="3"
+                                         Background="#E8E4D6"
+                                         Foreground="#AF9164"/>
+                        </StackPanel>
+
+                        <!-- Status message -->
+                        <TextBlock Text="{Binding DecryptStatusText}"
+                                   FontSize="13"
+                                   Foreground="#6B6256"
+                                   TextWrapping="Wrap"
+                                   IsVisible="{Binding DecryptStatusText,
+                                               Converter={x:Static views:NotEmptyConverter.Instance}}"/>
+
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+    </DockPanel>
+
+</UserControl>
