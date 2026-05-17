@@ -97,7 +97,22 @@ public class LogService
         => _wrapper.LogError(jobName, sourcePath, targetPath, fileSizeBytes, message);
 
     public List<LogEntry> GetByDate(DateTime date)
-        => _provider.ReadByDate(date);
+    {
+        // Always try both local formats so that changing the log format setting
+        // doesn't hide entries written under the previous format.
+        var jsonProvider = new JsonLogProvider(_logDir);
+        var xmlProvider  = new XmlLogProvider(_logDir);
+
+        var jsonEntries = jsonProvider.ReadByDate(date);
+        var xmlEntries  = xmlProvider.ReadByDate(date);
+
+        // Merge and sort chronologically. Duplicates are impossible since each
+        // file format writes to its own file (*.json vs *.xml).
+        return jsonEntries
+            .Concat(xmlEntries)
+            .OrderBy(e => e.Timestamp)
+            .ToList();
+    }
 
     public List<LogEntry> GetByLevel(DateTime date, LogLevel level)
         => GetByDate(date).Where(e => e.Level == level).ToList();

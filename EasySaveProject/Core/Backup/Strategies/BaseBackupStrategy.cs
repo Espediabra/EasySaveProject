@@ -162,19 +162,21 @@ public abstract class BaseBackupStrategy : IBackupStrategy
                     state.RemainingSize = Math.Max(0, state.RemainingSize);
                     stateService.Update(state);
 
+                    string shortName = ShortFileName(sourceFile);
+
                     if (cryptoTimeMs < 0)
                     {
                         logService.LogError(
                             job.Name, sourceFile, targetFile,
                             fileSize,
-                            $"Encryption error (code {cryptoTimeMs})"
+                            $"File {shortName} encryption error (code {cryptoTimeMs})"
                         );
                     }
                     else
                     {
                         string message = cryptoTimeMs > 0
-                            ? $"File copied and encrypted in {cryptoTimeMs} ms"
-                            : "File copied successfully";
+                            ? $"File {shortName} copied and encrypted in {cryptoTimeMs} ms"
+                            : $"File {shortName} copied successfully";
 
                         logService.LogInfo(
                             job.Name, sourceFile, targetFile,
@@ -234,4 +236,12 @@ public abstract class BaseBackupStrategy : IBackupStrategy
     }
 
     protected abstract string[] SelectFiles(BackupJob job);
+
+    private static string ShortFileName(string path, int maxLen = 36)
+    {
+        var name = Path.GetFileName(path);
+        if (name.Length <= maxLen) return name;
+        int half = (maxLen - 3) / 2;
+        return string.Concat(name.AsSpan(0, half), "...", name.AsSpan(name.Length - half));
+    }
 }

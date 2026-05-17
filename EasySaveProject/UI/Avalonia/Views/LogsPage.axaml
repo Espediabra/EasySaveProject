@@ -39,7 +39,8 @@
                 BorderThickness="0,0,0,1"
                 Background="#FEFCF7">
 
-            <Grid ColumnDefinitions="Auto,12,Auto,12,Auto,16,Auto,*,Auto">
+
+            <Grid ColumnDefinitions="80,12,80,12,105,16,Auto,*,Auto">
 
                 <StackPanel Grid.Column="0" Spacing="3">
                     <TextBlock Text="{Binding Loc[Logs.Date.Day]}"
@@ -48,7 +49,8 @@
                     <NumericUpDown Value="{Binding LogsDay}"
                                    Minimum="1" Maximum="31"
                                    FormatString="0"
-                                   Width="68" Height="36"/>
+                                   HorizontalAlignment="Stretch"
+                                   Height="36"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Spacing="3">
@@ -58,7 +60,8 @@
                     <NumericUpDown Value="{Binding LogsMonth}"
                                    Minimum="1" Maximum="12"
                                    FormatString="0"
-                                   Width="68" Height="36"/>
+                                   HorizontalAlignment="Stretch"
+                                   Height="36"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="4" Spacing="3">
@@ -68,7 +71,8 @@
                     <NumericUpDown Value="{Binding LogsYear}"
                                    Minimum="2000" Maximum="2100"
                                    FormatString="0"
-                                   Width="90" Height="36"/>
+                                   HorizontalAlignment="Stretch"
+                                   Height="36"/>
                 </StackPanel>
 
                 <Button Grid.Column="6"
