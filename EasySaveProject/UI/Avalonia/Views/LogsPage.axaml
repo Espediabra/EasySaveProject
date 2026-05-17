@@ -40,7 +40,7 @@
                 Background="#FEFCF7">
 
 
-            <Grid ColumnDefinitions="80,12,80,12,105,16,Auto,*,Auto">
+            <Grid ColumnDefinitions="105,12,100,12,120,16,Auto,*,Auto">
 
                 <StackPanel Grid.Column="0" Spacing="3">
                     <TextBlock Text="{Binding Loc[Logs.Date.Day]}"
@@ -227,12 +227,14 @@
                                            Text="{Binding SizeFormatted}"
                                            FontSize="12"
                                            HorizontalAlignment="Left"
+                                           Padding="11,4"
                                            Foreground="#B3B6B7"/>
 
                                 <TextBlock Grid.Column="5"
                                            Text="{Binding TransferFormatted}"
                                            FontSize="12"
                                            HorizontalAlignment="Left"
+                                           Padding="11,4"
                                            Foreground="#B3B6B7"/>
 
                             </Grid>
