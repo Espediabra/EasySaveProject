@@ -219,7 +219,7 @@
   "MainMenu.Exit": "Exit",
   "Menu.Controls": "ENTER → Open / Execute   SPACE → Select",
   "Settings.CryptoSoft.Title": "CryptoSoft encryption",
-  "Settings.CryptoSoft.Desc": "Encrypt files with CryptoSoft (mono-instance). Only the listed extensions will be encrypted.",
+  "Settings.CryptoSoft.Desc": "Encrypt backed-up files with CryptoSoft. Only the listed extensions will be encrypted.",
   "Settings.CryptoSoft.Key": "Encryption key",
   "Settings.CryptoSoft.KeyPlaceholder": "Enter encryption key...",
   "Settings.CryptoSoft.Save": "Save",

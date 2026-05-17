@@ -229,33 +229,42 @@
                                     Command="{Binding AddPriorityExtensionCommand}" />
                         </Grid>
 
-                        <ItemsControl ItemsSource="{Binding PriorityExtensions}">
+                        <ItemsControl ItemsSource="{Binding PriorityExtensionsView}">
                             <ItemsControl.ItemTemplate>
-                                <DataTemplate>
+                                <DataTemplate x:DataType="vm:PriorityExtensionItem">
                                     <Border BorderBrush="#E8E4D6"
                                             BorderThickness="1"
                                             CornerRadius="8"
                                             Padding="10,8"
                                             Margin="0,4,0,0"
-                                            Background="White"
-                                            PointerEntered="PriorityExt_PointerEntered"
-                                            PointerReleased="PriorityExt_PointerReleased">
-                                        <Grid ColumnDefinitions="24,*,Auto">
-                                            <!-- Drag handle -->
+                                            Background="White">
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                             <TextBlock Grid.Column="0"
-                                                       Text="⣿"
-                                                       FontSize="14"
-                                                       Foreground="#C5BDB4"
-                                                       VerticalAlignment="Center"
-													   Cursor="SizeNorthSouth"
-                                                       PointerPressed="PriorityExt_DragHandlePressed"/>
-                                            <TextBlock Grid.Column="1"
-                                                       Text="{Binding .}"
+                                                       Text="{Binding Extension}"
                                                        VerticalAlignment="Center"/>
+                                            <Button Grid.Column="1"
+                                                    Content="↑"
+                                                    Width="28" Height="28"
+                                                    Padding="0"
+                                                    FontSize="13"
+                                                    IsVisible="{Binding CanMoveUp}"
+                                                    Command="{Binding $parent[UserControl].DataContext.MovePriorityExtensionUpCommand}"
+                                                    CommandParameter="{Binding Extension}"
+                                                    Margin="4,0,0,0"/>
                                             <Button Grid.Column="2"
+                                                    Content="↓"
+                                                    Width="28" Height="28"
+                                                    Padding="0"
+                                                    FontSize="13"
+                                                    IsVisible="{Binding CanMoveDown}"
+                                                    Command="{Binding $parent[UserControl].DataContext.MovePriorityExtensionDownCommand}"
+                                                    CommandParameter="{Binding Extension}"
+                                                    Margin="4,0,0,0"/>
+                                            <Button Grid.Column="3"
                                                     Content="{Binding $parent[UserControl].DataContext.Loc[Settings.PriorityExtensions.Remove]}"
                                                     Command="{Binding $parent[UserControl].DataContext.RemovePriorityExtensionCommand}"
-                                                    CommandParameter="{Binding .}"/>
+                                                    CommandParameter="{Binding Extension}"
+                                                    Margin="4,0,0,0"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

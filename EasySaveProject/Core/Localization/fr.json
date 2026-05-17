@@ -219,7 +219,7 @@
   "MainMenu.Exit": "Quitter",
   "Menu.Controls": "ENTRÉE → Ouvrir / Exécuter   ESPACE → Sélectionner",
   "Settings.CryptoSoft.Title": "Chiffrement CryptoSoft",
-  "Settings.CryptoSoft.Desc": "Chiffre les fichiers avec CryptoSoft (mono-instance). Seules les extensions listées seront chiffrées.",
+  "Settings.CryptoSoft.Desc": "Chiffre les fichiers sauvegardés avec CryptoSoft. Seules les extensions listées seront chiffrées.",
   "Settings.CryptoSoft.Key": "Clé de chiffrement",
   "Settings.CryptoSoft.KeyPlaceholder": "Saisir la clé de chiffrement...",
   "Settings.CryptoSoft.Save": "Enregistrer",

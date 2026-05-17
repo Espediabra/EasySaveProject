@@ -122,6 +122,23 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _newPriorityExtension = "";
 
+    public ObservableCollection<PriorityExtensionItem> PriorityExtensionsView { get; } = new();
+
+    private void RefreshPriorityExtensionsView()
+    {
+        PriorityExtensionsView.Clear();
+        int count = PriorityExtensions.Count;
+        for (int i = 0; i < count; i++)
+        {
+            PriorityExtensionsView.Add(new PriorityExtensionItem
+            {
+                Extension  = PriorityExtensions[i],
+                CanMoveUp  = i > 0,
+                CanMoveDown = i < count - 1
+            });
+        }
+    }
+
     // Large file threshold (V3)
     [ObservableProperty]
     private long _largeFileThresholdKb = 0;
@@ -214,6 +231,8 @@ public partial class MainWindowViewModel : ObservableObject
         LogServerPort = config.LogServerPort;
         CryptoKey        = config.CryptoKey;
         CryptoExtensions = new ObservableCollection<string>(config.CryptoExtensions);
+
+        RefreshPriorityExtensionsView();
 
         var lang = string.IsNullOrWhiteSpace(config.Langage) ? "en" : config.Langage;
         LocalizationManager.Instance.CurrentLanguage = lang;
@@ -698,23 +717,28 @@ public partial class MainWindowViewModel : ObservableObject
         config.FirstRun = false;
         configService.Save(config);
 
-        LocalizationManager.Instance.CurrentLanguage = langCode;
-
-        CanChangeLanguage = false;
-
-        // Force all {Binding Loc[...]} expressions in every page to re-evaluate.
-        // Loc returns the same singleton but Avalonia re-subscribes to its INotifyPropertyChanged,
-        // which has already fired PropertyChanged("Item[]") above.
-        OnPropertyChanged(nameof(Loc));
-
-        // Refresh computed lists that depend on translated strings
-        OnPropertyChanged(nameof(LogModeOptions));
-        OnPropertyChanged(nameof(LogLevelOptions));
-
         if (CurrentPage == "LanguageSelect")
+        {
+            // First-run flow: just navigate, no restart needed
+            LocalizationManager.Instance.CurrentLanguage = langCode;
+            CanChangeLanguage = false;
             CurrentPage = "Jobs";
+        }
         else
-            ShowToastMessage(Loc["Settings.LanguageSaved"]);
+        {
+            // Settings flow: restart the app so every string, style and
+            // computed list picks up the new language without any stale state.
+            CanChangeLanguage = false;
+            RestartApplication();
+        }
+    }
+
+    private static void RestartApplication()
+    {
+        var exe = Environment.ProcessPath;
+        if (!string.IsNullOrEmpty(exe))
+            System.Diagnostics.Process.Start(exe);
+        Environment.Exit(0);
     }
 
     // ── Toast ─────────────────────────────────────────────────────────────
@@ -863,9 +887,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
 
         PriorityExtensions.Add(ext);
-        var cs = new ConfigService(); var cfg = cs.Load();
-        cfg.PriorityExtensions = PriorityExtensions.ToList();
-        cs.Save(cfg);
+        SavePriorityExtensions();
         NewPriorityExtension = "";
         ShowToastMessage(Loc["Settings.PriorityExtensions.Added"]);
     }
@@ -874,10 +896,34 @@ public partial class MainWindowViewModel : ObservableObject
     void RemovePriorityExtension(string ext)
     {
         PriorityExtensions.Remove(ext);
+        SavePriorityExtensions();
+        ShowToastMessage(Loc["Settings.PriorityExtensions.Removed"]);
+    }
+
+    [RelayCommand]
+    void MovePriorityExtensionUp(string ext)
+    {
+        int i = PriorityExtensions.IndexOf(ext);
+        if (i <= 0) return;
+        PriorityExtensions.Move(i, i - 1);
+        SavePriorityExtensions();
+    }
+
+    [RelayCommand]
+    void MovePriorityExtensionDown(string ext)
+    {
+        int i = PriorityExtensions.IndexOf(ext);
+        if (i < 0 || i >= PriorityExtensions.Count - 1) return;
+        PriorityExtensions.Move(i, i + 1);
+        SavePriorityExtensions();
+    }
+
+    private void SavePriorityExtensions()
+    {
         var cs = new ConfigService(); var cfg = cs.Load();
         cfg.PriorityExtensions = PriorityExtensions.ToList();
         cs.Save(cfg);
-        ShowToastMessage(Loc["Settings.PriorityExtensions.Removed"]);
+        RefreshPriorityExtensionsView();
     }
 
     public void MovePriorityExtension(string fromExt, string toExt)
@@ -885,13 +931,8 @@ public partial class MainWindowViewModel : ObservableObject
         int fromIndex = PriorityExtensions.IndexOf(fromExt);
         int toIndex   = PriorityExtensions.IndexOf(toExt);
         if (fromIndex < 0 || toIndex < 0 || fromIndex == toIndex) return;
-
-        PriorityExtensions.RemoveAt(fromIndex);
-        PriorityExtensions.Insert(toIndex, fromExt);
-
-        var cs = new ConfigService(); var cfg = cs.Load();
-        cfg.PriorityExtensions = PriorityExtensions.ToList();
-        cs.Save(cfg);
+        PriorityExtensions.Move(fromIndex, toIndex);
+        SavePriorityExtensions();
     }
 
     // ── Large File Threshold ──────────────────────────────────────────────
