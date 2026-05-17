@@ -291,6 +291,68 @@
                     </StackPanel>
                 </Border>
 
+                <!-- LOG CENTRALIZATION -->
+                <Border Classes="row"
+                        Background="#FEFCF7"
+                        BorderBrush="#E8E4D6"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="20,18"
+                        IsVisible="{Binding ShowLogModeSetting}">
+
+                    <StackPanel Spacing="14">
+
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Loc[Settings.LogMode.Title]}"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                            <TextBlock Text="{Binding Loc[Settings.LogMode.Desc]}"
+                                       FontSize="12"
+                                       Foreground="#B3B6B7"/>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <!-- Mode selection -->
+                        <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox Grid.Column="0"
+                                      Width="240"
+                                      SelectedItem="{Binding SelectedLogMode}"
+                                      ItemsSource="{Binding LogModes}"/>
+                            <Button Grid.Column="1"
+                                    Classes="primary"
+                                    Content="{Binding Loc[Settings.LogMode.Save]}"
+                                    Command="{Binding SaveLogModeCommand}"/>
+                        </Grid>
+
+                        <!-- Server settings (host/port) — shown for Remote and Both modes -->
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="*,16,*">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="{Binding Loc[Settings.LogMode.Host]}"
+                                               FontSize="12"
+                                               Foreground="#B3B6B7"/>
+                                    <TextBox Text="{Binding LogServerHost}"
+                                             Watermark="localhost"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="4">
+                                    <TextBlock Text="{Binding Loc[Settings.LogMode.Port]}"
+                                               FontSize="12"
+                                               Foreground="#B3B6B7"/>
+                                    <NumericUpDown Value="{Binding LogServerPort}"
+                                                   Minimum="1"
+                                                   Maximum="65535"
+                                                   FormatString="0"/>
+                                </StackPanel>
+                            </Grid>
+                            <Button Classes="secondary"
+                                    Content="{Binding Loc[Settings.LogMode.Save]}"
+                                    Command="{Binding SaveLogServerSettingsCommand}"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
 
         </ScrollViewer>
